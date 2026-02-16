@@ -1,0 +1,15 @@
+# PDF kitap dosyası (telif hakkı)
+*.pdf
+
+# Claude Code yerel ayarları
+.claude/settings.local.json
+
+# Geçici ve yedek dosyalar
+sorted_glossary.txt
+*.bak
+*.tmp
+*~
+.DS_Store
+Thumbs.db
+
+.docs
