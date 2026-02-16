@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sayfa 1 — Chapter 1: Introduction | Effective Java Türkçe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.8;
+            font-size: 17px;
+            min-height: 100vh;
+        }
+
+        /* Üst Bar */
+        .top-bar {
+            background: #0d2137;
+            color: #e0e0e0;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .home-link {
+            color: #f5a623;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border: 1px solid rgba(245,166,35,0.3);
+            border-radius: 6px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .home-link:hover {
+            background: rgba(245,166,35,0.1);
+            border-color: #f5a623;
+        }
+
+        .top-bar-title {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .book-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #f5a623;
+        }
+
+        .chapter-info {
+            font-size: 12px;
+            color: #adb5bd;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Dil Toggle */
+        .lang-toggle {
+            display: flex;
+            border: 1px solid rgba(245,166,35,0.3);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .lang-btn {
+            padding: 5px 12px;
+            font-size: 13px;
+            font-weight: 700;
+            background: transparent;
+            color: #adb5bd;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            color: #0d2137;
+        }
+
+        .lang-btn:hover:not(.active) {
+            color: #f5a623;
+        }
+
+        /* Sayfa Numarası Input */
+        .page-number-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+        }
+
+        .page-number-label {
+            font-size: 12px;
+            color: #adb5bd;
+            white-space: nowrap;
+        }
+
+        .page-number-input {
+            width: 52px;
+            padding: 4px 8px;
+            text-align: center;
+            border: 1px solid rgba(245,166,35,0.3);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.08);
+            color: #f5a623;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .page-number-input:focus {
+            border-color: #f5a623;
+        }
+
+        .page-number-input.error {
+            border-color: #dc3545;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .page-nav-tooltip {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 6px;
+            background: #dc3545;
+            color: #fff;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 200;
+        }
+
+        .page-nav-tooltip.visible {
+            opacity: 1;
+        }
+
+        /* İçerik */
+        .content {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 40px 24px 60px;
+        }
+
+        .page-badge {
+            display: inline-block;
+            background: #0d2137;
+            color: #f5a623;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+        }
+
+        .chapter-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #0d2137;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .chapter-title-en {
+            font-size: 18px;
+            color: #6c757d;
+            font-weight: 400;
+            font-style: italic;
+            margin-bottom: 32px;
+        }
+
+        .divider {
+            height: 3px;
+            background: linear-gradient(90deg, #f5a623 0%, transparent 100%);
+            border: none;
+            margin-bottom: 32px;
+            border-radius: 2px;
+        }
+
+        .text-paragraph {
+            margin-bottom: 20px;
+            text-align: justify;
+            hyphens: auto;
+        }
+
+        /* Tablo */
+        .feature-table-wrapper {
+            overflow-x: auto;
+            margin: 28px 0;
+        }
+
+        .feature-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 15px;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+
+        .feature-table thead {
+            background: #0d2137;
+            color: #f5a623;
+        }
+
+        .feature-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        .feature-table td {
+            padding: 10px 16px;
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+
+        .feature-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .feature-table tbody tr:hover {
+            background: #fdf6eb;
+        }
+
+        .feature-table code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #0d2137;
+        }
+
+        /* Kavram Butonları */
+        .concepts-section {
+            margin-top: 40px;
+            padding-top: 32px;
+            border-top: 2px solid #eee;
+        }
+
+        .concepts-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0d2137;
+            margin-bottom: 16px;
+        }
+
+        .concepts-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .concept-btn {
+            padding: 10px 20px;
+            background: #fff;
+            border: 2px solid #0d2137;
+            border-radius: 10px;
+            color: #0d2137;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .concept-btn:hover {
+            background: #0d2137;
+            color: #f5a623;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13,33,55,0.2);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 16px;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 16px;
+            max-width: 720px;
+            width: 100%;
+            padding: 32px;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: #f0f0f0;
+            color: #333;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #0d2137;
+            margin-bottom: 4px;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
+        .modal-desc {
+            margin-bottom: 24px;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        .example-label {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .example-label.bad {
+            background: #fce4e4;
+            color: #dc3545;
+        }
+
+        .example-label.good {
+            background: #e3f9e5;
+            color: #28a745;
+        }
+
+        .example-explain {
+            font-size: 14px;
+            color: #555;
+            margin: 8px 0 20px;
+            padding-left: 12px;
+            border-left: 3px solid #dee2e6;
+        }
+
+        .modal-tip {
+            background: #fdf6eb;
+            border: 1px solid #f5a623;
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #0d2137;
+        }
+
+        .modal-tip strong {
+            color: #f5a623;
+        }
+
+        /* Kod blokları */
+        pre {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            padding: 18px 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+
+        pre .keyword { color: #cba6f7; }
+        pre .type { color: #89b4fa; }
+        pre .string { color: #a6e3a1; }
+        pre .comment { color: #6c7086; font-style: italic; }
+        pre .annotation { color: #f9e2af; }
+        pre .number { color: #fab387; }
+        pre .method { color: #89dceb; }
+
+        /* Navigasyon */
+        .page-nav {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 2px solid #eee;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 16px 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #0d2137;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-family: inherit;
+            font-size: 15px;
+        }
+
+        .nav-btn:hover:not(.disabled) {
+            border-color: #0d2137;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: #f0f0f0;
+        }
+
+        .nav-btn-label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 4px;
+        }
+
+        .nav-btn-title {
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: #adb5bd;
+            font-size: 13px;
+            border-top: 1px solid #dee2e6;
+            margin-top: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            .top-bar {
+                padding: 12px 16px;
+            }
+            .book-title {
+                font-size: 14px;
+            }
+            .content {
+                padding: 24px 16px 40px;
+            }
+            .chapter-title {
+                font-size: 22px;
+            }
+            .modal-content {
+                padding: 24px 18px;
+            }
+            .page-nav {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Üst Bar -->
+<div class="top-bar">
+    <div class="top-bar-left">
+        <a href="../index.html" class="home-link">Ana Sayfa</a>
+        <div class="top-bar-title">
+            <div class="book-title">Effective Java &mdash; Joshua Bloch</div>
+            <div class="chapter-info">Chapter 1: Introduction / Giriş</div>
+        </div>
+    </div>
+    <div class="top-bar-right">
+        <div class="lang-toggle">
+            <button class="lang-btn" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="page-number-wrapper">
+            <span class="page-number-label">Sayfa</span>
+            <input type="text" class="page-number-input" id="pageNumInput" value="1" maxlength="4" autocomplete="off"
+                   onkeydown="if(event.key==='Enter') goToPageNum()"
+                   onblur="resetPageInput()">
+            <div class="page-nav-tooltip" id="pageNavTooltip"></div>
+        </div>
+    </div>
+</div>
+
+<!-- İçerik -->
+<div class="content">
+    <div class="page-badge">Sayfa 1</div>
+
+    <!-- Bölüm Başlığı -->
+    <h1 class="chapter-title">
+        <span class="tr-text">Bölüm 1: Giriş</span>
+        <span class="en-text">Chapter 1: Introduction</span>
+    </h1>
+    <div class="chapter-title-en">
+        <span class="tr-text">Chapter 1: Introduction</span>
+        <span class="en-text">Bölüm 1: Giriş</span>
+    </div>
+    <hr class="divider">
+
+    <!-- Paragraf 1 -->
+    <p class="text-paragraph tr-text">
+        Bu kitap, Java programlama dilini ve onun temel kütüphanelerini &mdash; <code>java.lang</code>, <code>java.util</code> ve <code>java.io</code> ile <code>java.util.concurrent</code> ve <code>java.util.function</code> gibi alt paketlerini &mdash; etkili bir şekilde kullanmanıza yardımcı olmak için tasarlanmıştır. Diğer kütüphaneler de zaman zaman ele alınmaktadır.
+    </p>
+    <p class="text-paragraph en-text">
+        This book is designed to help you make effective use of the Java programming language and its fundamental libraries: <code>java.lang</code>, <code>java.util</code>, and <code>java.io</code>, and subpackages such as <code>java.util.concurrent</code> and <code>java.util.function</code>. Other libraries are discussed from time to time.
+    </p>
+
+    <!-- Paragraf 2 -->
+    <p class="text-paragraph tr-text">
+        Bu kitap, her biri bir kural ileten doksan maddeden (item) oluşmaktadır. Bu kurallar, en iyi ve en deneyimli programcılar tarafından genel olarak faydalı kabul edilen pratikleri yansıtmaktadır. Maddeler, her biri yazılım tasarımının geniş bir yönünü kapsayan on bir bölüm (chapter) halinde gevşek bir şekilde gruplandırılmıştır. Kitabın baştan sona okunması amaçlanmamıştır: her madde aşağı yukarı kendi başına bağımsızdır. Maddeler yoğun bir şekilde çapraz referanslandırılmıştır, böylece kitapta kolayca kendi rotanızı çizebilirsiniz.
+    </p>
+    <p class="text-paragraph en-text">
+        This book consists of ninety items, each of which conveys one rule. The rules capture practices generally held to be beneficial by the best and most experienced programmers. The items are loosely grouped into eleven chapters, each covering one broad aspect of software design. The book is not intended to be read from cover to cover: each item stands on its own, more or less. The items are heavily cross-referenced so you can easily plot your own course through the book.
+    </p>
+
+    <!-- Paragraf 3 -->
+    <p class="text-paragraph tr-text">
+        Bu kitabın son baskısı yayımlandığından bu yana platforma birçok yeni özellik eklendi. Bu kitaptaki maddelerin çoğu bu özellikleri bir şekilde kullanmaktadır. Aşağıdaki tablo, temel özelliklerin (features) birincil olarak hangi maddelerde ele alındığını göstermektedir:
+    </p>
+    <p class="text-paragraph en-text">
+        Many new features were added to the platform since the last edition of this book was published. Most of the items in this book use these features in some way. This table shows you where to go for primary coverage of key features:
+    </p>
+
+    <!-- Özellik Tablosu -->
+    <div class="feature-table-wrapper">
+        <table class="feature-table">
+            <thead>
+                <tr>
+                    <th>
+                        <span class="tr-text">Özellik (Feature)</span>
+                        <span class="en-text">Feature</span>
+                    </th>
+                    <th>
+                        <span class="tr-text">Maddeler (Items)</span>
+                        <span class="en-text">Items</span>
+                    </th>
+                    <th>
+                        <span class="tr-text">Sürüm (Release)</span>
+                        <span class="en-text">Release</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>Lambdas</code></td>
+                    <td>Items 42&ndash;44</td>
+                    <td>Java 8</td>
+                </tr>
+                <tr>
+                    <td><code>Streams</code></td>
+                    <td>Items 45&ndash;48</td>
+                    <td>Java 8</td>
+                </tr>
+                <tr>
+                    <td><code>Optionals</code></td>
+                    <td>Item 55</td>
+                    <td>Java 8</td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="tr-text">Arayüzlerde varsayılan metotlar (<code>Default methods in interfaces</code>)</span>
+                        <span class="en-text"><code>Default methods in interfaces</code></span>
+                    </td>
+                    <td>Item 21</td>
+                    <td>Java 8</td>
+                </tr>
+                <tr>
+                    <td><code>try-with-resources</code></td>
+                    <td>Item 9</td>
+                    <td>Java 7</td>
+                </tr>
+                <tr>
+                    <td><code>@SafeVarargs</code></td>
+                    <td>Item 32</td>
+                    <td>Java 7</td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="tr-text">Modüller (<code>Modules</code>)</span>
+                        <span class="en-text"><code>Modules</code></span>
+                    </td>
+                    <td>Item 15</td>
+                    <td>Java 9</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paragraf 4 -->
+    <p class="text-paragraph tr-text">
+        Maddelerin çoğu, program örnekleri (program examples) ile açıklanmaktadır. Bu kitabın önemli bir özelliği, birçok tasarım kalıbını (design pattern) ve deyimi (idiom) gösteren kod örnekleri içermesidir. Uygun olan yerlerde, bu alandaki standart referans çalışmasına [Gamma95] çapraz referans verilmiştir.
+    </p>
+    <p class="text-paragraph en-text">
+        Most items are illustrated with program examples. A key feature of this book is that it contains code examples illustrating many design patterns and idioms. Where appropriate, they are cross-referenced to the standard reference work in this area [Gamma95].
+    </p>
+
+    <!-- Paragraf 5 -->
+    <p class="text-paragraph tr-text">
+        Birçok madde, belirli bir pratiği gösteren bir veya daha fazla program örneği içermektedir.
+    </p>
+    <p class="text-paragraph en-text">
+        Many items contain one or more program examples illustrating some practice
+    </p>
+
+    <!-- Kavram Butonları -->
+    <div class="concepts-section">
+        <h2 class="concepts-title">
+            <span class="tr-text">Kavramlar</span>
+            <span class="en-text">Concepts</span>
+        </h2>
+        <div class="concepts-grid">
+            <button class="concept-btn" onclick="openModal('design-patterns')">
+                <span class="tr-text">Tasarım Kalıpları (Design Patterns)</span>
+                <span class="en-text">Design Patterns</span>
+            </button>
+            <button class="concept-btn" onclick="openModal('api')">
+                <span class="tr-text">API (Application Programming Interface)</span>
+                <span class="en-text">API (Application Programming Interface)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigasyon -->
+    <div class="page-nav">
+        <div class="nav-btn disabled">
+            <div class="nav-btn-label">
+                <span class="tr-text">Önceki Sayfa</span>
+                <span class="en-text">Previous Page</span>
+            </div>
+            <div class="nav-btn-title">&mdash;</div>
+        </div>
+        <a href="#" class="nav-btn" onclick="return handleUntranslated(event, 2)">
+            <div class="nav-btn-label">
+                <span class="tr-text">Sonraki Sayfa</span>
+                <span class="en-text">Next Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 2 &mdash; Bölüm 1: Giriş</span>
+                <span class="en-text">Page 2 &mdash; Chapter 1: Introduction</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Modal: Tasarım Kalıpları -->
+<div class="modal-overlay" id="modal-design-patterns">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('design-patterns')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Tasarım Kalıpları</span>
+            <span class="en-text">Design Patterns</span>
+        </div>
+        <div class="modal-subtitle">Design Patterns &mdash; Gang of Four [Gamma95]</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Tasarım kalıpları (Design Patterns), yazılım geliştirmede tekrar eden sorunlara yönelik denenmiş ve doğrulanmış çözüm şablonlarıdır. "Gang of Four" (GoF) olarak bilinen dört yazar &mdash; Gamma, Helm, Johnson ve Vlissides &mdash; tarafından sistematize edilmiştir. Effective Java boyunca bu kalıplara sık sık referans verilmektedir.
+            </span>
+            <span class="en-text">
+                Design Patterns are proven, reusable solutions to commonly recurring problems in software development. They were systematized by the four authors known as the "Gang of Four" (GoF) &mdash; Gamma, Helm, Johnson, and Vlissides. Effective Java frequently references these patterns throughout the book.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Doğrudan nesne oluşturma - esnekliği kısıtlar</span>
+<span class="keyword">public class</span> <span class="type">NotificationService</span> {
+
+    <span class="keyword">public void</span> <span class="method">send</span>(<span class="type">String</span> message, <span class="type">String</span> type) {
+        <span class="keyword">if</span> (type.equals(<span class="string">"email"</span>)) {
+            <span class="type">EmailSender</span> sender = <span class="keyword">new</span> <span class="type">EmailSender</span>();
+            sender.send(message);
+        } <span class="keyword">else if</span> (type.equals(<span class="string">"sms"</span>)) {
+            <span class="type">SmsSender</span> sender = <span class="keyword">new</span> <span class="type">SmsSender</span>();
+            sender.send(message);
+        } <span class="keyword">else if</span> (type.equals(<span class="string">"push"</span>)) {
+            <span class="type">PushSender</span> sender = <span class="keyword">new</span> <span class="type">PushSender</span>();
+            sender.send(message);
+        }
+    }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Her yeni bildirim tipi eklendiğinde mevcut kodu değiştirmek gerekmektedir. Bu, Açık/Kapalı İlkesini (Open/Closed Principle) ihlal eder ve bakım maliyetini artırır.
+            </span>
+            <span class="en-text">
+                Every time a new notification type is added, existing code must be modified. This violates the Open/Closed Principle and increases maintenance cost.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Strategy Pattern kullanarak esneklik sağlama</span>
+<span class="keyword">public interface</span> <span class="type">NotificationSender</span> {
+    <span class="keyword">void</span> <span class="method">send</span>(<span class="type">String</span> message);
+}
+
+<span class="keyword">public class</span> <span class="type">EmailSender</span> <span class="keyword">implements</span> <span class="type">NotificationSender</span> {
+    <span class="annotation">@Override</span>
+    <span class="keyword">public void</span> <span class="method">send</span>(<span class="type">String</span> message) {
+        <span class="comment">// E-posta gönderim mantığı</span>
+    }
+}
+
+<span class="keyword">public class</span> <span class="type">NotificationService</span> {
+    <span class="keyword">private final</span> <span class="type">NotificationSender</span> sender;
+
+    <span class="keyword">public</span> <span class="method">NotificationService</span>(<span class="type">NotificationSender</span> sender) {
+        <span class="keyword">this</span>.sender = sender;
+    }
+
+    <span class="keyword">public void</span> <span class="method">send</span>(<span class="type">String</span> message) {
+        sender.send(message);
+    }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Strategy kalıbını (Strategy Pattern) kullanarak, yeni bildirim tipi eklemek için mevcut koda dokunmadan yeni bir sınıf oluşturmak yeterlidir. Bağımlılıkları tersine çevirerek (Dependency Inversion) sistemi genişletilebilir hale getirdik.
+            </span>
+            <span class="en-text">
+                Using the Strategy Pattern, adding a new notification type only requires creating a new class without touching existing code. By inverting dependencies (Dependency Inversion), we made the system extensible.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Kodunuzda <code>if/else</code> veya <code>switch</code> zincirleri gördüğünüzde, bunların bir tasarım kalıbıyla değiştirilip değiştirilemeyeceğini düşünün. Strategy, Factory Method ve Observer kalıpları en sık kullanılan alternatiflerdir.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> When you see <code>if/else</code> or <code>switch</code> chains in your code, consider whether they could be replaced by a design pattern. Strategy, Factory Method, and Observer are the most commonly used alternatives.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: API -->
+<div class="modal-overlay" id="modal-api">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('api')">&times;</button>
+        <div class="modal-title">API (Application Programming Interface)</div>
+        <div class="modal-subtitle">
+            <span class="tr-text">Uygulama Programlama Arayüzü</span>
+            <span class="en-text">Application Programming Interface</span>
+        </div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                API (Application Programming Interface), bir yazılım bileşeniyle dışarıdan nasıl etkileşim kurulacağını tanımlayan sözleşme (contract) niteliğindeki arayüzdür. Java'da API denildiğinde genellikle bir sınıfın, arayüzün veya paketin kamusal metotları (public methods) ve tipleri kastedilir. İyi tasarlanmış bir API, kullanıcı için anlaşılır, yanlışa yer bırakmayan ve genişletilebilir olmalıdır.
+            </span>
+            <span class="en-text">
+                An API (Application Programming Interface) is a contract-like interface that defines how external code interacts with a software component. In Java, API typically refers to the public methods and types of a class, interface, or package. A well-designed API should be understandable, hard to misuse, and extensible.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Kötü API tasarımı - belirsiz parametre anlamları</span>
+<span class="keyword">public class</span> <span class="type">UserManager</span> {
+
+    <span class="keyword">public</span> <span class="type">List</span>&lt;<span class="type">Object</span>&gt; <span class="method">get</span>(<span class="type">String</span> s, <span class="keyword">boolean</span> b,
+                                  <span class="keyword">int</span> n) {
+        <span class="comment">// s nedir? b ne işe yarar? n neyi sınırlar?</span>
+        <span class="keyword">return null</span>;
+    }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Metot adı belirsiz (<code>get</code>), parametreler kendini açıklamıyor (<code>s</code>, <code>b</code>, <code>n</code>), dönüş tipi genel (<code>List&lt;Object&gt;</code>) ve <code>null</code> döndürüyor. Bu API'yi kullanan geliştirici, kaynak kodunu okumadan metodu anlayamaz.
+            </span>
+            <span class="en-text">
+                The method name is vague (<code>get</code>), parameters are unclear (<code>s</code>, <code>b</code>, <code>n</code>), the return type is generic (<code>List&lt;Object&gt;</code>), and it returns <code>null</code>. A developer using this API cannot understand the method without reading the source code.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// İyi API tasarımı - kendini açıklayan, tip-güvenli</span>
+<span class="keyword">public class</span> <span class="type">UserRepository</span> {
+
+    <span class="keyword">public</span> <span class="type">List</span>&lt;<span class="type">User</span>&gt; <span class="method">findActiveUsersByRole</span>(
+            <span class="type">Role</span> role, <span class="keyword">int</span> maxResults) {
+        <span class="comment">// Açık metot adı, anlamlı parametreler,</span>
+        <span class="comment">// tip-güvenli dönüş değeri</span>
+        <span class="keyword">return</span> <span class="type">Collections</span>.emptyList();
+    }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Metot adı ne yaptığını açıkça belirtiyor, parametreler anlamlı tiplerle tanımlanmış, dönüş tipi belirli (<code>List&lt;User&gt;</code>) ve boş liste döndürerek <code>null</code>'dan kaçınılmış. Bu API kendini belgelemektedir (self-documenting).
+            </span>
+            <span class="en-text">
+                The method name clearly states what it does, parameters are defined with meaningful types, the return type is specific (<code>List&lt;User&gt;</code>), and it returns an empty list instead of <code>null</code>. This API is self-documenting.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Bir sınıfın kamusal metotlarını yazarken, kendinizi o sınıfın kullanıcısı olarak hayal edin. Metot imzasına bakarak ne yaptığını anlayabiliyor musunuz? Eğer JavaDoc okumadan anlayamıyorsanız, API'niz yeterince açık değildir.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> When writing public methods for a class, imagine yourself as a user of that class. Can you understand what the method does just by looking at its signature? If you cannot understand it without reading JavaDoc, your API is not clear enough.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+    Effective Java &mdash; Joshua Bloch &bull; Sayfa 1 &bull; Chapter 1: Introduction
+</div>
+
+<script>const CURRENT_PAGE = 1;</script>
+<script src="../js/common.js"></script>
+
+</body>
+</html>
