@@ -7,9 +7,9 @@ Bu proje, Joshua Bloch'un "Effective Java (3rd Edition)" kitabını sayfa sayfa 
 ## PDF Bilgileri
 
 - **PDF Dosya Yolu**: `docs/Effective Java (3rd Edition).pdf`
-- **Sayfa Offset**: PDF sayfa numarası = Kitap sayfa numarası + 0
-  - NOT: PDF offset henüz belirlenmedi. İlk çeviri sırasında PDF incelenip doğru offset hesaplanmalıdır.
-  - Örnek: Kitap sayfa 1 = PDF sayfa ? (ilk çeviride belirlenecek)
+- **Sayfa Offset**: PDF sayfa numarası = Kitap sayfa numarası + 19
+  - Örnek: Kitap sayfa 1 (Chapter 1 Introduction) = PDF sayfa 20
+  - Örnek: Kitap sayfa 5 (Chapter 2, Item 1) = PDF sayfa 24
 - **Kitap Yapısı**:
   - 3rd Edition, 2018
   - 90 Item (madde) içerir, 12 bölüme ayrılmıştır

@@ -25,7 +25,7 @@ Kullanıcı bu skill'i çağırdığında aşağıdaki adımları takip et:
 ## 3. PDF'den Sayfaları Oku
 
 - PDF yolu: `docs/Effective Java (3rd Edition).pdf` (proje kök dizinine göre relative)
-- Sayfa offset: PDF sayfa = kitap sayfa + OFFSET (CLAUDE.md'deki offset değerini kullan)
+- Sayfa offset: PDF sayfa = kitap sayfa + 19 (Örnek: kitap sayfa 1 = PDF sayfa 20)
 - İstenilen sayfanın **bir önceki**, **kendisi** ve **bir sonraki** sayfasını oku (toplam 3 sayfa).
 
 ## 4. Çeviriyi Yap
