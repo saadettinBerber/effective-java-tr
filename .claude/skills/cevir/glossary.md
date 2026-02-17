@@ -69,5 +69,16 @@ Her yeni sayfa çevrildikten sonra, o sayfada geçen yeni teknik terimler buraya
 | Subclassing | Alt sınıflama | Bir sınıfın başka bir sınıfı extends ile genişletmesi |
 | Subpackage | Alt paket | Java alt paketi |
 | Type | Tip | Java tip sistemi (interface, class, array, primitive) |
+| Boxed primitive | Sarmalayıcı ilkel sınıf | İlkel tiplerin nesne karşılıkları (Integer, Boolean vb.) |
+| Companion class | Eşlikçi sınıf | Arayüz için statik metotları barındıran örneklenemez sınıf |
+| Flyweight pattern | Flyweight kalıbı | Paylaşılan nesnelerle bellek tasarrufu sağlayan tasarım kalıbı |
+| Immutable class | Değişmez sınıf | Oluşturulduktan sonra durumu değiştirilemeyen sınıf |
+| Instance | Örnek | Bir sınıftan oluşturulan nesne |
+| Instance-controlled | Örnek-kontrollü | Hangi örneklerin var olduğunu kontrol eden sınıf |
+| Interface-based framework | Arayüz tabanlı çerçeve | API'sini arayüzler üzerinden tanımlayan çerçeve |
+| Noninstantiable | Örneklenemez | Örneği oluşturulamayan sınıf (private constructor ile) |
+| Singleton | Tekil | Yalnızca bir örneği olan sınıf |
+| Static factory method | Statik fabrika metodu | Sınıfın örneğini döndüren statik metot |
+| Subtype | Alt tip | Bir tipin alt tipi (extends veya implements ile) |
 | User (of API) | Kullanıcı (API'nin) | API kullanan program yazan programcı |
 

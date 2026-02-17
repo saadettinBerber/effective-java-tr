@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sayfa 5 — Chapter 2: Item 1 | Effective Java Türkçe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.8;
+            font-size: 17px;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: #0d2137;
+            color: #e0e0e0;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-bar-left { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+        .home-link {
+            color: #f5a623;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border: 1px solid rgba(245,166,35,0.3);
+            border-radius: 6px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .home-link:hover { background: rgba(245,166,35,0.1); border-color: #f5a623; }
+
+        .top-bar-title { display: flex; flex-direction: column; }
+        .book-title { font-size: 16px; font-weight: 700; color: #f5a623; }
+        .chapter-info { font-size: 12px; color: #adb5bd; }
+        .top-bar-right { display: flex; align-items: center; gap: 12px; }
+
+        .lang-toggle { display: flex; border: 1px solid rgba(245,166,35,0.3); border-radius: 6px; overflow: hidden; }
+        .lang-btn { padding: 5px 12px; font-size: 13px; font-weight: 700; background: transparent; color: #adb5bd; border: none; cursor: pointer; transition: all 0.3s; }
+        .lang-btn.active { background: #f5a623; color: #0d2137; }
+        .lang-btn:hover:not(.active) { color: #f5a623; }
+
+        .page-number-wrapper { display: flex; align-items: center; gap: 6px; position: relative; }
+        .page-number-label { font-size: 12px; color: #adb5bd; white-space: nowrap; }
+        .page-number-input {
+            width: 52px; padding: 4px 8px; text-align: center;
+            border: 1px solid rgba(245,166,35,0.3); border-radius: 6px;
+            background: rgba(255,255,255,0.08); color: #f5a623;
+            font-size: 14px; font-weight: 700; font-family: inherit; outline: none;
+            transition: border-color 0.3s;
+        }
+        .page-number-input:focus { border-color: #f5a623; }
+        .page-number-input.error { border-color: #dc3545; animation: shake 0.4s ease; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .page-nav-tooltip {
+            position: absolute; top: 100%; right: 0; margin-top: 6px;
+            background: #dc3545; color: #fff; font-size: 12px; padding: 6px 12px;
+            border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s; z-index: 200;
+        }
+        .page-nav-tooltip.visible { opacity: 1; }
+
+        .content { max-width: 760px; margin: 0 auto; padding: 40px 24px 60px; }
+
+        .page-badge {
+            display: inline-block; background: #0d2137; color: #f5a623;
+            font-size: 13px; font-weight: 700; padding: 4px 14px;
+            border-radius: 20px; margin-bottom: 24px;
+        }
+
+        .chapter-title { font-size: 28px; font-weight: 800; color: #0d2137; margin-bottom: 8px; line-height: 1.3; }
+        .chapter-title-en { font-size: 18px; color: #6c757d; font-weight: 400; font-style: italic; margin-bottom: 32px; }
+
+        .divider {
+            height: 3px; background: linear-gradient(90deg, #f5a623 0%, transparent 100%);
+            border: none; margin-bottom: 32px; border-radius: 2px;
+        }
+
+        .item-title { font-size: 22px; font-weight: 800; color: #0d2137; margin: 32px 0 8px; line-height: 1.3; }
+        .item-title-en { font-size: 16px; color: #6c757d; font-weight: 400; font-style: italic; margin-bottom: 24px; }
+
+        .text-paragraph { margin-bottom: 20px; text-align: justify; hyphens: auto; }
+        .text-paragraph em { font-style: italic; color: #555; }
+        .text-paragraph strong { font-weight: 700; color: #0d2137; }
+        .text-paragraph code {
+            background: #f0f0f0; padding: 2px 6px; border-radius: 4px;
+            font-size: 15px; color: #0d2137;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+
+        /* Kavram Butonları */
+        .concepts-section { margin-top: 40px; padding-top: 32px; border-top: 2px solid #eee; }
+        .concepts-title { font-size: 18px; font-weight: 700; color: #0d2137; margin-bottom: 16px; }
+        .concepts-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+        .concept-btn {
+            padding: 10px 20px; background: #fff; border: 2px solid #0d2137;
+            border-radius: 10px; color: #0d2137; font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s; font-family: inherit;
+        }
+        .concept-btn:hover {
+            background: #0d2137; color: #f5a623; transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13,33,55,0.2);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center;
+            align-items: flex-start; padding: 40px 16px; overflow-y: auto;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: #fff; border-radius: 16px; max-width: 720px; width: 100%;
+            padding: 32px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-close {
+            position: absolute; top: 16px; right: 16px; width: 32px; height: 32px;
+            border-radius: 50%; border: none; background: #f0f0f0; color: #333;
+            font-size: 18px; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; transition: all 0.3s;
+        }
+        .modal-close:hover { background: #dc3545; color: #fff; }
+        .modal-title { font-size: 22px; font-weight: 800; color: #0d2137; margin-bottom: 4px; }
+        .modal-subtitle { font-size: 14px; color: #6c757d; font-style: italic; margin-bottom: 20px; }
+        .modal-desc { margin-bottom: 24px; line-height: 1.7; color: #333; }
+
+        .example-label {
+            font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 8px; padding: 4px 10px; border-radius: 4px; display: inline-block;
+        }
+        .example-label.bad { background: #fce4e4; color: #dc3545; }
+        .example-label.good { background: #e3f9e5; color: #28a745; }
+        .example-explain { font-size: 14px; color: #555; margin: 8px 0 20px; padding-left: 12px; border-left: 3px solid #dee2e6; }
+        .modal-tip {
+            background: #fdf6eb; border: 1px solid #f5a623; border-radius: 8px;
+            padding: 14px 18px; margin-top: 20px; font-size: 14px; color: #0d2137;
+        }
+        .modal-tip strong { color: #f5a623; }
+
+        /* Kod blokları */
+        pre {
+            background: #1e1e2e; color: #cdd6f4; padding: 18px 20px; border-radius: 10px;
+            overflow-x: auto; font-size: 14px; line-height: 1.6; margin-bottom: 12px;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+        pre .keyword { color: #cba6f7; }
+        pre .type { color: #89b4fa; }
+        pre .string { color: #a6e3a1; }
+        pre .comment { color: #6c7086; font-style: italic; }
+        pre .annotation { color: #f9e2af; }
+        pre .number { color: #fab387; }
+        pre .method { color: #89dceb; }
+
+        /* Navigasyon */
+        .page-nav { display: flex; justify-content: space-between; gap: 16px; margin-top: 48px; padding-top: 24px; border-top: 2px solid #eee; }
+        .nav-btn {
+            flex: 1; padding: 16px 20px; border: 2px solid #dee2e6; border-radius: 12px;
+            text-decoration: none; color: #0d2137; background: #fff; cursor: pointer;
+            transition: all 0.3s; text-align: center; font-family: inherit; font-size: 15px;
+        }
+        .nav-btn:hover:not(.disabled) { border-color: #0d2137; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .nav-btn.disabled { opacity: 0.4; cursor: not-allowed; background: #f0f0f0; }
+        .nav-btn-label { font-size: 12px; color: #6c757d; margin-bottom: 4px; }
+        .nav-btn-title { font-weight: 700; font-size: 15px; }
+
+        .footer { text-align: center; padding: 24px; color: #adb5bd; font-size: 13px; border-top: 1px solid #dee2e6; margin-top: 20px; }
+
+        @media (max-width: 700px) {
+            .top-bar { padding: 12px 16px; }
+            .book-title { font-size: 14px; }
+            .content { padding: 24px 16px 40px; }
+            .chapter-title { font-size: 22px; }
+            .item-title { font-size: 19px; }
+            .modal-content { padding: 24px 18px; }
+            .page-nav { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Üst Bar -->
+<div class="top-bar">
+    <div class="top-bar-left">
+        <a href="../index.html" class="home-link">Ana Sayfa</a>
+        <div class="top-bar-title">
+            <div class="book-title">Effective Java &mdash; Joshua Bloch</div>
+            <div class="chapter-info">Chapter 2: Creating and Destroying Objects / Item 1</div>
+        </div>
+    </div>
+    <div class="top-bar-right">
+        <div class="lang-toggle">
+            <button class="lang-btn" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="page-number-wrapper">
+            <span class="page-number-label">Sayfa</span>
+            <input type="text" class="page-number-input" id="pageNumInput" value="5" maxlength="4" autocomplete="off"
+                   onkeydown="if(event.key==='Enter') goToPageNum()"
+                   onblur="resetPageInput()">
+            <div class="page-nav-tooltip" id="pageNavTooltip"></div>
+        </div>
+    </div>
+</div>
+
+<!-- İçerik -->
+<div class="content">
+    <div class="page-badge">Sayfa 5</div>
+
+    <h1 class="chapter-title">
+        <span class="tr-text">Bölüm 2: Nesnelerin Oluşturulması ve Yok Edilmesi</span>
+        <span class="en-text">Chapter 2: Creating and Destroying Objects</span>
+    </h1>
+    <div class="chapter-title-en">
+        <span class="tr-text">Chapter 2: Creating and Destroying Objects</span>
+        <span class="en-text">Bölüm 2: Nesnelerin Oluşturulması ve Yok Edilmesi</span>
+    </div>
+    <hr class="divider">
+
+    <!-- Chapter 2 giriş paragrafı -->
+    <p class="text-paragraph tr-text">
+        Bu bölüm nesnelerin oluşturulması ve yok edilmesiyle ilgilenir: nesneleri ne zaman ve nasıl oluşturmalı, ne zaman ve nasıl oluşturmaktan kaçınmalı, zamanında yok edilmelerini nasıl sağlamalı ve yok edilmelerinden önce gerçekleşmesi gereken temizlik işlemlerini nasıl yönetmelisiniz.
+    </p>
+    <p class="text-paragraph en-text">
+        This chapter concerns creating and destroying objects: when and how to create them, when and how to avoid creating them, how to ensure they are destroyed in a timely manner, and how to manage any cleanup actions that must precede their destruction.
+    </p>
+
+    <!-- Item 1 Başlığı -->
+    <h2 class="item-title">
+        <span class="tr-text">Madde 1: Yapıcı Metot Yerine Statik Fabrika Metotlarını Düşünün</span>
+        <span class="en-text">Item 1: Consider Static Factory Methods Instead of Constructors</span>
+    </h2>
+    <div class="item-title-en">
+        <span class="tr-text">Item 1: Consider static factory methods instead of constructors</span>
+        <span class="en-text">Madde 1: Yapıcı Metot Yerine Statik Fabrika Metotlarını Düşünün</span>
+    </div>
+
+    <!-- Paragraf 1: Giriş -->
+    <p class="text-paragraph tr-text">
+        Bir sınıfın istemcilere (clients) bir örneğini (instance) sağlamasının geleneksel yolu, kamusal (public) bir yapıcı metot (constructor) sunmaktır. Her programcının araç kutusunda olması gereken bir teknik daha vardır. Bir sınıf, sınıfın bir örneğini döndüren kamusal bir <em>statik fabrika metodu</em> (static factory method) sağlayabilir. İşte <code>Boolean</code> sınıfından (boolean için <em>sarmalayıcı ilkel sınıf</em> / boxed primitive class) basit bir örnek. Bu metot, bir <code>boolean</code> ilkel (primitive) değerini bir <code>Boolean</code> nesne referansına dönüştürür:
+    </p>
+    <p class="text-paragraph en-text">
+        The traditional way for a class to allow a client to obtain an instance is to provide a public constructor. There is another technique that should be a part of every programmer's toolkit. A class can provide a public <em>static factory method</em>, which is simply a static method that returns an instance of the class. Here's a simple example from <code>Boolean</code> (the <em>boxed primitive</em> class for <code>boolean</code>). This method translates a <code>boolean</code> primitive value into a <code>Boolean</code> object reference:
+    </p>
+
+    <!-- Kod Bloğu: Boolean.valueOf -->
+<pre><span class="keyword">public static</span> <span class="type">Boolean</span> <span class="method">valueOf</span>(<span class="keyword">boolean</span> b) {
+    <span class="keyword">return</span> b ? <span class="type">Boolean</span>.TRUE : <span class="type">Boolean</span>.FALSE;
+}</pre>
+
+    <!-- Paragraf 2: Factory Method pattern ile farkı -->
+    <p class="text-paragraph tr-text">
+        Bir statik fabrika metodunun, <em>Design Patterns</em> kitabındaki [Gamma95] <em>Factory Method</em> tasarım kalıbıyla (design pattern) aynı şey olmadığına dikkat edin. Bu maddede açıklanan statik fabrika metodunun <em>Design Patterns</em>'da doğrudan bir karşılığı yoktur.
+    </p>
+    <p class="text-paragraph en-text">
+        Note that a static factory method is not the same as the <em>Factory Method</em> pattern from <em>Design Patterns</em> [Gamma95]. The static factory method described in this item has no direct equivalent in <em>Design Patterns</em>.
+    </p>
+
+    <!-- Paragraf 3: Avantajlar giriş -->
+    <p class="text-paragraph tr-text">
+        Bir sınıf, istemcilerine kamusal yapıcı metotlar yerine veya bunlara ek olarak statik fabrika metotları sağlayabilir. Kamusal bir yapıcı metot yerine statik fabrika metodu sağlamanın hem avantajları hem de dezavantajları vardır.
+    </p>
+    <p class="text-paragraph en-text">
+        A class can provide its clients with static factory methods instead of, or in addition to, public constructors. Providing a static factory method instead of a public constructor has both advantages and disadvantages.
+    </p>
+
+    <!-- Paragraf 4: Birinci Avantaj - İsimler -->
+    <p class="text-paragraph tr-text">
+        <strong>Statik fabrika metotlarının yapıcı metotlara göre birinci avantajı, yapıcıların aksine isimlerinin olmasıdır.</strong> Bir yapıcı metodun parametreleri, kendi başlarına döndürülen nesneyi tanımlamıyorsa, iyi seçilmiş bir isme sahip bir statik fabrika, kullanımı daha kolay ve ortaya çıkan istemci kodunu daha okunabilir kılar. Örneğin, muhtemelen asal (prime) olan bir <code>BigInteger</code> döndüren <code>BigInteger(int, int, Random)</code> yapıcı metodu, <code>BigInteger.probablePrime</code> adlı bir statik fabrika metodu olarak ifade edilseydi çok daha iyi olurdu. (Bu metot Java 4'te eklendi.)
+    </p>
+    <p class="text-paragraph en-text">
+        <strong>One advantage of static factory methods is that, unlike constructors, they have names.</strong> If the parameters to a constructor do not, in and of themselves, describe the object being returned, a static factory with a well-chosen name is easier to use and the resulting client code easier to read. For example, the constructor <code>BigInteger(int, int, Random)</code>, which returns a <code>BigInteger</code> that is probably prime, would have been better expressed as a static factory method named <code>BigInteger.probablePrime</code>. (This method was added in Java 4.)
+    </p>
+
+    <!-- Paragraf 5: İmza kısıtlaması -->
+    <p class="text-paragraph tr-text">
+        Bir sınıf, verilen bir imzaya (signature) sahip yalnızca tek bir yapıcı metoda sahip olabilir. Programcıların bu kısıtlamayı, parametre listeleri yalnızca parametre tiplerinin sırasında farklılık gösteren iki yapıcı metot sunarak aştıkları bilinmektedir. Bu gerçekten kötü bir fikirdir. Böyle bir API'nin kullanıcısı hangi yapıcının hangisi olduğunu asla hatırlayamayacak ve sonunda yanlış olanı çağıracaktır. Bu yapıcıları kullanan kodu okuyan kişiler, sınıf belgelerine (documentation) başvurmadan kodun ne yaptığını bilemeyeceklerdir.
+    </p>
+    <p class="text-paragraph en-text">
+        A class can have only a single constructor with a given signature. Programmers have been known to get around this restriction by providing two constructors whose parameter lists differ only in the order of their parameter types. This is a really bad idea. The user of such an API will never be able to remember which constructor is which and will end up calling the wrong one by mistake. People reading code that uses these constructors will not know what the code does without referring to the class documentation.
+    </p>
+
+    <!-- Paragraf 6: İsimler avantajı devam -->
+    <p class="text-paragraph tr-text">
+        İsimlere sahip oldukları için, statik fabrika metotları önceki paragrafta tartışılan kısıtlamayı paylaşmazlar. Bir sınıfın aynı imzaya sahip birden fazla yapıcı metoda ihtiyaç duyduğu durumlarda, yapıcıları farklılıklarını vurgulayan dikkatle seçilmiş isimlerle statik fabrika metotlarıyla değiştirin.
+    </p>
+    <p class="text-paragraph en-text">
+        Because they have names, static factory methods don't share the restriction discussed in the previous paragraph. In cases where a class seems to require multiple constructors with the same signature, replace the constructors with static factory methods and carefully chosen names to highlight their differences.
+    </p>
+
+    <!-- Paragraf 7: İkinci Avantaj - Yeni nesne zorunluluğu yok -->
+    <p class="text-paragraph tr-text">
+        <strong>Statik fabrika metotlarının yapıcı metotlara göre ikinci avantajı, her çağrıldıklarında yeni bir nesne oluşturmak zorunda olmamalarıdır.</strong> Bu, değişmez sınıfların (immutable classes) (Madde 17) önceden oluşturulmuş örnekleri (instances) kullanmasına veya örnekleri oluşturdukça önbelleğe almasına ve gereksiz kopya nesneler oluşturmaktan kaçınmak için bunları tekrar tekrar dağıtmasına olanak tanır. <code>Boolean.valueOf(boolean)</code> metodu bu tekniği gösterir: hiçbir zaman bir nesne oluşturmaz. Bu teknik, <em>Flyweight</em> kalıbına [Gamma95] benzerdir. Eşdeğer nesneler sıkça isteniyorsa, özellikle oluşturulmaları pahalıysa, performansı büyük ölçüde iyileştirebilir.
+    </p>
+    <p class="text-paragraph en-text">
+        <strong>A second advantage of static factory methods is that, unlike constructors, they are not required to create a new object each time they're invoked.</strong> This allows immutable classes (Item 17) to use preconstructed instances, or to cache instances as they're constructed, and dispense them repeatedly to avoid creating unnecessary duplicate objects. The <code>Boolean.valueOf(boolean)</code> method illustrates this technique: it <em>never</em> creates an object. This technique is similar to the <em>Flyweight</em> pattern [Gamma95]. It can greatly improve performance if equivalent objects are requested often, especially if they are expensive to create.
+    </p>
+
+    <!-- Paragraf 8: Instance-controlled sınıflar -->
+    <p class="text-paragraph tr-text">
+        Statik fabrika metotlarının tekrarlanan çağrılarda aynı nesneyi döndürebilmesi, sınıfların herhangi bir anda hangi örneklerin var olduğu üzerinde sıkı kontrol sağlamasına olanak tanır. Bunu yapan sınıflar <em>örnek-kontrollü</em> (instance-controlled) olarak adlandırılır. Örnek-kontrollü sınıflar yazmanın birkaç nedeni vardır. Örnek kontrolü, bir sınıfın tekil (singleton) (Madde 3) veya örneklenemez (noninstantiable) (Madde 4) olduğunu garanti etmeye olanak tanır. Ayrıca, değişmez bir değer sınıfının (immutable value class) (Madde 17) hiçbir iki eşit örneğin var olmadığını garanti etmesini sağlar: <code>a.equals(b)</code> ancak ve ancak <code>a == b</code> ise doğrudur. Bu, <em>Flyweight</em> kalıbının [Gamma95] temelidir. Enum tipleri (Madde 34) bu garantiyi sağlar.
+    </p>
+    <p class="text-paragraph en-text">
+        The ability of static factory methods to return the same object from repeated invocations allows classes to maintain strict control over what instances exist at any time. Classes that do this are said to be <em>instance-controlled</em>. There are several reasons to write instance-controlled classes. Instance control allows a class to guarantee that it is a singleton (Item 3) or noninstantiable (Item 4). Also, it allows an immutable value class (Item 17) to make the guarantee that no two equal instances exist: <code>a.equals(b)</code> if and only if <code>a == b</code>. This is the basis of the <em>Flyweight</em> pattern [Gamma95]. Enum types (Item 34) provide this guarantee.
+    </p>
+
+    <!-- Paragraf 9: Üçüncü Avantaj - Alt tip döndürebilme -->
+    <p class="text-paragraph tr-text">
+        <strong>Statik fabrika metotlarının yapıcı metotlara göre üçüncü avantajı, dönüş tiplerinin herhangi bir alt tipinin (subtype) nesnesini döndürebilmeleridir.</strong> Bu, döndürülen nesnenin sınıfını seçmede büyük esneklik sağlar.
+    </p>
+    <p class="text-paragraph en-text">
+        <strong>A third advantage of static factory methods is that, unlike constructors, they can return an object of any subtype of their return type.</strong> This gives you great flexibility in choosing the class of the returned object.
+    </p>
+
+    <!-- Paragraf 10: Arayüz tabanlı çerçeveler -->
+    <p class="text-paragraph tr-text">
+        Bu esnekliğin bir uygulaması, bir API'nin sınıflarını kamusal yapmadan nesneler döndürebilmesidir. Uygulama sınıflarını bu şekilde gizlemek, çok kompakt bir API'ye yol açar. Bu teknik kendisini <em>arayüz tabanlı çerçevelere</em> (interface-based frameworks) (Madde 20) ödünç verir; burada arayüzler, statik fabrika metotları için doğal dönüş tipleri sağlar.
+    </p>
+    <p class="text-paragraph en-text">
+        One application of this flexibility is that an API can return objects without making their classes public. Hiding implementation classes in this fashion leads to a very compact API. This technique lends itself to <em>interface-based frameworks</em> (Item 20), where interfaces provide natural return types for static factory methods.
+    </p>
+
+    <!-- Paragraf 11: Java 8 öncesi companion class -->
+    <p class="text-paragraph tr-text">
+        Java 8'den önce, arayüzler static metotlara sahip olamıyordu. Geleneksel olarak, <em>Type</em> adlı bir arayüz için statik fabrika metotları, <em>Types</em> adlı örneklenemez bir <em>eşlikçi sınıfa</em> (companion class) (Madde 4) konulurdu. Örneğin, Java Koleksiyonlar Çerçevesi (Java Collections Framework), arayüzlerinin kırk beş yardımcı uygulamasını sunarak değiştirilemez koleksiyonlar (unmodifiable collections), senkronize koleksiyonlar (synchronized collections) ve benzeri işlevleri sağlar. Bu uygulamaların neredeyse tamamı, tek bir örneklenemez sınıf olan <code>java.util.Collections</code> içindeki statik fabrika metotları aracılığıyla dışa aktarılır. Döndürülen nesnelerin sınıfları tamamen kamusal olmayan (nonpublic) sınıflardır.
+    </p>
+    <p class="text-paragraph en-text">
+        Prior to Java 8, interfaces couldn't have static methods. By convention, static factory methods for an interface named <em>Type</em> were put in a <em>noninstantiable companion class</em> (Item 4) named <em>Types</em>. For example, the Java Collections Framework has forty-five utility implementations of its interfaces, providing unmodifiable collections, synchronized collections, and the like. Nearly all of these implementations are exported via static factory methods in one noninstantiable class (<code>java.util.Collections</code>). The classes of the returned objects are all nonpublic.
+    </p>
+
+    <!-- Kavram Butonları -->
+    <div class="concepts-section">
+        <h2 class="concepts-title">
+            <span class="tr-text">Kavramlar</span>
+            <span class="en-text">Concepts</span>
+        </h2>
+        <div class="concepts-grid">
+            <button class="concept-btn" onclick="openModal('static-factory')">
+                <span class="tr-text">Statik Fabrika Metodu (Static Factory Method)</span>
+                <span class="en-text">Static Factory Method</span>
+            </button>
+            <button class="concept-btn" onclick="openModal('instance-controlled')">
+                <span class="tr-text">Örnek-Kontrollü Sınıf (Instance-Controlled)</span>
+                <span class="en-text">Instance-Controlled Class</span>
+            </button>
+            <button class="concept-btn" onclick="openModal('interface-based-fw')">
+                <span class="tr-text">Arayüz Tabanlı Çerçeve (Interface-Based Framework)</span>
+                <span class="en-text">Interface-Based Framework</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigasyon -->
+    <div class="page-nav">
+        <a href="page-4.html" class="nav-btn">
+            <div class="nav-btn-label">
+                <span class="tr-text">Önceki Sayfa</span>
+                <span class="en-text">Previous Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 4 &mdash; Bölüm 1: Giriş</span>
+                <span class="en-text">Page 4 &mdash; Chapter 1: Introduction</span>
+            </div>
+        </a>
+        <a href="#" class="nav-btn" onclick="return handleUntranslated(event, 6)">
+            <div class="nav-btn-label">
+                <span class="tr-text">Sonraki Sayfa</span>
+                <span class="en-text">Next Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 6 &mdash; Madde 1 (devam)</span>
+                <span class="en-text">Page 6 &mdash; Item 1 (cont.)</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Modal: Statik Fabrika Metodu -->
+<div class="modal-overlay" id="modal-static-factory">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('static-factory')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Statik Fabrika Metodu</span>
+            <span class="en-text">Static Factory Method</span>
+        </div>
+        <div class="modal-subtitle">Static Factory Method</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Statik fabrika metodu (Static Factory Method), bir sınıfın yapıcı metodu yerine (veya ek olarak) sınıfın örneğini döndüren statik bir metottur. <code>new</code> anahtar kelimesi yerine anlamlı isimlerle nesne oluşturmayı sağlar. Yapıcıların aksine, her çağrıda yeni nesne oluşturmak zorunda değildir ve dönüş tipinin alt tiplerini döndürebilir.
+            </span>
+            <span class="en-text">
+                A Static Factory Method is a static method that returns an instance of a class instead of (or in addition to) a constructor. It enables object creation with meaningful names rather than the <code>new</code> keyword. Unlike constructors, it doesn't have to create a new object on each invocation and can return subtypes of the return type.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Yapıcı metotlar — hangisi ne döndürüyor?</span>
+<span class="keyword">public class</span> <span class="type">Color</span> {
+    <span class="keyword">private final int</span> r, g, b;
+
+    <span class="keyword">public</span> <span class="type">Color</span>(<span class="keyword">int</span> r, <span class="keyword">int</span> g, <span class="keyword">int</span> b) {
+        <span class="keyword">this</span>.r = r; <span class="keyword">this</span>.g = g; <span class="keyword">this</span>.b = b;
+    }
+}
+
+<span class="comment">// İstemci kodu — niyeti anlamak zor</span>
+<span class="type">Color</span> c1 = <span class="keyword">new</span> <span class="type">Color</span>(<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>);
+<span class="type">Color</span> c2 = <span class="keyword">new</span> <span class="type">Color</span>(<span class="number">0</span>, <span class="number">128</span>, <span class="number">0</span>);</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Yapıcı metot çağrısından neyin oluşturulduğu belli değil. <code>new Color(255, 0, 0)</code> ifadesinin kırmızı renk olduğunu anlamak için sınıf belgesine bakmak gerekir. Aynı imzayla başka renk uzayları (HSB gibi) desteklenemez.
+            </span>
+            <span class="en-text">
+                It's unclear what is being created from the constructor call. Understanding that <code>new Color(255, 0, 0)</code> is red requires reading documentation. Other color spaces (like HSB) cannot be supported with the same signature.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="keyword">public class</span> <span class="type">Color</span> {
+    <span class="keyword">private final int</span> r, g, b;
+
+    <span class="keyword">private</span> <span class="type">Color</span>(<span class="keyword">int</span> r, <span class="keyword">int</span> g, <span class="keyword">int</span> b) {
+        <span class="keyword">this</span>.r = r; <span class="keyword">this</span>.g = g; <span class="keyword">this</span>.b = b;
+    }
+
+    <span class="keyword">public static</span> <span class="type">Color</span> <span class="method">fromRGB</span>(<span class="keyword">int</span> r, <span class="keyword">int</span> g, <span class="keyword">int</span> b) {
+        <span class="keyword">return new</span> <span class="type">Color</span>(r, g, b);
+    }
+
+    <span class="keyword">public static</span> <span class="type">Color</span> <span class="method">fromHSB</span>(<span class="keyword">float</span> h, <span class="keyword">float</span> s, <span class="keyword">float</span> b) {
+        <span class="comment">// HSB → RGB dönüşümü</span>
+        <span class="keyword">return new</span> <span class="type">Color</span>(<span class="comment">/* ... */</span>);
+    }
+
+    <span class="keyword">public static</span> <span class="type">Color</span> <span class="method">red</span>() {
+        <span class="keyword">return new</span> <span class="type">Color</span>(<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>);
+    }
+}
+
+<span class="comment">// İstemci kodu — niyet açık</span>
+<span class="type">Color</span> c1 = <span class="type">Color</span>.red();
+<span class="type">Color</span> c2 = <span class="type">Color</span>.fromHSB(<span class="number">0.33f</span>, <span class="number">1.0f</span>, <span class="number">0.5f</span>);</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                <code>fromRGB</code>, <code>fromHSB</code>, <code>red</code> isimleri niyeti açıkça belirtir. Farklı parametre tipleriyle farklı oluşturma yolları sunulabilir. Sık kullanılan renkler için önbelleğe alma kolayca eklenebilir. Yapıcı <code>private</code> yapılarak kontrol sağlanmıştır.
+            </span>
+            <span class="en-text">
+                Names like <code>fromRGB</code>, <code>fromHSB</code>, <code>red</code> clearly express intent. Different creation paths with different parameter types are easily supported. Caching for frequently used colors can be easily added. The constructor is made <code>private</code> for control.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Bir sınıfta birden fazla yapıcı metoda ihtiyaç duyduğunuzda, statik fabrika metotlarına geçmeyi düşünün. <code>of</code>, <code>from</code>, <code>valueOf</code>, <code>getInstance</code>, <code>create</code> gibi yaygın isimlendirme kalıplarını kullanın. Bu kalıplar, diğer programcıların kodunuzu hızlıca anlamasını sağlar.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> When you need multiple constructors, consider switching to static factory methods. Use common naming conventions like <code>of</code>, <code>from</code>, <code>valueOf</code>, <code>getInstance</code>, <code>create</code>. These conventions help other programmers quickly understand your code.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Örnek-Kontrollü Sınıf -->
+<div class="modal-overlay" id="modal-instance-controlled">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('instance-controlled')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Örnek-Kontrollü Sınıf</span>
+            <span class="en-text">Instance-Controlled Class</span>
+        </div>
+        <div class="modal-subtitle">Instance-Controlled Class</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Örnek-kontrollü sınıf (Instance-Controlled Class), hangi örneklerin (instances) var olduğunu kontrol altında tutan bir sınıftır. Statik fabrika metotları sayesinde sınıf, tekil (singleton), örneklenemez (noninstantiable) veya eşit örneklerin tekrarlanmadığı garanti sağlayabilir. <code>Boolean</code>, <code>Integer</code> (önbellek aralığında), Enum tipleri bu yaklaşımın örnekleridir.
+            </span>
+            <span class="en-text">
+                An Instance-Controlled Class maintains control over which instances exist. Through static factory methods, the class can guarantee singleton, noninstantiability, or that no two equal instances exist. <code>Boolean</code>, <code>Integer</code> (within cache range), and Enum types are examples of this approach.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Kontrol yok — her çağrıda yeni nesne</span>
+<span class="keyword">public class</span> <span class="type">CurrencyUnit</span> {
+    <span class="keyword">private final</span> <span class="type">String</span> code;
+
+    <span class="keyword">public</span> <span class="type">CurrencyUnit</span>(<span class="type">String</span> code) {
+        <span class="keyword">this</span>.code = code;
+    }
+}
+
+<span class="comment">// Her çağrıda yeni nesne — bellek israfı</span>
+<span class="type">CurrencyUnit</span> usd1 = <span class="keyword">new</span> <span class="type">CurrencyUnit</span>(<span class="string">"USD"</span>);
+<span class="type">CurrencyUnit</span> usd2 = <span class="keyword">new</span> <span class="type">CurrencyUnit</span>(<span class="string">"USD"</span>);
+System.out.println(usd1 == usd2); <span class="comment">// false!</span></pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Aynı para birimi için her seferinde yeni bir nesne oluşturuluyor. <code>==</code> karşılaştırması başarısız oluyor. Bellek israfı ve tutarsızlık riski var. Para birimi gibi sınırlı sayıda değeri olan kavramlar için gereksiz çoğaltma yapılıyor.
+            </span>
+            <span class="en-text">
+                A new object is created each time for the same currency. The <code>==</code> comparison fails. There's memory waste and inconsistency risk. For concepts with a limited number of values like currency, unnecessary duplication occurs.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="keyword">public class</span> <span class="type">CurrencyUnit</span> {
+    <span class="keyword">private static final</span> <span class="type">Map</span>&lt;<span class="type">String</span>, <span class="type">CurrencyUnit</span>&gt; CACHE =
+        <span class="keyword">new</span> <span class="type">ConcurrentHashMap</span>&lt;&gt;();
+
+    <span class="keyword">private final</span> <span class="type">String</span> code;
+
+    <span class="keyword">private</span> <span class="type">CurrencyUnit</span>(<span class="type">String</span> code) {
+        <span class="keyword">this</span>.code = code;
+    }
+
+    <span class="keyword">public static</span> <span class="type">CurrencyUnit</span> <span class="method">of</span>(<span class="type">String</span> code) {
+        <span class="keyword">return</span> CACHE.computeIfAbsent(code, <span class="type">CurrencyUnit</span>::<span class="keyword">new</span>);
+    }
+}
+
+<span class="type">CurrencyUnit</span> usd1 = <span class="type">CurrencyUnit</span>.of(<span class="string">"USD"</span>);
+<span class="type">CurrencyUnit</span> usd2 = <span class="type">CurrencyUnit</span>.of(<span class="string">"USD"</span>);
+System.out.println(usd1 == usd2); <span class="comment">// true!</span></pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Yapıcı <code>private</code> yapılarak doğrudan nesne oluşturma engellendi. <code>of</code> fabrika metodu, aynı kod için her zaman aynı nesneyi döndürür. <code>==</code> ile güvenle karşılaştırılabilir. <code>ConcurrentHashMap</code> ile iş parçacığı güvenliği sağlandı.
+            </span>
+            <span class="en-text">
+                The constructor is <code>private</code>, preventing direct instantiation. The <code>of</code> factory method always returns the same object for the same code. Safe <code>==</code> comparison is possible. Thread safety is ensured with <code>ConcurrentHashMap</code>.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Sınırlı sayıda değeri temsil eden sınıflar (para birimi, renk, durum kodları) için örnek kontrolü uygulayın. Eğer değer kümesi derleme zamanında (compile time) biliniyorsa, Enum kullanmayı tercih edin &mdash; Java'nın en güçlü örnek-kontrol mekanizmasıdır.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> Apply instance control for classes representing a limited set of values (currency, color, status codes). If the value set is known at compile time, prefer using Enum &mdash; it's Java's most powerful instance-control mechanism.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Arayüz Tabanlı Çerçeve -->
+<div class="modal-overlay" id="modal-interface-based-fw">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('interface-based-fw')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Arayüz Tabanlı Çerçeve</span>
+            <span class="en-text">Interface-Based Framework</span>
+        </div>
+        <div class="modal-subtitle">Interface-Based Framework</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Arayüz tabanlı çerçeve (Interface-Based Framework), API'sini arayüzler (interfaces) üzerinden tanımlayan ve uygulama sınıflarını gizleyen bir yazılım çerçevesidir. Statik fabrika metotları, arayüz tipini döndürerek istemcilerin yalnızca arayüze bağımlı olmasını sağlar. Java Koleksiyonlar Çerçevesi (<code>java.util.Collections</code>) bunun en bilinen örneğidir.
+            </span>
+            <span class="en-text">
+                An Interface-Based Framework defines its API through interfaces and hides implementation classes. Static factory methods return the interface type, ensuring clients depend only on the interface. The Java Collections Framework (<code>java.util.Collections</code>) is the best-known example.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Uygulama sınıfı doğrudan açığa çıkıyor</span>
+<span class="keyword">public class</span> <span class="type">JsonParser</span> {
+    <span class="keyword">public</span> <span class="type">JsonObject</span> <span class="method">parse</span>(<span class="type">String</span> json) { <span class="comment">/* ... */</span> }
+}
+<span class="keyword">public class</span> <span class="type">XmlParser</span> {
+    <span class="keyword">public</span> <span class="type">XmlDocument</span> <span class="method">parse</span>(<span class="type">String</span> xml) { <span class="comment">/* ... */</span> }
+}
+
+<span class="comment">// İstemci somut sınıflara bağımlı</span>
+<span class="type">JsonParser</span> parser = <span class="keyword">new</span> <span class="type">JsonParser</span>();</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                İstemci kodu doğrudan <code>JsonParser</code> somut sınıfına bağımlıdır. Farklı bir parser kullanmak istediğinde tüm istemci kodu değişmelidir. Dönüş tipleri de farklıdır (<code>JsonObject</code> vs <code>XmlDocument</code>), polimorfizm kullanılamaz.
+            </span>
+            <span class="en-text">
+                Client code depends directly on the <code>JsonParser</code> concrete class. Switching to a different parser requires changing all client code. Return types differ (<code>JsonObject</code> vs <code>XmlDocument</code>), preventing polymorphism.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Arayüz tabanlı tasarım</span>
+<span class="keyword">public interface</span> <span class="type">DocumentParser</span> {
+    <span class="type">Document</span> <span class="method">parse</span>(<span class="type">String</span> input);
+}
+
+<span class="comment">// Statik fabrika — uygulama sınıfları gizli</span>
+<span class="keyword">public class</span> <span class="type">Parsers</span> {
+    <span class="keyword">private</span> <span class="type">Parsers</span>() {} <span class="comment">// örneklenemez</span>
+
+    <span class="keyword">public static</span> <span class="type">DocumentParser</span> <span class="method">json</span>() {
+        <span class="keyword">return new</span> <span class="type">JsonParserImpl</span>();
+    }
+
+    <span class="keyword">public static</span> <span class="type">DocumentParser</span> <span class="method">xml</span>() {
+        <span class="keyword">return new</span> <span class="type">XmlParserImpl</span>();
+    }
+}
+
+<span class="comment">// İstemci yalnızca arayüze bağımlı</span>
+<span class="type">DocumentParser</span> parser = <span class="type">Parsers</span>.json();
+<span class="type">Document</span> doc = parser.parse(input);</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                İstemci yalnızca <code>DocumentParser</code> arayüzüne bağımlıdır. <code>JsonParserImpl</code> ve <code>XmlParserImpl</code> sınıfları paket-özel (package-private) olabilir. Uygulama değiştirildiğinde istemci kodu etkilenmez. <code>Parsers</code> eşlikçi sınıfı, örneklenemez yapılarak tek sorumluluk üstlenmiştir.
+            </span>
+            <span class="en-text">
+                The client depends only on the <code>DocumentParser</code> interface. <code>JsonParserImpl</code> and <code>XmlParserImpl</code> can be package-private. When the implementation changes, client code is unaffected. The <code>Parsers</code> companion class is made noninstantiable with a single responsibility.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Java 8+ kullanıyorsanız, statik fabrika metotlarını doğrudan arayüzün içine koyabilirsiniz &mdash; ayrı bir eşlikçi sınıfa gerek kalmaz. Ancak uygulama kodu büyükse, yine de ayrı bir paket-özel sınıfa taşımak API'yi temiz tutar.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> If you're using Java 8+, you can put static factory methods directly in the interface &mdash; no need for a separate companion class. However, if the implementation code is large, moving it to a separate package-private class still keeps the API clean.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+    Effective Java &mdash; Joshua Bloch &bull; Sayfa 5 &bull; Chapter 2: Item 1
+</div>
+
+<script>const CURRENT_PAGE = 5;</script>
+<script src="../js/common.js"></script>
+
+</body>
+</html>
