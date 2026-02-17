@@ -299,20 +299,29 @@
             <button class="page-go-btn" onclick="goToPage()">Git</button>
         </div>
         <div class="error-message" id="errorMsg"></div>
-        <div class="input-hint">Çevrilen: 1 sayfa &nbsp;|&nbsp; Kitap toplam: ~412 sayfa</div>
+        <div class="input-hint">Çevrilen: 2 sayfa &nbsp;|&nbsp; Kitap toplam: ~412 sayfa</div>
     </div>
 
     <!-- Çevrilen Sayfalar -->
     <div class="pages-section">
         <div class="pages-title">
             Çevrilen Sayfalar
-            <span class="badge">1</span>
+            <span class="badge">2</span>
         </div>
 
         <a href="pages/page-1.html" class="page-card">
             <div class="page-card-number">1</div>
             <div class="page-card-info">
                 <div class="page-card-title">Sayfa 1</div>
+                <div class="page-card-chapter">Chapter 1: Introduction / Giriş</div>
+            </div>
+            <div class="page-card-arrow">&#8250;</div>
+        </a>
+
+        <a href="pages/page-2.html" class="page-card">
+            <div class="page-card-number">2</div>
+            <div class="page-card-info">
+                <div class="page-card-title">Sayfa 2</div>
                 <div class="page-card-chapter">Chapter 1: Introduction / Giriş</div>
             </div>
             <div class="page-card-arrow">&#8250;</div>
@@ -330,7 +339,8 @@
     // Çevrilen sayfaların kayıt defteri
     // Her yeni çeviri yapıldığında bu listeye eklenir
     const TRANSLATED_PAGES = {
-        1: { file: 'pages/page-1.html', title: 'Sayfa 1', chapter: 'Chapter 1: Introduction / Giriş' }
+        1: { file: 'pages/page-1.html', title: 'Sayfa 1', chapter: 'Chapter 1: Introduction / Giriş' },
+        2: { file: 'pages/page-2.html', title: 'Sayfa 2', chapter: 'Chapter 1: Introduction / Giriş' }
     };
 
     const MAX_BOOK_PAGE = 412;

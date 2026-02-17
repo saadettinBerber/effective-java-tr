@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sayfa 2 — Chapter 1: Introduction | Effective Java Türkçe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.8;
+            font-size: 17px;
+            min-height: 100vh;
+        }
+
+        /* Üst Bar */
+        .top-bar {
+            background: #0d2137;
+            color: #e0e0e0;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .home-link {
+            color: #f5a623;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border: 1px solid rgba(245,166,35,0.3);
+            border-radius: 6px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .home-link:hover {
+            background: rgba(245,166,35,0.1);
+            border-color: #f5a623;
+        }
+
+        .top-bar-title {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .book-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #f5a623;
+        }
+
+        .chapter-info {
+            font-size: 12px;
+            color: #adb5bd;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Dil Toggle */
+        .lang-toggle {
+            display: flex;
+            border: 1px solid rgba(245,166,35,0.3);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .lang-btn {
+            padding: 5px 12px;
+            font-size: 13px;
+            font-weight: 700;
+            background: transparent;
+            color: #adb5bd;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            color: #0d2137;
+        }
+
+        .lang-btn:hover:not(.active) {
+            color: #f5a623;
+        }
+
+        /* Sayfa Numarası Input */
+        .page-number-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+        }
+
+        .page-number-label {
+            font-size: 12px;
+            color: #adb5bd;
+            white-space: nowrap;
+        }
+
+        .page-number-input {
+            width: 52px;
+            padding: 4px 8px;
+            text-align: center;
+            border: 1px solid rgba(245,166,35,0.3);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.08);
+            color: #f5a623;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .page-number-input:focus {
+            border-color: #f5a623;
+        }
+
+        .page-number-input.error {
+            border-color: #dc3545;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .page-nav-tooltip {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 6px;
+            background: #dc3545;
+            color: #fff;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 200;
+        }
+
+        .page-nav-tooltip.visible {
+            opacity: 1;
+        }
+
+        /* İçerik */
+        .content {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 40px 24px 60px;
+        }
+
+        .page-badge {
+            display: inline-block;
+            background: #0d2137;
+            color: #f5a623;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+        }
+
+        .chapter-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #0d2137;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .chapter-title-en {
+            font-size: 18px;
+            color: #6c757d;
+            font-weight: 400;
+            font-style: italic;
+            margin-bottom: 32px;
+        }
+
+        .divider {
+            height: 3px;
+            background: linear-gradient(90deg, #f5a623 0%, transparent 100%);
+            border: none;
+            margin-bottom: 32px;
+            border-radius: 2px;
+        }
+
+        .text-paragraph {
+            margin-bottom: 20px;
+            text-align: justify;
+            hyphens: auto;
+        }
+
+        .text-paragraph em {
+            font-style: italic;
+            color: #555;
+        }
+
+        .text-paragraph strong {
+            font-weight: 700;
+            color: #0d2137;
+        }
+
+        /* Kod inline */
+        .text-paragraph code, .inline-code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 15px;
+            color: #0d2137;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+
+        /* Tablo */
+        .feature-table-wrapper {
+            overflow-x: auto;
+            margin: 28px 0;
+        }
+
+        .feature-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 15px;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+
+        .feature-table thead {
+            background: #0d2137;
+            color: #f5a623;
+        }
+
+        .feature-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        .feature-table td {
+            padding: 10px 16px;
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+
+        .feature-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .feature-table tbody tr:hover {
+            background: #fdf6eb;
+        }
+
+        .feature-table code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #0d2137;
+        }
+
+        /* Kavram Butonları */
+        .concepts-section {
+            margin-top: 40px;
+            padding-top: 32px;
+            border-top: 2px solid #eee;
+        }
+
+        .concepts-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0d2137;
+            margin-bottom: 16px;
+        }
+
+        .concepts-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .concept-btn {
+            padding: 10px 20px;
+            background: #fff;
+            border: 2px solid #0d2137;
+            border-radius: 10px;
+            color: #0d2137;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .concept-btn:hover {
+            background: #0d2137;
+            color: #f5a623;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13,33,55,0.2);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 16px;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 16px;
+            max-width: 720px;
+            width: 100%;
+            padding: 32px;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: #f0f0f0;
+            color: #333;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #0d2137;
+            margin-bottom: 4px;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
+        .modal-desc {
+            margin-bottom: 24px;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        .example-label {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .example-label.bad {
+            background: #fce4e4;
+            color: #dc3545;
+        }
+
+        .example-label.good {
+            background: #e3f9e5;
+            color: #28a745;
+        }
+
+        .example-explain {
+            font-size: 14px;
+            color: #555;
+            margin: 8px 0 20px;
+            padding-left: 12px;
+            border-left: 3px solid #dee2e6;
+        }
+
+        .modal-tip {
+            background: #fdf6eb;
+            border: 1px solid #f5a623;
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #0d2137;
+        }
+
+        .modal-tip strong {
+            color: #f5a623;
+        }
+
+        /* Kod blokları */
+        pre {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            padding: 18px 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+
+        pre .keyword { color: #cba6f7; }
+        pre .type { color: #89b4fa; }
+        pre .string { color: #a6e3a1; }
+        pre .comment { color: #6c7086; font-style: italic; }
+        pre .annotation { color: #f9e2af; }
+        pre .number { color: #fab387; }
+        pre .method { color: #89dceb; }
+
+        /* Navigasyon */
+        .page-nav {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 2px solid #eee;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 16px 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #0d2137;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-family: inherit;
+            font-size: 15px;
+        }
+
+        .nav-btn:hover:not(.disabled) {
+            border-color: #0d2137;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: #f0f0f0;
+        }
+
+        .nav-btn-label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 4px;
+        }
+
+        .nav-btn-title {
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: #adb5bd;
+            font-size: 13px;
+            border-top: 1px solid #dee2e6;
+            margin-top: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            .top-bar {
+                padding: 12px 16px;
+            }
+            .book-title {
+                font-size: 14px;
+            }
+            .content {
+                padding: 24px 16px 40px;
+            }
+            .chapter-title {
+                font-size: 22px;
+            }
+            .modal-content {
+                padding: 24px 18px;
+            }
+            .page-nav {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Üst Bar -->
+<div class="top-bar">
+    <div class="top-bar-left">
+        <a href="../index.html" class="home-link">Ana Sayfa</a>
+        <div class="top-bar-title">
+            <div class="book-title">Effective Java &mdash; Joshua Bloch</div>
+            <div class="chapter-info">Chapter 1: Introduction / Giriş</div>
+        </div>
+    </div>
+    <div class="top-bar-right">
+        <div class="lang-toggle">
+            <button class="lang-btn" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="page-number-wrapper">
+            <span class="page-number-label">Sayfa</span>
+            <input type="text" class="page-number-input" id="pageNumInput" value="2" maxlength="4" autocomplete="off"
+                   onkeydown="if(event.key==='Enter') goToPageNum()"
+                   onblur="resetPageInput()">
+            <div class="page-nav-tooltip" id="pageNavTooltip"></div>
+        </div>
+    </div>
+</div>
+
+<!-- İçerik -->
+<div class="content">
+    <div class="page-badge">Sayfa 2</div>
+
+    <!-- Bölüm Başlığı -->
+    <h1 class="chapter-title">
+        <span class="tr-text">Bölüm 1: Giriş (devam)</span>
+        <span class="en-text">Chapter 1: Introduction (cont.)</span>
+    </h1>
+    <div class="chapter-title-en">
+        <span class="tr-text">Chapter 1: Introduction</span>
+        <span class="en-text">Bölüm 1: Giriş</span>
+    </div>
+    <hr class="divider">
+
+    <!-- Paragraf 1: Antipatterns (sayfa 1'den devam) -->
+    <p class="text-paragraph tr-text">
+        kaçınılması gereken pratiklerdir. Bu tür örnekler, bazen <em>anti-kalıp</em> (antipattern) olarak bilinen ve <code>// Never do this!</code> gibi bir yorumla açıkça etiketlenmiş örneklerdir. Her durumda, ilgili madde örneğin neden kötü olduğunu açıklar ve alternatif bir yaklaşım önerir.
+    </p>
+    <p class="text-paragraph en-text">
+        to be avoided. Such examples, sometimes known as <em>antipatterns</em>, are clearly labeled with a comment such as <code>// Never do this!</code>. In each case, the item explains why the example is bad and suggests an alternative approach.
+    </p>
+
+    <!-- Paragraf 2: Hedef Kitle -->
+    <p class="text-paragraph tr-text">
+        Bu kitap yeni başlayanlar için değildir: Java ile zaten rahat olduğunuzu varsayar. Eğer değilseniz, Peter Sestoft'un <em>Java Precisely</em> [Sestoft16] gibi birçok kaliteli giriş metninden birini değerlendirin. <em>Effective Java</em>, dil hakkında çalışma düzeyinde bilgiye sahip herkes için erişilebilir olacak şekilde tasarlanmış olsa da, ileri düzey programcılar için bile düşünce malzemesi sağlamalıdır.
+    </p>
+    <p class="text-paragraph en-text">
+        This book is not for beginners: it assumes that you are already comfortable with Java. If you are not, consider one of the many fine introductory texts, such as Peter Sestoft's <em>Java Precisely</em> [Sestoft16]. While <em>Effective Java</em> is designed to be accessible to anyone with a working knowledge of the language, it should provide food for thought even for advanced programmers.
+    </p>
+
+    <!-- Paragraf 3: Temel İlkeler -->
+    <p class="text-paragraph tr-text">
+        Bu kitaptaki kuralların çoğu birkaç temel ilkeden türemektedir. <strong>Açıklık</strong> (clarity) ve <strong>basitlik</strong> (simplicity) her şeyin üstündedir. Bir bileşenin (component) kullanıcısı, onun davranışı karşısında asla şaşırmamalıdır. Bileşenler olabildiğince küçük olmalıdır, ancak daha küçük de olmamalıdır. (Bu kitapta kullanıldığı şekliyle <em>bileşen</em> terimi, bireysel bir metottan, birden fazla paketten oluşan karmaşık bir çerçeveye (framework) kadar herhangi bir yeniden kullanılabilir yazılım elemanını ifade eder.) Kod kopyalanmak yerine yeniden kullanılmalıdır (reuse). Bileşenler arasındaki bağımlılıklar (dependencies) minimumda tutulmalıdır. Hatalar (errors), oluştuktan sonra mümkün olan en kısa sürede &mdash; ideal olarak derleme zamanında (compile time) &mdash; tespit edilmelidir.
+    </p>
+    <p class="text-paragraph en-text">
+        Most of the rules in this book derive from a few fundamental principles. Clarity and simplicity are of paramount importance. The user of a component should never be surprised by its behavior. Components should be as small as possible but no smaller. (As used in this book, the term <em>component</em> refers to any reusable software element, from an individual method to a complex framework consisting of multiple packages.) Code should be reused rather than copied. The dependencies between components should be kept to a minimum. Errors should be detected as soon as possible after they are made, ideally at compile time.
+    </p>
+
+    <!-- Paragraf 4: Kuralları Kırma -->
+    <p class="text-paragraph tr-text">
+        Bu kitaptaki kurallar zamanın yüzde 100'ünde geçerli olmasa da, vakaların büyük çoğunluğunda en iyi programlama pratiklerini yansıtmaktadır. Bu kuralları körü körüne takip etmemeli, ancak yalnızca ara sıra ve iyi bir gerekçeyle ihlal etmelisiniz. Programlamayı öğrenmek, tıpkı diğer birçok disiplin gibi, önce kuralları öğrenmek, sonra ne zaman kırılacağını öğrenmekten ibarettir.
+    </p>
+    <p class="text-paragraph en-text">
+        While the rules in this book do not apply 100 percent of the time, they do characterize best programming practices in the great majority of cases. You should not slavishly follow these rules, but violate them only occasionally and with good reason. Learning the art of programming, like most other disciplines, consists of first learning the rules and then learning when to break them.
+    </p>
+
+    <!-- Paragraf 5: Performans -->
+    <p class="text-paragraph tr-text">
+        Bu kitap çoğunlukla performansla ilgili değildir. Açık, doğru, kullanılabilir, sağlam, esnek ve bakımı kolay programlar yazmakla ilgilidir. Bunu başarabilirseniz, ihtiyacınız olan performansı elde etmek genellikle nispeten basit bir meseledir (Madde 67). Bazı maddeler performans kaygılarını ele almaktadır ve bu maddelerin birkaçı performans rakamları sunmaktadır. "Benim makinemde" ifadesiyle sunulan bu rakamlar, en iyi ihtimalle yaklaşık değerler olarak kabul edilmelidir.
+    </p>
+    <p class="text-paragraph en-text">
+        For the most part, this book is not about performance. It is about writing programs that are clear, correct, usable, robust, flexible, and maintainable. If you can do that, it's usually a relatively simple matter to get the performance you need (Item 67). Some items do discuss performance concerns, and a few of these items provide performance numbers. These numbers, which are introduced with the phrase "On my machine," should be regarded as approximate at best.
+    </p>
+
+    <!-- Paragraf 6: Makine Bilgisi -->
+    <p class="text-paragraph tr-text">
+        Değeri neyse, yazarın makinesi 3.5GHz dört çekirdekli Intel Core i7-4770K işlemciye, 16 gigabayt DDR3-1866 CL9 RAM'e sahip, eski bir ev yapımı bilgisayardır ve Microsoft Windows 7 Professional SP1 (64-bit) üzerinde Azul'un Zulu 9.0.0.15 sürümü OpenJDK çalışmaktadır.
+    </p>
+    <p class="text-paragraph en-text">
+        For what it's worth, my machine is an aging homebuilt 3.5GHz quad-core Intel Core i7-4770K with 16 gigabytes of DDR3-1866 CL9 RAM, running Azul's Zulu 9.0.0.15 release of OpenJDK, atop Microsoft Windows 7 Professional SP1 (64-bit).
+    </p>
+
+    <!-- Paragraf 7: Sürüm İsimleri -->
+    <p class="text-paragraph tr-text">
+        Java programlama dilinin ve kütüphanelerinin özelliklerini tartışırken, bazen belirli sürümlere (release) atıfta bulunmak gerekli olabilir. Kolaylık olması açısından bu kitap, resmi sürüm adları yerine takma adlar (nickname) kullanmaktadır. Aşağıdaki tablo, resmi sürüm adları ile takma adlar arasındaki eşleşmeyi göstermektedir:
+    </p>
+    <p class="text-paragraph en-text">
+        When discussing features of the Java programming language and its libraries, it is sometimes necessary to refer to specific releases. For convenience, this book uses nicknames in preference to official release names. This table shows the mapping between release names and nicknames:
+    </p>
+
+    <!-- Sürüm Tablosu -->
+    <div class="feature-table-wrapper">
+        <table class="feature-table">
+            <thead>
+                <tr>
+                    <th>
+                        <span class="tr-text">Resmi Sürüm Adı (Official Release Name)</span>
+                        <span class="en-text">Official Release Name</span>
+                    </th>
+                    <th>
+                        <span class="tr-text">Takma Ad (Nickname)</span>
+                        <span class="en-text">Nickname</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>JDK 1.0.<em>x</em></td>
+                    <td>Java 1.0</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Kavram Butonları -->
+    <div class="concepts-section">
+        <h2 class="concepts-title">
+            <span class="tr-text">Kavramlar</span>
+            <span class="en-text">Concepts</span>
+        </h2>
+        <div class="concepts-grid">
+            <button class="concept-btn" onclick="openModal('antipattern')">
+                <span class="tr-text">Anti-Kalıp (Antipattern)</span>
+                <span class="en-text">Antipattern</span>
+            </button>
+            <button class="concept-btn" onclick="openModal('component')">
+                <span class="tr-text">Bileşen (Component)</span>
+                <span class="en-text">Component</span>
+            </button>
+            <button class="concept-btn" onclick="openModal('compile-time')">
+                <span class="tr-text">Derleme Zamanı Hata Tespiti (Compile-Time Error Detection)</span>
+                <span class="en-text">Compile-Time Error Detection</span>
+            </button>
+            <button class="concept-btn" onclick="openModal('reuse')">
+                <span class="tr-text">Kod Yeniden Kullanımı (Code Reuse)</span>
+                <span class="en-text">Code Reuse</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigasyon -->
+    <div class="page-nav">
+        <a href="page-1.html" class="nav-btn">
+            <div class="nav-btn-label">
+                <span class="tr-text">Önceki Sayfa</span>
+                <span class="en-text">Previous Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 1 &mdash; Bölüm 1: Giriş</span>
+                <span class="en-text">Page 1 &mdash; Chapter 1: Introduction</span>
+            </div>
+        </a>
+        <a href="#" class="nav-btn" onclick="return handleUntranslated(event, 3)">
+            <div class="nav-btn-label">
+                <span class="tr-text">Sonraki Sayfa</span>
+                <span class="en-text">Next Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 3 &mdash; Bölüm 1: Giriş</span>
+                <span class="en-text">Page 3 &mdash; Chapter 1: Introduction</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Modal: Anti-Kalıp -->
+<div class="modal-overlay" id="modal-antipattern">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('antipattern')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Anti-Kalıp</span>
+            <span class="en-text">Antipattern</span>
+        </div>
+        <div class="modal-subtitle">Antipattern</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Anti-kalıplar (Antipatterns), ilk bakışta makul görünen ancak pratikte ciddi sorunlara yol açan yaygın programlama hatalarıdır. Effective Java boyunca <code>// Never do this!</code> yorumuyla işaretlenen örnekler, bu tür anti-kalıpların somut gösterimleridir. Bunları tanımak, iyi kod yazmak kadar önemlidir.
+            </span>
+            <span class="en-text">
+                Antipatterns are common programming mistakes that seem reasonable at first glance but lead to serious problems in practice. Throughout Effective Java, examples marked with <code>// Never do this!</code> are concrete demonstrations of such antipatterns. Recognizing them is as important as writing good code.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Never do this! - God Object antipattern</span>
+<span class="keyword">public class</span> <span class="type">ApplicationManager</span> {
+    <span class="keyword">private</span> <span class="type">Connection</span> dbConnection;
+    <span class="keyword">private</span> <span class="type">Properties</span> config;
+    <span class="keyword">private</span> <span class="type">Logger</span> logger;
+
+    <span class="keyword">public void</span> <span class="method">saveUser</span>(<span class="type">String</span> name) { <span class="comment">/* ... */</span> }
+    <span class="keyword">public void</span> <span class="method">sendEmail</span>(<span class="type">String</span> to) { <span class="comment">/* ... */</span> }
+    <span class="keyword">public void</span> <span class="method">generateReport</span>() { <span class="comment">/* ... */</span> }
+    <span class="keyword">public void</span> <span class="method">processPayment</span>(<span class="keyword">double</span> amount) { <span class="comment">/* ... */</span> }
+    <span class="keyword">public void</span> <span class="method">validateInput</span>(<span class="type">String</span> input) { <span class="comment">/* ... */</span> }
+    <span class="comment">// ... 50+ daha fazla metot</span>
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Tek bir sınıf, veritabanı erişimi, e-posta gönderimi, rapor oluşturma ve ödeme işleme gibi birbirinden bağımsız sorumlulukları üstleniyor. Bu "Tanrı Nesnesi" (God Object) anti-kalıbı, bakımı, testi ve genişletmeyi son derece zorlaştırır.
+            </span>
+            <span class="en-text">
+                A single class handles database access, email sending, report generation, and payment processing. This "God Object" antipattern makes maintenance, testing, and extension extremely difficult.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Sorumluluklar ayrı sınıflara dağıtılmış</span>
+<span class="keyword">public class</span> <span class="type">UserRepository</span> {
+    <span class="keyword">public void</span> <span class="method">save</span>(<span class="type">User</span> user) { <span class="comment">/* ... */</span> }
+}
+
+<span class="keyword">public class</span> <span class="type">EmailService</span> {
+    <span class="keyword">public void</span> <span class="method">send</span>(<span class="type">String</span> to, <span class="type">String</span> body) { <span class="comment">/* ... */</span> }
+}
+
+<span class="keyword">public class</span> <span class="type">ReportGenerator</span> {
+    <span class="keyword">public</span> <span class="type">Report</span> <span class="method">generate</span>(<span class="type">ReportCriteria</span> criteria) { <span class="comment">/* ... */</span> }
+}
+
+<span class="keyword">public class</span> <span class="type">PaymentProcessor</span> {
+    <span class="keyword">public</span> <span class="type">PaymentResult</span> <span class="method">process</span>(<span class="type">Payment</span> payment) { <span class="comment">/* ... */</span> }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Her sınıf tek bir sorumluluğa sahiptir (Tek Sorumluluk İlkesi / SRP). Bu yapı sayesinde her sınıf bağımsız olarak test edilebilir, değiştirilebilir ve genişletilebilir.
+            </span>
+            <span class="en-text">
+                Each class has a single responsibility (Single Responsibility Principle / SRP). This structure allows each class to be independently tested, modified, and extended.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Bir sınıfın ne yaptığını tek bir cümleyle açıklayamıyorsanız, muhtemelen çok fazla sorumluluk üstlenmiştir. "Ve" kelimesi kullanmak zorunda kalıyorsanız, sınıfı bölmeyi düşünün.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> If you can't describe what a class does in a single sentence, it probably has too many responsibilities. If you find yourself using the word "and," consider splitting the class.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Bileşen -->
+<div class="modal-overlay" id="modal-component">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('component')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Bileşen</span>
+            <span class="en-text">Component</span>
+        </div>
+        <div class="modal-subtitle">Component</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Effective Java'da <em>bileşen</em> (component) terimi, bireysel bir metottan birden fazla paketten oluşan karmaşık bir çerçeveye (framework) kadar herhangi bir yeniden kullanılabilir yazılım elemanını ifade eder. İyi tasarlanmış bileşenler küçük, odaklı ve birbirinden bağımsızdır. Bileşenler arasındaki bağımlılıklar minimumda tutulmalıdır.
+            </span>
+            <span class="en-text">
+                In Effective Java, the term <em>component</em> refers to any reusable software element, from an individual method to a complex framework consisting of multiple packages. Well-designed components are small, focused, and independent. Dependencies between components should be kept to a minimum.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Sıkı bağımlılık - bileşenler birbirine dolanmış</span>
+<span class="keyword">public class</span> <span class="type">OrderService</span> {
+
+    <span class="keyword">public void</span> <span class="method">placeOrder</span>(<span class="type">Order</span> order) {
+        <span class="comment">// Doğrudan somut sınıflara bağımlı</span>
+        <span class="type">MySqlDatabase</span> db = <span class="keyword">new</span> <span class="type">MySqlDatabase</span>();
+        db.save(order);
+
+        <span class="type">SmtpEmailClient</span> email = <span class="keyword">new</span> <span class="type">SmtpEmailClient</span>();
+        email.send(order.getCustomerEmail(),
+                   <span class="string">"Order confirmed"</span>);
+
+        <span class="type">StripePayment</span> payment = <span class="keyword">new</span> <span class="type">StripePayment</span>();
+        payment.charge(order.getTotal());
+    }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                <code>OrderService</code>, <code>MySqlDatabase</code>, <code>SmtpEmailClient</code> ve <code>StripePayment</code> gibi somut sınıflara doğrudan bağımlıdır. Veritabanını değiştirmek istediğinizde tüm servisi yeniden yazmak gerekir.
+            </span>
+            <span class="en-text">
+                <code>OrderService</code> is directly coupled to concrete classes like <code>MySqlDatabase</code>, <code>SmtpEmailClient</code>, and <code>StripePayment</code>. Changing the database requires rewriting the entire service.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Gevşek bağımlılık - arayüzler üzerinden iletişim</span>
+<span class="keyword">public class</span> <span class="type">OrderService</span> {
+    <span class="keyword">private final</span> <span class="type">OrderRepository</span> repository;
+    <span class="keyword">private final</span> <span class="type">NotificationSender</span> notifier;
+    <span class="keyword">private final</span> <span class="type">PaymentGateway</span> gateway;
+
+    <span class="keyword">public</span> <span class="method">OrderService</span>(<span class="type">OrderRepository</span> repository,
+                        <span class="type">NotificationSender</span> notifier,
+                        <span class="type">PaymentGateway</span> gateway) {
+        <span class="keyword">this</span>.repository = repository;
+        <span class="keyword">this</span>.notifier = notifier;
+        <span class="keyword">this</span>.gateway = gateway;
+    }
+
+    <span class="keyword">public void</span> <span class="method">placeOrder</span>(<span class="type">Order</span> order) {
+        repository.save(order);
+        notifier.send(order.getCustomerEmail(),
+                       <span class="string">"Order confirmed"</span>);
+        gateway.charge(order.getTotal());
+    }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Bağımlılıklar arayüzler (interfaces) üzerinden enjekte ediliyor. <code>OrderService</code> artık somut sınıfları bilmiyor; istediğimiz veritabanı, bildirim veya ödeme sistemi kolayca değiştirilebilir.
+            </span>
+            <span class="en-text">
+                Dependencies are injected through interfaces. <code>OrderService</code> no longer knows about concrete classes; the database, notification, or payment system can be easily swapped.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Bir bileşenin kalitesini test edilebilirliğiyle ölçebilirsiniz. Eğer birim testi yazarken çok fazla mock oluşturmak zorunda kalıyorsanız, bileşeniniz muhtemelen çok fazla bağımlılığa sahiptir.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> You can measure a component's quality by its testability. If you need to create too many mocks when writing unit tests, your component probably has too many dependencies.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Derleme Zamanı Hata Tespiti -->
+<div class="modal-overlay" id="modal-compile-time">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('compile-time')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Derleme Zamanı Hata Tespiti</span>
+            <span class="en-text">Compile-Time Error Detection</span>
+        </div>
+        <div class="modal-subtitle">Compile-Time Error Detection</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Hataların mümkün olan en erken aşamada &mdash; ideal olarak derleme zamanında (compile time) &mdash; yakalanması, Effective Java'nın en temel ilkelerinden biridir. Derleme zamanında yakalanan bir hata, çalışma zamanında (runtime) keşfedilen bir hataya kıyasla çok daha ucuz ve güvenlidir. Java'nın tip sistemi (type system) bu amaçla güçlü bir araçtır.
+            </span>
+            <span class="en-text">
+                Catching errors as early as possible &mdash; ideally at compile time &mdash; is one of the most fundamental principles of Effective Java. An error caught at compile time is much cheaper and safer than one discovered at runtime. Java's type system is a powerful tool for this purpose.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Hatalar çalışma zamanına kadar gizlenir</span>
+<span class="keyword">public class</span> <span class="type">ConfigLoader</span> {
+
+    <span class="keyword">public</span> <span class="type">Object</span> <span class="method">getSetting</span>(<span class="type">String</span> key) {
+        <span class="type">Map</span>&lt;<span class="type">String</span>, <span class="type">Object</span>&gt; settings = loadSettings();
+        <span class="keyword">return</span> settings.get(key);
+    }
+}
+
+<span class="comment">// Kullanan kod - ClassCastException riski</span>
+<span class="type">String</span> timeout = (<span class="type">String</span>) loader.getSetting(<span class="string">"timeout"</span>);
+<span class="keyword">int</span> port = (<span class="type">Integer</span>) loader.getSetting(<span class="string">"port"</span>);</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                <code>Object</code> dönüş tipi, derleyicinin tip güvenliğini sağlamasını engeller. Yanlış bir tip dönüşümü (cast) ancak çalışma zamanında <code>ClassCastException</code> ile ortaya çıkar.
+            </span>
+            <span class="en-text">
+                The <code>Object</code> return type prevents the compiler from ensuring type safety. An incorrect cast only manifests as a <code>ClassCastException</code> at runtime.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Tip güvenliği derleme zamanında sağlanır</span>
+<span class="keyword">public class</span> <span class="type">TypedConfig</span> {
+    <span class="keyword">private final</span> <span class="type">Map</span>&lt;<span class="type">ConfigKey</span>&lt;?&gt;, <span class="type">Object</span>&gt; settings;
+
+    <span class="keyword">public</span> &lt;<span class="type">T</span>&gt; <span class="type">T</span> <span class="method">get</span>(<span class="type">ConfigKey</span>&lt;<span class="type">T</span>&gt; key) {
+        <span class="keyword">return</span> key.type().cast(settings.get(key));
+    }
+}
+
+<span class="comment">// Tip-güvenli anahtar tanımları</span>
+<span class="keyword">public static final</span> <span class="type">ConfigKey</span>&lt;<span class="type">Integer</span>&gt; PORT =
+    ConfigKey.of(<span class="string">"port"</span>, <span class="type">Integer</span>.<span class="keyword">class</span>);
+<span class="keyword">public static final</span> <span class="type">ConfigKey</span>&lt;<span class="type">String</span>&gt; TIMEOUT =
+    ConfigKey.of(<span class="string">"timeout"</span>, <span class="type">String</span>.<span class="keyword">class</span>);
+
+<span class="comment">// Kullanan kod - derleme zamanında güvenli</span>
+<span class="keyword">int</span> port = config.get(PORT);        <span class="comment">// tip güvenli</span>
+<span class="type">String</span> timeout = config.get(TIMEOUT); <span class="comment">// tip güvenli</span></pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Jenerik <code>ConfigKey&lt;T&gt;</code> kullanarak, derleyici her <code>get</code> çağrısında doğru tipi garanti eder. Yanlış tip kullanımı derleme zamanında yaklanır; çalışma zamanı sürprizleri ortadan kalkar.
+            </span>
+            <span class="en-text">
+                By using generic <code>ConfigKey&lt;T&gt;</code>, the compiler guarantees the correct type at every <code>get</code> call. Type misuse is caught at compile time; runtime surprises are eliminated.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Kodunuzda <code>(Type)</code> şeklinde tip dönüşümleri (cast) görüyorsanız, bunların jeneriklerle (generics) ortadan kaldırılıp kaldırılamayacağını sorgulayın. Her tip dönüşümü, derleme zamanı güvenliğinden vazgeçtiğiniz bir noktadır.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> If you see <code>(Type)</code> casts in your code, question whether they can be eliminated with generics. Every cast is a point where you give up compile-time safety.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Kod Yeniden Kullanımı -->
+<div class="modal-overlay" id="modal-reuse">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('reuse')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Kod Yeniden Kullanımı</span>
+            <span class="en-text">Code Reuse</span>
+        </div>
+        <div class="modal-subtitle">Code Reuse vs. Code Duplication</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                "Kod kopyalanmak yerine yeniden kullanılmalıdır" &mdash; bu ilke, yazılım mühendisliğinin temel taşlarından biridir. Aynı mantığı birden fazla yere kopyalamak, bir hata bulunduğunda veya davranış değiştirildiğinde tüm kopyaları bulmayı ve güncellemeyi gerektirir. DRY (Don't Repeat Yourself) ilkesi olarak da bilinir.
+            </span>
+            <span class="en-text">
+                "Code should be reused rather than copied" &mdash; this principle is a cornerstone of software engineering. Copying the same logic to multiple places requires finding and updating all copies when a bug is found or behavior changes. This is also known as the DRY (Don't Repeat Yourself) principle.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Aynı doğrulama mantığı her yerde tekrarlanıyor</span>
+<span class="keyword">public class</span> <span class="type">UserController</span> {
+    <span class="keyword">public void</span> <span class="method">createUser</span>(<span class="type">String</span> email) {
+        <span class="keyword">if</span> (email == <span class="keyword">null</span> || !email.contains(<span class="string">"@"</span>)
+                || email.length() &gt; <span class="number">254</span>) {
+            <span class="keyword">throw new</span> <span class="type">IllegalArgumentException</span>();
+        }
+        <span class="comment">// ...</span>
+    }
+}
+
+<span class="keyword">public class</span> <span class="type">OrderController</span> {
+    <span class="keyword">public void</span> <span class="method">placeOrder</span>(<span class="type">String</span> email) {
+        <span class="keyword">if</span> (email == <span class="keyword">null</span> || !email.contains(<span class="string">"@"</span>)
+                || email.length() &gt; <span class="number">254</span>) {
+            <span class="keyword">throw new</span> <span class="type">IllegalArgumentException</span>();
+        }
+        <span class="comment">// ...</span>
+    }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                E-posta doğrulama mantığı iki farklı sınıfta birebir tekrarlanıyor. Doğrulama kuralı değiştiğinde (örneğin regex eklenmesi gerektiğinde) tüm kopyaları bulmak ve güncellemek gerekir.
+            </span>
+            <span class="en-text">
+                Email validation logic is duplicated verbatim in two different classes. When validation rules change (e.g., adding regex), all copies must be found and updated.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Ortak mantık tek bir yerde, yeniden kullanılabilir</span>
+<span class="keyword">public final class</span> <span class="type">EmailValidator</span> {
+
+    <span class="keyword">private static final</span> <span class="keyword">int</span> MAX_LENGTH = <span class="number">254</span>;
+
+    <span class="keyword">private</span> <span class="method">EmailValidator</span>() { }
+
+    <span class="keyword">public static void</span> <span class="method">validate</span>(<span class="type">String</span> email) {
+        <span class="keyword">if</span> (email == <span class="keyword">null</span> || !email.contains(<span class="string">"@"</span>)
+                || email.length() &gt; MAX_LENGTH) {
+            <span class="keyword">throw new</span> <span class="type">IllegalArgumentException</span>(
+                <span class="string">"Invalid email: "</span> + email);
+        }
+    }
+}
+
+<span class="comment">// Her yerde aynı doğrulamayı kullan</span>
+EmailValidator.validate(email);</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Doğrulama mantığı tek bir yardımcı sınıfta (utility class) merkezi hale getirildi. Artık kural değişikliği tek bir yerde yapılır ve tüm kullanım noktaları otomatik güncellenir. Sihirli sayı da (magic number) isimlendirilmiş bir sabite dönüştürüldü.
+            </span>
+            <span class="en-text">
+                Validation logic is centralized in a single utility class. Rule changes are made in one place and automatically apply to all usage points. The magic number was also converted to a named constant.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> "Üç Kural"ını uygulayın: Aynı kodu üçüncü kez kopyaladığınızı fark ettiğinizde, onu mutlaka yeniden kullanılabilir bir bileşene çıkarın. İki tekrar kabul edilebilir, üç tekrar bir uyarı işaretidir.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> Apply the "Rule of Three": When you notice yourself copying the same code for the third time, extract it into a reusable component. Two repetitions may be acceptable; three is a warning sign.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+    Effective Java &mdash; Joshua Bloch &bull; Sayfa 2 &bull; Chapter 1: Introduction
+</div>
+
+<script>const CURRENT_PAGE = 2;</script>
+<script src="../js/common.js"></script>
+
+</body>
+</html>

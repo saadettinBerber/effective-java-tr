@@ -23,5 +23,16 @@ Her yeni sayfa çevrildikten sonra, o sayfada geçen yeni teknik terimler buraya
 | Program example | Program örneği | Kitaptaki kod örnekleri |
 | Release | Sürüm | Java sürümü |
 | Software design | Yazılım tasarımı | Genel yazılım tasarım kavramı |
+| Antipattern | Anti-kalıp | Yaygın ama zararlı programlama pratiği |
+| Clarity | Açıklık | Kodun okunabilirliği ve anlaşılırlığı |
+| Compile time | Derleme zamanı | Kodun derleme aşaması |
+| Component | Bileşen | Yeniden kullanılabilir yazılım elemanı (metottan framework'e kadar) |
+| Dependency | Bağımlılık | Bileşenler arası ilişki |
+| Error detection | Hata tespiti | Hataların yakalanması |
+| Framework | Çerçeve | Yazılım çerçevesi (İngilizce de kullanılır) |
+| Nickname | Takma ad | Java sürüm takma adları |
+| Reuse | Yeniden kullanım | Kodun kopyalanmak yerine tekrar kullanılması |
+| Runtime | Çalışma zamanı | Programın çalışma aşaması |
+| Simplicity | Basitlik | Kodun sade ve anlaşılır olması |
 | Subpackage | Alt paket | Java alt paketi |
 

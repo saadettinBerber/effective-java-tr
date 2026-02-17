@@ -3,7 +3,8 @@
 // Her sayfa dosyasında sadece CURRENT_PAGE tanımlanır.
 
 const PAGES_MAP = {
-    1: 'page-1.html'
+    1: 'page-1.html',
+    2: 'page-2.html'
 };
 
 function setLang(lang) {
