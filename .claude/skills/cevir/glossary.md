@@ -88,5 +88,10 @@ Her yeni sayfa çevrildikten sonra, o sayfada geçen yeni teknik terimler buraya
 | Singleton | Tekil | Yalnızca bir örneği olan sınıf |
 | Static factory method | Statik fabrika metodu | Sınıfın örneğini döndüren statik metot |
 | Subtype | Alt tip | Bir tipin alt tipi (extends veya implements ile) |
+| Aggregation method | Toplama metodu | Birden fazla parametreyi birleştiren fabrika metodu (of) |
+| Naming convention | Adlandırma kuralı | Metot ve sınıf isimlendirme standartları |
+| Tight coupling | Sıkı bağımlılık | Bileşenler arası güçlü ve kırılgan bağımlılık |
+| Type-conversion method | Tip dönüştürme metodu | Tek parametreli fabrika metodu (from) |
 | User (of API) | Kullanıcı (API'nin) | API kullanan program yazan programcı |
+| Wrapper | Sarmalayıcı | Başka bir nesneyi saran ve davranışını genişleten sınıf |
 

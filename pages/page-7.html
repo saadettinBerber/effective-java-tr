@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sayfa 7 — Chapter 2: Item 1 (devam) | Effective Java Türkçe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.8;
+            font-size: 17px;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: #0d2137;
+            color: #e0e0e0;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-bar-left { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+        .home-link {
+            color: #f5a623;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border: 1px solid rgba(245,166,35,0.3);
+            border-radius: 6px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .home-link:hover { background: rgba(245,166,35,0.1); border-color: #f5a623; }
+
+        .top-bar-title { display: flex; flex-direction: column; }
+        .book-title { font-size: 16px; font-weight: 700; color: #f5a623; }
+        .chapter-info { font-size: 12px; color: #adb5bd; }
+        .top-bar-right { display: flex; align-items: center; gap: 12px; }
+
+        .lang-toggle { display: flex; border: 1px solid rgba(245,166,35,0.3); border-radius: 6px; overflow: hidden; }
+        .lang-btn { padding: 5px 12px; font-size: 13px; font-weight: 700; background: transparent; color: #adb5bd; border: none; cursor: pointer; transition: all 0.3s; }
+        .lang-btn.active { background: #f5a623; color: #0d2137; }
+        .lang-btn:hover:not(.active) { color: #f5a623; }
+
+        .page-number-wrapper { display: flex; align-items: center; gap: 6px; position: relative; }
+        .page-number-label { font-size: 12px; color: #adb5bd; white-space: nowrap; }
+        .page-number-input {
+            width: 52px; padding: 4px 8px; text-align: center;
+            border: 1px solid rgba(245,166,35,0.3); border-radius: 6px;
+            background: rgba(255,255,255,0.08); color: #f5a623;
+            font-size: 14px; font-weight: 700; font-family: inherit; outline: none;
+            transition: border-color 0.3s;
+        }
+        .page-number-input:focus { border-color: #f5a623; }
+        .page-number-input.error { border-color: #dc3545; animation: shake 0.4s ease; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .page-nav-tooltip {
+            position: absolute; top: 100%; right: 0; margin-top: 6px;
+            background: #dc3545; color: #fff; font-size: 12px; padding: 6px 12px;
+            border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s; z-index: 200;
+        }
+        .page-nav-tooltip.visible { opacity: 1; }
+
+        .content { max-width: 760px; margin: 0 auto; padding: 40px 24px 60px; }
+
+        .page-badge {
+            display: inline-block; background: #0d2137; color: #f5a623;
+            font-size: 13px; font-weight: 700; padding: 4px 14px;
+            border-radius: 20px; margin-bottom: 24px;
+        }
+
+        .chapter-title { font-size: 28px; font-weight: 800; color: #0d2137; margin-bottom: 8px; line-height: 1.3; }
+        .chapter-title-en { font-size: 18px; color: #6c757d; font-weight: 400; font-style: italic; margin-bottom: 32px; }
+
+        .divider {
+            height: 3px; background: linear-gradient(90deg, #f5a623 0%, transparent 100%);
+            border: none; margin-bottom: 32px; border-radius: 2px;
+        }
+
+        .text-paragraph { margin-bottom: 20px; text-align: justify; hyphens: auto; }
+        .text-paragraph em { font-style: italic; color: #555; }
+        .text-paragraph strong { font-weight: 700; color: #0d2137; }
+        .text-paragraph code {
+            background: #f0f0f0; padding: 2px 6px; border-radius: 4px;
+            font-size: 15px; color: #0d2137;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+
+        .subtitle { font-size: 20px; font-weight: 700; color: #0d2137; margin: 32px 0 16px; }
+
+        .naming-list { margin-bottom: 24px; }
+        .naming-item { margin-bottom: 20px; padding-left: 16px; border-left: 3px solid #f5a623; }
+        .naming-item-header { font-weight: 700; color: #0d2137; margin-bottom: 4px; }
+        .naming-item-header code {
+            background: #0d2137; color: #f5a623; padding: 2px 8px; border-radius: 4px;
+            font-size: 15px; font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+        .naming-item-desc { font-size: 15px; color: #495057; margin-bottom: 6px; }
+
+        pre {
+            background: #1e1e2e; color: #cdd6f4; padding: 14px 18px; border-radius: 10px;
+            overflow-x: auto; font-size: 14px; line-height: 1.6; margin-bottom: 8px;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+        pre .keyword { color: #cba6f7; }
+        pre .type { color: #89b4fa; }
+        pre .string { color: #a6e3a1; }
+        pre .comment { color: #6c7086; font-style: italic; }
+        pre .annotation { color: #f9e2af; }
+        pre .number { color: #fab387; }
+        pre .method { color: #89dceb; }
+
+        .concepts-section { margin-top: 40px; padding-top: 32px; border-top: 2px solid #eee; }
+        .concepts-title { font-size: 18px; font-weight: 700; color: #0d2137; margin-bottom: 16px; }
+        .concepts-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+        .concept-btn {
+            padding: 10px 20px; background: #fff; border: 2px solid #0d2137;
+            border-radius: 10px; color: #0d2137; font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s; font-family: inherit;
+        }
+        .concept-btn:hover {
+            background: #0d2137; color: #f5a623; transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13,33,55,0.2);
+        }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center;
+            align-items: flex-start; padding: 40px 16px; overflow-y: auto;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: #fff; border-radius: 16px; max-width: 720px; width: 100%;
+            padding: 32px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-close {
+            position: absolute; top: 16px; right: 16px; width: 32px; height: 32px;
+            border-radius: 50%; border: none; background: #f0f0f0; color: #333;
+            font-size: 18px; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; transition: all 0.3s;
+        }
+        .modal-close:hover { background: #dc3545; color: #fff; }
+        .modal-title { font-size: 22px; font-weight: 800; color: #0d2137; margin-bottom: 4px; }
+        .modal-subtitle { font-size: 14px; color: #6c757d; font-style: italic; margin-bottom: 20px; }
+        .modal-desc { margin-bottom: 24px; line-height: 1.7; color: #333; }
+
+        .example-label {
+            font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 8px; padding: 4px 10px; border-radius: 4px; display: inline-block;
+        }
+        .example-label.bad { background: #fce4e4; color: #dc3545; }
+        .example-label.good { background: #e3f9e5; color: #28a745; }
+        .example-explain { font-size: 14px; color: #555; margin: 8px 0 20px; padding-left: 12px; border-left: 3px solid #dee2e6; }
+        .modal-tip {
+            background: #fdf6eb; border: 1px solid #f5a623; border-radius: 8px;
+            padding: 14px 18px; margin-top: 20px; font-size: 14px; color: #0d2137;
+        }
+        .modal-tip strong { color: #f5a623; }
+
+        .page-nav { display: flex; justify-content: space-between; gap: 16px; margin-top: 48px; padding-top: 24px; border-top: 2px solid #eee; }
+        .nav-btn {
+            flex: 1; padding: 16px 20px; border: 2px solid #dee2e6; border-radius: 12px;
+            text-decoration: none; color: #0d2137; background: #fff; cursor: pointer;
+            transition: all 0.3s; text-align: center; font-family: inherit; font-size: 15px;
+        }
+        .nav-btn:hover:not(.disabled) { border-color: #0d2137; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .nav-btn.disabled { opacity: 0.4; cursor: not-allowed; background: #f0f0f0; }
+        .nav-btn-label { font-size: 12px; color: #6c757d; margin-bottom: 4px; }
+        .nav-btn-title { font-weight: 700; font-size: 15px; }
+
+        .footer { text-align: center; padding: 24px; color: #adb5bd; font-size: 13px; border-top: 1px solid #dee2e6; margin-top: 20px; }
+
+        @media (max-width: 700px) {
+            .top-bar { padding: 12px 16px; }
+            .book-title { font-size: 14px; }
+            .content { padding: 24px 16px 40px; }
+            .chapter-title { font-size: 22px; }
+            .modal-content { padding: 24px 18px; }
+            .page-nav { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Üst Bar -->
+<div class="top-bar">
+    <div class="top-bar-left">
+        <a href="../index.html" class="home-link">Ana Sayfa</a>
+        <div class="top-bar-title">
+            <div class="book-title">Effective Java &mdash; Joshua Bloch</div>
+            <div class="chapter-info">Chapter 2: Creating and Destroying Objects / Item 1 (devam)</div>
+        </div>
+    </div>
+    <div class="top-bar-right">
+        <div class="lang-toggle">
+            <button class="lang-btn" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="page-number-wrapper">
+            <span class="page-number-label">Sayfa</span>
+            <input type="text" class="page-number-input" id="pageNumInput" value="7" maxlength="4" autocomplete="off"
+                   onkeydown="if(event.key==='Enter') goToPageNum()"
+                   onblur="resetPageInput()">
+            <div class="page-nav-tooltip" id="pageNavTooltip"></div>
+        </div>
+    </div>
+</div>
+
+<!-- İçerik -->
+<div class="content">
+    <div class="page-badge">Sayfa 7</div>
+
+    <h1 class="chapter-title">
+        <span class="tr-text">Madde 1: Yapıcı Metot Yerine Statik Fabrika Metotlarını Düşünün (devam)</span>
+        <span class="en-text">Item 1: Consider Static Factory Methods Instead of Constructors (cont.)</span>
+    </h1>
+    <div class="chapter-title-en">
+        <span class="tr-text">Item 1: Consider static factory methods instead of constructors</span>
+        <span class="en-text">Madde 1: Yapıcı Metot Yerine Statik Fabrika Metotlarını Düşünün</span>
+    </div>
+    <hr class="divider">
+
+    <!-- Paragraf 1: Birinci sınırlama devamı -->
+    <p class="text-paragraph tr-text">
+        Örneğin, Koleksiyonlar Çerçevesi'ndeki (Collections Framework) kolaylık uygulama sınıflarından herhangi birini alt sınıflamak (subclass) mümkün değildir. Bu durum tartışmalı bir şekilde kılık değiştirmiş bir nimet olabilir, çünkü programcıları kalıtım (inheritance) yerine bileşim (composition) kullanmaya teşvik eder (Madde 18) ve değişmez tipler (immutable types) için gereklidir (Madde 17).
+    </p>
+    <p class="text-paragraph en-text">
+        For example, it is impossible to subclass any of the convenience implementation classes in the Collections Framework. Arguably this can be a blessing in disguise because it encourages programmers to use composition instead of inheritance (Item 18), and is required for immutable types (Item 17).
+    </p>
+
+    <!-- Paragraf 2: İkinci sınırlama başlığı -->
+    <p class="text-paragraph tr-text">
+        <strong>Statik fabrika metotlarının ikinci eksikliği, programcıların onları bulmakta zorlanmasıdır.</strong> API belgelerinde yapıcı metotların (constructors) öne çıktığı gibi öne çıkmazlar, bu yüzden yapıcı metotlar yerine statik fabrika metotları sunan bir sınıfın nasıl örnekleneceğini (instantiate) bulmak zor olabilir. Javadoc aracı belki bir gün statik fabrika metotlarına dikkat çekecektir. Bu arada, sınıf veya arayüz belgelerinde statik fabrikalara dikkat çekerek ve yaygın adlandırma kurallarına uyarak bu sorunu azaltabilirsiniz. İşte statik fabrika metotları için yaygın kullanılan isimlerden bazıları; bu liste kapsamlı olmaktan uzaktır:
+    </p>
+    <p class="text-paragraph en-text">
+        <strong>A second shortcoming of static factory methods is that they are hard for programmers to find.</strong> They do not stand out in API documentation in the way that constructors do, so it can be difficult to figure out how to instantiate a class that provides static factory methods instead of constructors. The Javadoc tool may someday draw attention to static factory methods. In the meantime, you can reduce this problem by drawing attention to static factories in class or interface documentation and by adhering to common naming conventions. Here are some common names for static factory methods. This list is far from exhaustive:
+    </p>
+
+    <!-- Adlandırma Kuralları Listesi -->
+    <div class="naming-list">
+        <!-- from -->
+        <div class="naming-item">
+            <div class="naming-item-header">
+                <code>from</code>
+            </div>
+            <p class="naming-item-desc tr-text">
+                Tek bir parametre alan ve bu tipin karşılık gelen örneğini döndüren bir <em>tip dönüştürme metodu</em> (type-conversion method). Örnek:
+            </p>
+            <p class="naming-item-desc en-text">
+                A <em>type-conversion method</em> that takes a single parameter and returns a corresponding instance of this type, for example:
+            </p>
+<pre><span class="type">Date</span> d = <span class="type">Date</span>.from(instant);</pre>
+        </div>
+
+        <!-- of -->
+        <div class="naming-item">
+            <div class="naming-item-header">
+                <code>of</code>
+            </div>
+            <p class="naming-item-desc tr-text">
+                Birden fazla parametre alan ve bunları birleştiren bir tipin örneğini döndüren bir <em>toplama metodu</em> (aggregation method). Örnek:
+            </p>
+            <p class="naming-item-desc en-text">
+                An <em>aggregation method</em> that takes multiple parameters and returns an instance of this type that incorporates them, for example:
+            </p>
+<pre><span class="type">Set</span>&lt;<span class="type">Rank</span>&gt; faceCards = <span class="type">EnumSet</span>.of(JACK, QUEEN, KING);</pre>
+        </div>
+
+        <!-- valueOf -->
+        <div class="naming-item">
+            <div class="naming-item-header">
+                <code>valueOf</code>
+            </div>
+            <p class="naming-item-desc tr-text">
+                <code>from</code> ve <code>of</code>'un daha ayrıntılı bir alternatifi. Örnek:
+            </p>
+            <p class="naming-item-desc en-text">
+                A more verbose alternative to <code>from</code> and <code>of</code>, for example:
+            </p>
+<pre><span class="type">BigInteger</span> prime = <span class="type">BigInteger</span>.valueOf(<span class="type">Integer</span>.MAX_VALUE);</pre>
+        </div>
+
+        <!-- instance / getInstance -->
+        <div class="naming-item">
+            <div class="naming-item-header">
+                <code>instance</code> veya <code>getInstance</code>
+            </div>
+            <p class="naming-item-desc tr-text">
+                Parametreleri (varsa) tarafından tanımlanan bir örneği döndürür, ancak aynı değere sahip olduğu söylenemez. Örnek:
+            </p>
+            <p class="naming-item-desc en-text">
+                Returns an instance that is described by its parameters (if any) but cannot be said to have the same value, for example:
+            </p>
+<pre><span class="type">StackWalker</span> luke = <span class="type">StackWalker</span>.getInstance(options);</pre>
+        </div>
+
+        <!-- create / newInstance -->
+        <div class="naming-item">
+            <div class="naming-item-header">
+                <code>create</code> veya <code>newInstance</code>
+            </div>
+            <p class="naming-item-desc tr-text">
+                <code>instance</code> veya <code>getInstance</code> gibidir, ancak metot her çağrıda yeni bir örnek döndürdüğünü garanti eder. Örnek:
+            </p>
+            <p class="naming-item-desc en-text">
+                Like <code>instance</code> or <code>getInstance</code>, except that the method guarantees that each call returns a new instance, for example:
+            </p>
+<pre><span class="type">Object</span> newArray = <span class="type">Array</span>.newInstance(classObject, arrayLen);</pre>
+        </div>
+
+        <!-- getType -->
+        <div class="naming-item">
+            <div class="naming-item-header">
+                <code>get<em>Type</em></code>
+            </div>
+            <p class="naming-item-desc tr-text">
+                <code>getInstance</code> gibidir, ancak fabrika metodu farklı bir sınıftaysa kullanılır. <em>Type</em>, fabrika metodu tarafından döndürülen nesnenin tipidir. Örnek:
+            </p>
+            <p class="naming-item-desc en-text">
+                Like <code>getInstance</code>, but used if the factory method is in a different class. <em>Type</em> is the type of object returned by the factory method, for example:
+            </p>
+<pre><span class="type">FileStore</span> fs = <span class="type">Files</span>.getFileStore(path);</pre>
+        </div>
+    </div>
+
+    <!-- Kavram Butonları -->
+    <div class="concepts-section">
+        <h2 class="concepts-title">
+            <span class="tr-text">Kavramlar</span>
+            <span class="en-text">Concepts</span>
+        </h2>
+        <div class="concepts-grid">
+            <button class="concept-btn" onclick="openModal('composition-over-inheritance')">
+                <span class="tr-text">Bileşim vs. Kalıtım (Composition over Inheritance)</span>
+                <span class="en-text">Composition over Inheritance</span>
+            </button>
+            <button class="concept-btn" onclick="openModal('naming-conventions')">
+                <span class="tr-text">Fabrika Metodu Adlandırma Kuralları</span>
+                <span class="en-text">Factory Method Naming Conventions</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigasyon -->
+    <div class="page-nav">
+        <a href="page-6.html" class="nav-btn">
+            <div class="nav-btn-label">
+                <span class="tr-text">Önceki Sayfa</span>
+                <span class="en-text">Previous Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 6 &mdash; Madde 1: Statik Fabrika Metotları (devam)</span>
+                <span class="en-text">Page 6 &mdash; Item 1: Static Factory Methods (cont.)</span>
+            </div>
+        </a>
+        <a href="#" class="nav-btn" onclick="return handleUntranslated(event, 8)">
+            <div class="nav-btn-label">
+                <span class="tr-text">Sonraki Sayfa</span>
+                <span class="en-text">Next Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 8 &mdash; Madde 1 (devam)</span>
+                <span class="en-text">Page 8 &mdash; Item 1 (cont.)</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Modal: Bileşim vs. Kalıtım -->
+<div class="modal-overlay" id="modal-composition-over-inheritance">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('composition-over-inheritance')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Bileşim vs. Kalıtım</span>
+            <span class="en-text">Composition over Inheritance</span>
+        </div>
+        <div class="modal-subtitle">Composition over Inheritance</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Kalıtım (inheritance) yerine bileşim (composition) tercih etmek, nesne yönelimli programlamanın temel ilkelerinden biridir. Kalıtım sıkı bağımlılık (tight coupling) yaratır: üst sınıf değiştiğinde alt sınıflar kırılabilir. Bileşim ise bir nesneyi başka bir nesnenin içinde kullanarak aynı işlevselliği daha esnek bir şekilde sağlar. Statik fabrika metotları alt sınıflamayı engelleyerek programcıları dolaylı olarak bileşimi tercih etmeye yönlendirir.
+            </span>
+            <span class="en-text">
+                Preferring composition over inheritance is a core principle of object-oriented programming. Inheritance creates tight coupling: subclasses can break when the superclass changes. Composition achieves the same functionality more flexibly by using one object inside another. Static factory methods, by preventing subclassing, indirectly guide programmers toward preferring composition.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Kalıtım ile genişletme — kırılgan tasarım</span>
+<span class="keyword">public class</span> <span class="type">LoggingList</span>&lt;<span class="type">E</span>&gt;
+        <span class="keyword">extends</span> <span class="type">ArrayList</span>&lt;<span class="type">E</span>&gt; {
+
+    <span class="keyword">private int</span> addCount = <span class="number">0</span>;
+
+    <span class="annotation">@Override</span>
+    <span class="keyword">public boolean</span> <span class="method">add</span>(<span class="type">E</span> e) {
+        addCount++;
+        <span class="keyword">return super</span>.add(e);
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="keyword">public boolean</span> <span class="method">addAll</span>(<span class="type">Collection</span>&lt;? <span class="keyword">extends</span> <span class="type">E</span>&gt; c) {
+        addCount += c.size();
+        <span class="keyword">return super</span>.addAll(c);
+        <span class="comment">// BUG: addAll dahili olarak add'ı çağırır</span>
+        <span class="comment">// sayaç 2 kat artar!</span>
+    }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                <code>ArrayList</code>'i kalıtım yoluyla genişletiyoruz. Ancak <code>addAll</code> dahili olarak <code>add</code>'ı çağırdığı için sayaç yanlış artıyor. Üst sınıfın iç uygulamasına bağımlıyız &mdash; uygulama değişirse kodumuz kırılır.
+            </span>
+            <span class="en-text">
+                We extend <code>ArrayList</code> via inheritance. But since <code>addAll</code> internally calls <code>add</code>, the counter increments incorrectly. We depend on the superclass's internal implementation &mdash; if it changes, our code breaks.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Bileşim ile sarmalama — sağlam tasarım</span>
+<span class="keyword">public class</span> <span class="type">LoggingList</span>&lt;<span class="type">E</span>&gt;
+        <span class="keyword">implements</span> <span class="type">List</span>&lt;<span class="type">E</span>&gt; {
+
+    <span class="keyword">private final</span> <span class="type">List</span>&lt;<span class="type">E</span>&gt; delegate;
+    <span class="keyword">private int</span> addCount = <span class="number">0</span>;
+
+    <span class="keyword">public</span> <span class="type">LoggingList</span>(<span class="type">List</span>&lt;<span class="type">E</span>&gt; delegate) {
+        <span class="keyword">this</span>.delegate = delegate;
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="keyword">public boolean</span> <span class="method">add</span>(<span class="type">E</span> e) {
+        addCount++;
+        <span class="keyword">return</span> delegate.add(e);
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="keyword">public boolean</span> <span class="method">addAll</span>(<span class="type">Collection</span>&lt;? <span class="keyword">extends</span> <span class="type">E</span>&gt; c) {
+        addCount += c.size();
+        <span class="keyword">return</span> delegate.addAll(c);
+        <span class="comment">// Doğru! delegate.addAll kendi add'ını çağırır,</span>
+        <span class="comment">// bizim add'ımızı değil.</span>
+    }
+    <span class="comment">// ... diğer List metotları delegate'e yönlendirilir</span>
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Kalıtım yerine bileşim kullanıyoruz: <code>List</code> arayüzünü uygulayıp iç bir <code>delegate</code> nesnesine yönlendiriyoruz. <code>addAll</code> artık delegenin kendi <code>add</code>'ını çağırır, bizimkini değil. Üst sınıfın iç uygulamasından bağımsızız.
+            </span>
+            <span class="en-text">
+                We use composition instead of inheritance: we implement the <code>List</code> interface and forward to an internal <code>delegate</code>. <code>addAll</code> now calls the delegate's own <code>add</code>, not ours. We're independent of the superclass's internal implementation.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> "Bu sınıf gerçekten bir X <em>midir</em>?" sorusunu sorun. Eğer cevap "hayır, X'in davranışını kullanmak istiyor" ise kalıtım yerine bileşimi tercih edin. Guava'nın <code>ForwardingList</code>, <code>ForwardingSet</code> gibi sınıfları sarmalama yazmayı kolaylaştırır.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> Ask "Is this class truly an X?" If the answer is "no, it wants to use X's behavior," prefer composition over inheritance. Guava's <code>ForwardingList</code>, <code>ForwardingSet</code> etc. make writing wrappers easy.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Fabrika Metodu Adlandırma Kuralları -->
+<div class="modal-overlay" id="modal-naming-conventions">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('naming-conventions')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Fabrika Metodu Adlandırma Kuralları</span>
+            <span class="en-text">Factory Method Naming Conventions</span>
+        </div>
+        <div class="modal-subtitle">Static Factory Method Naming Conventions</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Statik fabrika metotları yapıcı metotlar gibi API belgelerinde otomatik öne çıkmaz. Bu nedenle iyi bilinen adlandırma kurallarına uymak, diğer geliştiricilerin API'nizi keşfetmesini kolaylaştırır. Her adlandırma kuralı farklı bir amaca hizmet eder: <code>from</code> (tip dönüşümü), <code>of</code> (toplama), <code>valueOf</code> (ayrıntılı dönüşüm), <code>getInstance</code> (paylaşılabilir), <code>newInstance</code> (her zaman yeni), <code>getType</code> (farklı sınıftan).
+            </span>
+            <span class="en-text">
+                Static factory methods don't automatically stand out in API docs like constructors do. Following well-known naming conventions makes it easier for other developers to discover your API. Each convention serves a different purpose: <code>from</code> (type conversion), <code>of</code> (aggregation), <code>valueOf</code> (verbose conversion), <code>getInstance</code> (shareable), <code>newInstance</code> (always new), <code>getType</code> (from different class).
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Tutarsız ve kafa karıştıran adlandırma</span>
+<span class="keyword">public class</span> <span class="type">Color</span> {
+    <span class="keyword">public static</span> <span class="type">Color</span> <span class="method">make</span>(<span class="keyword">int</span> r, <span class="keyword">int</span> g, <span class="keyword">int</span> b) { ... }
+    <span class="keyword">public static</span> <span class="type">Color</span> <span class="method">build</span>(<span class="type">String</span> hex) { ... }
+    <span class="keyword">public static</span> <span class="type">Color</span> <span class="method">getColor</span>(<span class="keyword">int</span> rgb) { ... }
+    <span class="keyword">public static</span> <span class="type">Color</span> <span class="method">construct</span>(<span class="keyword">float</span>[] hsb) { ... }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Dört farklı fabrika metodu dört farklı fiil kullanıyor: <code>make</code>, <code>build</code>, <code>getColor</code>, <code>construct</code>. Hiçbiri standart Java adlandırma kurallarına uymuyor. Geliştirici Javadoc'a bakmadan hangi metodu kullanacağını tahmin edemez.
+            </span>
+            <span class="en-text">
+                Four factory methods use four different verbs: <code>make</code>, <code>build</code>, <code>getColor</code>, <code>construct</code>. None follows standard Java naming conventions. A developer can't guess which method to use without reading the Javadoc.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Standart adlandırma kurallarına uygun</span>
+<span class="keyword">public class</span> <span class="type">Color</span> {
+    <span class="comment">// of — birden fazla parametre, toplama</span>
+    <span class="keyword">public static</span> <span class="type">Color</span> <span class="method">of</span>(<span class="keyword">int</span> r, <span class="keyword">int</span> g, <span class="keyword">int</span> b) { ... }
+
+    <span class="comment">// from — tek parametre, tip dönüşümü</span>
+    <span class="keyword">public static</span> <span class="type">Color</span> <span class="method">from</span>(<span class="type">String</span> hex) { ... }
+
+    <span class="comment">// valueOf — ayrıntılı dönüşüm</span>
+    <span class="keyword">public static</span> <span class="type">Color</span> <span class="method">valueOf</span>(<span class="keyword">int</span> rgb) { ... }
+
+    <span class="comment">// from — tek parametre, farklı tip</span>
+    <span class="keyword">public static</span> <span class="type">Color</span> <span class="method">from</span>(<span class="keyword">float</span>[] hsb) { ... }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Her metot standart kurallarla adlandırılmış. Geliştirici <code>of</code>'un birden fazla parametre aldığını, <code>from</code>'un tip dönüşümü yaptığını, <code>valueOf</code>'un ayrıntılı bir dönüşüm olduğunu hemen anlayabilir. API'yi keşfetmek kolaylaşır.
+            </span>
+            <span class="en-text">
+                Each method follows standard conventions. A developer immediately understands that <code>of</code> takes multiple parameters, <code>from</code> does type conversion, and <code>valueOf</code> is a verbose conversion. The API becomes easy to discover.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Yeni bir statik fabrika metodu yazarken şu karar ağacını takip edin: Tek parametre + tip dönüşümü → <code>from</code>. Çoklu parametre + birleştirme → <code>of</code>. Her çağrıda yeni nesne garantisi → <code>create</code> veya <code>newInstance</code>. Paylaşılabilir nesne → <code>getInstance</code>. Farklı sınıftan → <code>get<em>Type</em></code> veya <code>new<em>Type</em></code>.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> When writing a new static factory method, follow this decision tree: Single parameter + type conversion → <code>from</code>. Multiple parameters + aggregation → <code>of</code>. New instance guaranteed → <code>create</code> or <code>newInstance</code>. Shareable instance → <code>getInstance</code>. From a different class → <code>get<em>Type</em></code> or <code>new<em>Type</em></code>.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+    Effective Java &mdash; Joshua Bloch &bull; Sayfa 7 &bull; Chapter 2: Item 1
+</div>
+
+<script>const CURRENT_PAGE = 7;</script>
+<script src="../js/common.js"></script>
+
+</body>
+</html>
