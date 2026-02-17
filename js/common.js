@@ -7,7 +7,8 @@ const PAGES_MAP = {
     2: 'page-2.html',
     3: 'page-3.html',
     4: 'page-4.html',
-    5: 'page-5.html'
+    5: 'page-5.html',
+    6: 'page-6.html'
 };
 
 function setLang(lang) {

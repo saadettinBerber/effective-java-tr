@@ -70,6 +70,8 @@ Her yeni sayfa çevrildikten sonra, o sayfada geçen yeni teknik terimler buraya
 | Subpackage | Alt paket | Java alt paketi |
 | Type | Tip | Java tip sistemi (interface, class, array, primitive) |
 | Boxed primitive | Sarmalayıcı ilkel sınıf | İlkel tiplerin nesne karşılıkları (Integer, Boolean vb.) |
+| Bridge pattern | Bridge kalıbı | Soyutlama ile uygulamayı ayıran tasarım kalıbı |
+| Conceptual weight | Kavramsal ağırlık | API'yi kullanmak için öğrenilmesi gereken kavramların sayısı ve zorluğu |
 | Companion class | Eşlikçi sınıf | Arayüz için statik metotları barındıran örneklenemez sınıf |
 | Flyweight pattern | Flyweight kalıbı | Paylaşılan nesnelerle bellek tasarrufu sağlayan tasarım kalıbı |
 | Immutable class | Değişmez sınıf | Oluşturulduktan sonra durumu değiştirilemeyen sınıf |
@@ -77,6 +79,12 @@ Her yeni sayfa çevrildikten sonra, o sayfada geçen yeni teknik terimler buraya
 | Instance-controlled | Örnek-kontrollü | Hangi örneklerin var olduğunu kontrol eden sınıf |
 | Interface-based framework | Arayüz tabanlı çerçeve | API'sini arayüzler üzerinden tanımlayan çerçeve |
 | Noninstantiable | Örneklenemez | Örneği oluşturulamayan sınıf (private constructor ile) |
+| Provider registration API | Sağlayıcı kayıt API'si | Hizmet sağlayıcıların uygulamalarını kaydettiği API |
+| Reflection | Yansıtma | Çalışma zamanında sınıf bilgilerine erişim mekanizması |
+| Service access API | Hizmet erişim API'si | İstemcilerin hizmet örneklerini elde ettiği API |
+| Service interface | Hizmet arayüzü | Hizmet sağlayıcı çerçevesinde uygulamayı temsil eden arayüz |
+| Service provider framework | Hizmet sağlayıcı çerçevesi | Sağlayıcıları istemcilerden ayıran mimari kalıp (JDBC vb.) |
+| Service provider interface | Hizmet sağlayıcı arayüzü | Hizmet arayüzü örneklerini üreten fabrika nesnesi arayüzü |
 | Singleton | Tekil | Yalnızca bir örneği olan sınıf |
 | Static factory method | Statik fabrika metodu | Sınıfın örneğini döndüren statik metot |
 | Subtype | Alt tip | Bir tipin alt tipi (extends veya implements ile) |

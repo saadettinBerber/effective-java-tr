@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sayfa 6 — Chapter 2: Item 1 (devam) | Effective Java Türkçe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.8;
+            font-size: 17px;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: #0d2137;
+            color: #e0e0e0;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-bar-left { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+        .home-link {
+            color: #f5a623;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border: 1px solid rgba(245,166,35,0.3);
+            border-radius: 6px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .home-link:hover { background: rgba(245,166,35,0.1); border-color: #f5a623; }
+
+        .top-bar-title { display: flex; flex-direction: column; }
+        .book-title { font-size: 16px; font-weight: 700; color: #f5a623; }
+        .chapter-info { font-size: 12px; color: #adb5bd; }
+        .top-bar-right { display: flex; align-items: center; gap: 12px; }
+
+        .lang-toggle { display: flex; border: 1px solid rgba(245,166,35,0.3); border-radius: 6px; overflow: hidden; }
+        .lang-btn { padding: 5px 12px; font-size: 13px; font-weight: 700; background: transparent; color: #adb5bd; border: none; cursor: pointer; transition: all 0.3s; }
+        .lang-btn.active { background: #f5a623; color: #0d2137; }
+        .lang-btn:hover:not(.active) { color: #f5a623; }
+
+        .page-number-wrapper { display: flex; align-items: center; gap: 6px; position: relative; }
+        .page-number-label { font-size: 12px; color: #adb5bd; white-space: nowrap; }
+        .page-number-input {
+            width: 52px; padding: 4px 8px; text-align: center;
+            border: 1px solid rgba(245,166,35,0.3); border-radius: 6px;
+            background: rgba(255,255,255,0.08); color: #f5a623;
+            font-size: 14px; font-weight: 700; font-family: inherit; outline: none;
+            transition: border-color 0.3s;
+        }
+        .page-number-input:focus { border-color: #f5a623; }
+        .page-number-input.error { border-color: #dc3545; animation: shake 0.4s ease; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .page-nav-tooltip {
+            position: absolute; top: 100%; right: 0; margin-top: 6px;
+            background: #dc3545; color: #fff; font-size: 12px; padding: 6px 12px;
+            border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s; z-index: 200;
+        }
+        .page-nav-tooltip.visible { opacity: 1; }
+
+        .content { max-width: 760px; margin: 0 auto; padding: 40px 24px 60px; }
+
+        .page-badge {
+            display: inline-block; background: #0d2137; color: #f5a623;
+            font-size: 13px; font-weight: 700; padding: 4px 14px;
+            border-radius: 20px; margin-bottom: 24px;
+        }
+
+        .chapter-title { font-size: 28px; font-weight: 800; color: #0d2137; margin-bottom: 8px; line-height: 1.3; }
+        .chapter-title-en { font-size: 18px; color: #6c757d; font-weight: 400; font-style: italic; margin-bottom: 32px; }
+
+        .divider {
+            height: 3px; background: linear-gradient(90deg, #f5a623 0%, transparent 100%);
+            border: none; margin-bottom: 32px; border-radius: 2px;
+        }
+
+        .text-paragraph { margin-bottom: 20px; text-align: justify; hyphens: auto; }
+        .text-paragraph em { font-style: italic; color: #555; }
+        .text-paragraph strong { font-weight: 700; color: #0d2137; }
+        .text-paragraph code {
+            background: #f0f0f0; padding: 2px 6px; border-radius: 4px;
+            font-size: 15px; color: #0d2137;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+
+        .concepts-section { margin-top: 40px; padding-top: 32px; border-top: 2px solid #eee; }
+        .concepts-title { font-size: 18px; font-weight: 700; color: #0d2137; margin-bottom: 16px; }
+        .concepts-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+        .concept-btn {
+            padding: 10px 20px; background: #fff; border: 2px solid #0d2137;
+            border-radius: 10px; color: #0d2137; font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s; font-family: inherit;
+        }
+        .concept-btn:hover {
+            background: #0d2137; color: #f5a623; transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13,33,55,0.2);
+        }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center;
+            align-items: flex-start; padding: 40px 16px; overflow-y: auto;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: #fff; border-radius: 16px; max-width: 720px; width: 100%;
+            padding: 32px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-close {
+            position: absolute; top: 16px; right: 16px; width: 32px; height: 32px;
+            border-radius: 50%; border: none; background: #f0f0f0; color: #333;
+            font-size: 18px; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; transition: all 0.3s;
+        }
+        .modal-close:hover { background: #dc3545; color: #fff; }
+        .modal-title { font-size: 22px; font-weight: 800; color: #0d2137; margin-bottom: 4px; }
+        .modal-subtitle { font-size: 14px; color: #6c757d; font-style: italic; margin-bottom: 20px; }
+        .modal-desc { margin-bottom: 24px; line-height: 1.7; color: #333; }
+
+        .example-label {
+            font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 8px; padding: 4px 10px; border-radius: 4px; display: inline-block;
+        }
+        .example-label.bad { background: #fce4e4; color: #dc3545; }
+        .example-label.good { background: #e3f9e5; color: #28a745; }
+        .example-explain { font-size: 14px; color: #555; margin: 8px 0 20px; padding-left: 12px; border-left: 3px solid #dee2e6; }
+        .modal-tip {
+            background: #fdf6eb; border: 1px solid #f5a623; border-radius: 8px;
+            padding: 14px 18px; margin-top: 20px; font-size: 14px; color: #0d2137;
+        }
+        .modal-tip strong { color: #f5a623; }
+
+        pre {
+            background: #1e1e2e; color: #cdd6f4; padding: 18px 20px; border-radius: 10px;
+            overflow-x: auto; font-size: 14px; line-height: 1.6; margin-bottom: 12px;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+        pre .keyword { color: #cba6f7; }
+        pre .type { color: #89b4fa; }
+        pre .string { color: #a6e3a1; }
+        pre .comment { color: #6c7086; font-style: italic; }
+        pre .annotation { color: #f9e2af; }
+        pre .number { color: #fab387; }
+        pre .method { color: #89dceb; }
+
+        .page-nav { display: flex; justify-content: space-between; gap: 16px; margin-top: 48px; padding-top: 24px; border-top: 2px solid #eee; }
+        .nav-btn {
+            flex: 1; padding: 16px 20px; border: 2px solid #dee2e6; border-radius: 12px;
+            text-decoration: none; color: #0d2137; background: #fff; cursor: pointer;
+            transition: all 0.3s; text-align: center; font-family: inherit; font-size: 15px;
+        }
+        .nav-btn:hover:not(.disabled) { border-color: #0d2137; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .nav-btn.disabled { opacity: 0.4; cursor: not-allowed; background: #f0f0f0; }
+        .nav-btn-label { font-size: 12px; color: #6c757d; margin-bottom: 4px; }
+        .nav-btn-title { font-weight: 700; font-size: 15px; }
+
+        .footer { text-align: center; padding: 24px; color: #adb5bd; font-size: 13px; border-top: 1px solid #dee2e6; margin-top: 20px; }
+
+        @media (max-width: 700px) {
+            .top-bar { padding: 12px 16px; }
+            .book-title { font-size: 14px; }
+            .content { padding: 24px 16px 40px; }
+            .chapter-title { font-size: 22px; }
+            .modal-content { padding: 24px 18px; }
+            .page-nav { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Üst Bar -->
+<div class="top-bar">
+    <div class="top-bar-left">
+        <a href="../index.html" class="home-link">Ana Sayfa</a>
+        <div class="top-bar-title">
+            <div class="book-title">Effective Java &mdash; Joshua Bloch</div>
+            <div class="chapter-info">Chapter 2: Creating and Destroying Objects / Item 1 (devam)</div>
+        </div>
+    </div>
+    <div class="top-bar-right">
+        <div class="lang-toggle">
+            <button class="lang-btn" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="page-number-wrapper">
+            <span class="page-number-label">Sayfa</span>
+            <input type="text" class="page-number-input" id="pageNumInput" value="6" maxlength="4" autocomplete="off"
+                   onkeydown="if(event.key==='Enter') goToPageNum()"
+                   onblur="resetPageInput()">
+            <div class="page-nav-tooltip" id="pageNavTooltip"></div>
+        </div>
+    </div>
+</div>
+
+<!-- İçerik -->
+<div class="content">
+    <div class="page-badge">Sayfa 6</div>
+
+    <h1 class="chapter-title">
+        <span class="tr-text">Madde 1: Yapıcı Metot Yerine Statik Fabrika Metotlarını Düşünün (devam)</span>
+        <span class="en-text">Item 1: Consider Static Factory Methods Instead of Constructors (cont.)</span>
+    </h1>
+    <div class="chapter-title-en">
+        <span class="tr-text">Item 1: Consider static factory methods instead of constructors</span>
+        <span class="en-text">Madde 1: Yapıcı Metot Yerine Statik Fabrika Metotlarını Düşünün</span>
+    </div>
+    <hr class="divider">
+
+    <!-- Paragraf 1: Collections Framework kompaktlığı (sayfa 5'ten devam) -->
+    <p class="text-paragraph tr-text">
+        Koleksiyonlar Çerçevesi (Collections Framework) API'si, kırk beş ayrı kamusal sınıf dışa aktarmış olsaydı çok daha büyük olurdu &mdash; her kolaylık uygulaması için bir tane. Azaltılan sadece API'nin <em>hacmi</em> değil, aynı zamanda <em>kavramsal ağırlığıdır</em> (conceptual weight): programcıların API'yi kullanabilmek için öğrenmeleri gereken kavramların sayısı ve zorluğu. Programcı, döndürülen nesnenin arayüzü tarafından belirlenen API'ye tam olarak sahip olduğunu bilir, bu yüzden uygulama sınıfı için ek belge okumaya gerek yoktur. Ayrıca, böyle bir statik fabrika metodu kullanmak istemcinin döndürülen nesneye uygulama sınıfı yerine arayüz üzerinden başvurmasını gerektirir ki bu genellikle iyi bir pratiktir (Madde 64).
+    </p>
+    <p class="text-paragraph en-text">
+        The Collections Framework API is much smaller than it would have been had it exported forty-five separate public classes, one for each convenience implementation. It is not just the <em>bulk</em> of the API that is reduced but the <em>conceptual weight:</em> the number and difficulty of the concepts that programmers must master in order to use the API. The programmer knows that the returned object has precisely the API specified by its interface, so there is no need to read additional class documentation for the implementation class. Furthermore, using such a static factory method requires the client to refer to the returned object by interface rather than implementation class, which is generally good practice (Item 64).
+    </p>
+
+    <!-- Paragraf 2: Java 8 ile arayüzlerde static metotlar -->
+    <p class="text-paragraph tr-text">
+        Java 8 itibarıyla, arayüzlerin statik metotlar içeremeyeceği kısıtlaması kaldırıldı, dolayısıyla bir arayüz için örneklenemez bir eşlikçi sınıf (companion class) sağlamak için genellikle çok az neden kaldı. Böyle bir sınıfta yer alacak birçok kamusal statik üye, bunun yerine arayüzün kendisine konulmalıdır. Ancak yine de uygulama kodunun büyük kısmını ayrı bir paket-özel (package-private) sınıfa koymak gerekebileceğini unutmayın. Bunun nedeni, Java 8'in bir arayüzün tüm statik üyelerinin kamusal olmasını gerektirmesidir. Java 9 özel statik metotlara izin verir, ancak statik alanlar ve statik üye sınıfları hâlâ kamusal olmak zorundadır.
+    </p>
+    <p class="text-paragraph en-text">
+        As of Java 8, the restriction that interfaces cannot contain static methods was eliminated, so there is typically little reason to provide a noninstantiable companion class for an interface. Many public static members that would have been at home in such a class should instead be put in the interface itself. Note, however, that it may still be necessary to put the bulk of the implementation code behind these static methods in a separate package-private class. This is because Java 8 requires all static members of an interface to be public. Java 9 allows private static methods, but static fields and static member classes are still required to be public.
+    </p>
+
+    <!-- Paragraf 3: Dördüncü Avantaj -->
+    <p class="text-paragraph tr-text">
+        <strong>Statik fabrikaların dördüncü avantajı, döndürülen nesnenin sınıfının çağrıdan çağrıya giriş parametrelerinin bir fonksiyonu olarak değişebilmesidir.</strong> Bildirilen dönüş tipinin herhangi bir alt tipi (subtype) geçerlidir. Döndürülen nesnenin sınıfı sürümden sürüme de değişebilir.
+    </p>
+    <p class="text-paragraph en-text">
+        <strong>A fourth advantage of static factories is that the class of the returned object can vary from call to call as a function of the input parameters.</strong> Any subtype of the declared return type is permissible. The class of the returned object can also vary from release to release.
+    </p>
+
+    <!-- Paragraf 4: EnumSet örneği -->
+    <p class="text-paragraph tr-text">
+        <code>EnumSet</code> sınıfının (Madde 36) kamusal yapıcı metotları yoktur, yalnızca statik fabrikaları vardır. OpenJDK uygulamasında, alttaki enum tipinin boyutuna bağlı olarak iki alt sınıftan birinin örneğini döndürürler: altmış dört veya daha az elemana sahipse (çoğu enum tipi böyledir), statik fabrikalar tek bir <code>long</code> ile desteklenen bir <code>RegularEnumSet</code> örneği döndürür; altmış beş veya daha fazla elemana sahipse, fabrikalar bir <code>long</code> dizisi ile desteklenen bir <code>JumboEnumSet</code> örneği döndürür.
+    </p>
+    <p class="text-paragraph en-text">
+        The <code>EnumSet</code> class (Item 36) has no public constructors, only static factories. In the OpenJDK implementation, they return an instance of one of two subclasses, depending on the size of the underlying enum type: if it has sixty-four or fewer elements, as most enum types do, the static factories return a <code>RegularEnumSet</code> instance, which is backed by a single <code>long</code>; if the enum type has sixty-five or more elements, the factories return a <code>JumboEnumSet</code> instance, backed by a <code>long</code> array.
+    </p>
+
+    <!-- Paragraf 5: EnumSet sınıflarının görünmezliği -->
+    <p class="text-paragraph tr-text">
+        Bu iki uygulama sınıfının varlığı istemciler için görünmezdir. Eğer <code>RegularEnumSet</code> küçük enum tipleri için performans avantajı sağlamayı bırakırsa, hiçbir olumsuz etki yaratmadan gelecek bir sürümde kaldırılabilir. Benzer şekilde, gelecek bir sürüm performans için yararlı olacaksa <code>EnumSet</code>'in üçüncü veya dördüncü bir uygulamasını ekleyebilir. İstemciler fabrikadan geri aldıkları nesnenin sınıfını ne bilirler ne de önemserler; tek önemsedikleri, nesnenin <code>EnumSet</code>'in bir alt sınıfı olmasıdır.
+    </p>
+    <p class="text-paragraph en-text">
+        The existence of these two implementation classes is invisible to clients. If <code>RegularEnumSet</code> ceased to offer performance advantages for small enum types, it could be eliminated from a future release with no ill effects. Similarly, a future release could add a third or fourth implementation of <code>EnumSet</code> if it proved beneficial for performance. Clients neither know nor care about the class of the object they get back from the factory; they care only that it is some subclass of <code>EnumSet</code>.
+    </p>
+
+    <!-- Paragraf 6: Beşinci Avantaj -->
+    <p class="text-paragraph tr-text">
+        <strong>Statik fabrikaların beşinci avantajı, döndürülen nesnenin sınıfının, metodu içeren sınıf yazıldığı sırada var olmasına gerek olmamasıdır.</strong> Bu tür esnek statik fabrika metotları, Java Veritabanı Bağlantısı API'si (JDBC) gibi <em>hizmet sağlayıcı çerçevelerinin</em> (service provider frameworks) temelini oluşturur. Hizmet sağlayıcı çerçevesi, sağlayıcıların bir hizmeti uyguladığı ve sistemin uygulamaları istemcilere sunarak istemcileri uygulamalardan ayırdığı bir sistemdir.
+    </p>
+    <p class="text-paragraph en-text">
+        <strong>A fifth advantage of static factories is that the class of the returned object need not exist when the class containing the method is written.</strong> Such flexible static factory methods form the basis of <em>service provider frameworks</em>, like the Java Database Connectivity API (JDBC). A service provider framework is a system in which providers implement a service, and the system makes the implementations available to clients, decoupling the clients from the implementations.
+    </p>
+
+    <!-- Paragraf 7: SPF bileşenleri -->
+    <p class="text-paragraph tr-text">
+        Bir hizmet sağlayıcı çerçevesinin üç temel bileşeni vardır: bir uygulamayı temsil eden <em>hizmet arayüzü</em> (service interface); sağlayıcıların uygulamaları kaydetmek için kullandığı <em>sağlayıcı kayıt API'si</em> (provider registration API); ve istemcilerin hizmetin örneklerini elde etmek için kullandığı <em>hizmet erişim API'si</em> (service access API). Hizmet erişim API'si, istemcilerin bir uygulama seçmek için kriter belirtmesine izin verebilir. Böyle bir kriter yoksa, API varsayılan bir uygulamanın örneğini döndürür veya istemcinin mevcut tüm uygulamalar arasında gezinmesine olanak tanır. Hizmet erişim API'si, hizmet sağlayıcı çerçevesinin temelini oluşturan esnek statik fabrikadır.
+    </p>
+    <p class="text-paragraph en-text">
+        There are three essential components in a service provider framework: a <em>service interface</em>, which represents an implementation; a <em>provider registration API</em>, which providers use to register implementations; and a <em>service access API</em>, which clients use to obtain instances of the service. The service access API may allow clients to specify criteria for choosing an implementation. In the absence of such criteria, the API returns an instance of a default implementation, or allows the client to cycle through all available implementations. The service access API is the flexible static factory that forms the basis of the service provider framework.
+    </p>
+
+    <!-- Paragraf 8: SPF opsiyonel bileşen ve JDBC -->
+    <p class="text-paragraph tr-text">
+        Bir hizmet sağlayıcı çerçevesinin opsiyonel dördüncü bileşeni, hizmet arayüzünün örneklerini üreten bir fabrika nesnesini tanımlayan <em>hizmet sağlayıcı arayüzüdür</em> (service provider interface). Hizmet sağlayıcı arayüzü yoksa, uygulamalar yansıtma (reflection) yoluyla (Madde 65) örneklenmelidir. JDBC durumunda, <code>Connection</code> hizmet arayüzünün rolünü oynar, <code>DriverManager.registerDriver</code> sağlayıcı kayıt API'sidir, <code>DriverManager.getConnection</code> hizmet erişim API'sidir ve <code>Driver</code> hizmet sağlayıcı arayüzüdür.
+    </p>
+    <p class="text-paragraph en-text">
+        An optional fourth component of a service provider framework is a <em>service provider interface</em>, which describes a factory object that produce instances of the service interface. In the absence of a service provider interface, implementations must be instantiated reflectively (Item 65). In the case of JDBC, <code>Connection</code> plays the part of the service interface, <code>DriverManager.registerDriver</code> is the provider registration API, <code>DriverManager.getConnection</code> is the service access API, and <code>Driver</code> is the service provider interface.
+    </p>
+
+    <!-- Paragraf 9: SPF varyantları ve DI -->
+    <p class="text-paragraph tr-text">
+        Hizmet sağlayıcı çerçevesi kalıbının birçok varyantı vardır. Örneğin, hizmet erişim API'si sağlayıcının sunduğundan daha zengin bir hizmet arayüzü döndürebilir. Bu, <em>Bridge</em> kalıbıdır [Gamma95]. Bağımlılık enjeksiyonu çerçeveleri (dependency injection frameworks) (Madde 5) güçlü hizmet sağlayıcılar olarak görülebilir. Java 6'dan beri, platform genel amaçlı bir hizmet sağlayıcı çerçevesi olan <code>java.util.ServiceLoader</code>'ı içerir, dolayısıyla genellikle kendinizinkini yazmanıza gerek yoktur (Madde 59). JDBC, <code>ServiceLoader</code> kullanmaz çünkü JDBC ondan önce gelir.
+    </p>
+    <p class="text-paragraph en-text">
+        There are many variants of the service provider framework pattern. For example, the service access API can return a richer service interface to clients than the one furnished by providers. This is the <em>Bridge</em> pattern [Gamma95]. Dependency injection frameworks (Item 5) can be viewed as powerful service providers. Since Java 6, the platform includes a general-purpose service provider framework, <code>java.util.ServiceLoader</code>, so you needn't, and generally shouldn't, write your own (Item 59). JDBC doesn't use <code>ServiceLoader</code>, as the former predates the latter.
+    </p>
+
+    <!-- Paragraf 10: Birinci Sınırlama (sayfa 7'ye taşacak) -->
+    <p class="text-paragraph tr-text">
+        <strong>Yalnızca statik fabrika metotları sağlamanın başlıca sınırlaması, kamusal (public) veya korumalı (protected) yapıcı metotları olmayan sınıfların alt sınıflanamamasıdır (subclassed).</strong> Örneğin,
+    </p>
+    <p class="text-paragraph en-text">
+        <strong>The main limitation of providing only static factory methods is that classes without public or protected constructors cannot be subclassed.</strong> For
+    </p>
+
+    <!-- Kavram Butonları -->
+    <div class="concepts-section">
+        <h2 class="concepts-title">
+            <span class="tr-text">Kavramlar</span>
+            <span class="en-text">Concepts</span>
+        </h2>
+        <div class="concepts-grid">
+            <button class="concept-btn" onclick="openModal('conceptual-weight')">
+                <span class="tr-text">Kavramsal Ağırlık (Conceptual Weight)</span>
+                <span class="en-text">Conceptual Weight</span>
+            </button>
+            <button class="concept-btn" onclick="openModal('service-provider')">
+                <span class="tr-text">Hizmet Sağlayıcı Çerçevesi (Service Provider Framework)</span>
+                <span class="en-text">Service Provider Framework</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigasyon -->
+    <div class="page-nav">
+        <a href="page-5.html" class="nav-btn">
+            <div class="nav-btn-label">
+                <span class="tr-text">Önceki Sayfa</span>
+                <span class="en-text">Previous Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 5 &mdash; Madde 1: Statik Fabrika Metotları</span>
+                <span class="en-text">Page 5 &mdash; Item 1: Static Factory Methods</span>
+            </div>
+        </a>
+        <a href="#" class="nav-btn" onclick="return handleUntranslated(event, 7)">
+            <div class="nav-btn-label">
+                <span class="tr-text">Sonraki Sayfa</span>
+                <span class="en-text">Next Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 7 &mdash; Madde 1 (devam)</span>
+                <span class="en-text">Page 7 &mdash; Item 1 (cont.)</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Modal: Kavramsal Ağırlık -->
+<div class="modal-overlay" id="modal-conceptual-weight">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('conceptual-weight')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Kavramsal Ağırlık</span>
+            <span class="en-text">Conceptual Weight</span>
+        </div>
+        <div class="modal-subtitle">Conceptual Weight</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Kavramsal ağırlık (Conceptual Weight), bir API'yi kullanabilmek için programcıların öğrenmesi gereken kavramların sayısını ve zorluğunu ifade eder. İyi tasarlanmış bir API, mümkün olan en az kavramsal ağırlıkla maksimum işlevsellik sunar. Uygulama detaylarını gizleyerek ve arayüzlere programlayarak kavramsal ağırlık azaltılabilir.
+            </span>
+            <span class="en-text">
+                Conceptual Weight refers to the number and difficulty of concepts that programmers must master to use an API. A well-designed API provides maximum functionality with minimal conceptual weight. Hiding implementation details and programming to interfaces helps reduce conceptual weight.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Yüksek kavramsal ağırlık — 6 farklı sınıf öğrenmeli</span>
+<span class="type">SyncArrayList</span>&lt;<span class="type">String</span>&gt; list1 = <span class="keyword">new</span> <span class="type">SyncArrayList</span>&lt;&gt;();
+<span class="type">UnmodArrayList</span>&lt;<span class="type">String</span>&gt; list2 = <span class="keyword">new</span> <span class="type">UnmodArrayList</span>&lt;&gt;(list1);
+<span class="type">CheckedArrayList</span>&lt;<span class="type">String</span>&gt; list3 =
+    <span class="keyword">new</span> <span class="type">CheckedArrayList</span>&lt;&gt;(list1, <span class="type">String</span>.<span class="keyword">class</span>);
+<span class="type">SyncLinkedList</span>&lt;<span class="type">String</span>&gt; list4 = <span class="keyword">new</span> <span class="type">SyncLinkedList</span>&lt;&gt;();
+<span class="type">UnmodLinkedList</span>&lt;<span class="type">String</span>&gt; list5 = <span class="keyword">new</span> <span class="type">UnmodLinkedList</span>&lt;&gt;(list4);
+<span class="type">EmptyList</span>&lt;<span class="type">String</span>&gt; list6 = <span class="keyword">new</span> <span class="type">EmptyList</span>&lt;&gt;();</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Her varyasyon için ayrı bir kamusal sınıf var. Programcı altı farklı sınıf adını, her birinin yapıcısını ve hangisinin ne işe yaradığını öğrenmek zorunda. API yüzeyi gereksiz yere büyük.
+            </span>
+            <span class="en-text">
+                There's a separate public class for each variation. A programmer must learn six different class names, their constructors, and what each does. The API surface is unnecessarily large.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Düşük kavramsal ağırlık — tek sınıf, statik fabrikalar</span>
+<span class="type">List</span>&lt;<span class="type">String</span>&gt; list1 = <span class="type">Collections</span>.synchronizedList(
+    <span class="keyword">new</span> <span class="type">ArrayList</span>&lt;&gt;());
+<span class="type">List</span>&lt;<span class="type">String</span>&gt; list2 = <span class="type">Collections</span>.unmodifiableList(list1);
+<span class="type">List</span>&lt;<span class="type">String</span>&gt; list3 = <span class="type">Collections</span>.checkedList(
+    list1, <span class="type">String</span>.<span class="keyword">class</span>);
+<span class="type">List</span>&lt;<span class="type">String</span>&gt; list4 = <span class="type">Collections</span>.emptyList();</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Tüm varyasyonlar <code>Collections</code> sınıfındaki statik fabrika metotları aracılığıyla sunuluyor. İstemci yalnızca <code>List</code> arayüzünü biliyor. Uygulama sınıfları tamamen gizli. Öğrenilmesi gereken tek kavram: <code>Collections</code> yardımcı sınıfı.
+            </span>
+            <span class="en-text">
+                All variations are provided through static factory methods in the <code>Collections</code> class. The client only knows the <code>List</code> interface. Implementation classes are completely hidden. The only concept to learn: the <code>Collections</code> utility class.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> API tasarımında "bir kavramla kaç şey yapılabilir?" sorusunu sorun. Eğer her işlem için yeni bir sınıf veya arayüz öğrenmek gerekiyorsa, API çok ağır demektir. Mümkünse az sayıda arayüz ve çok sayıda statik fabrika ile aynı işlevselliği sunun.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> In API design, ask "how much can be done with one concept?" If each operation requires learning a new class or interface, the API is too heavy. When possible, provide the same functionality through a few interfaces and many static factories.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Hizmet Sağlayıcı Çerçevesi -->
+<div class="modal-overlay" id="modal-service-provider">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('service-provider')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Hizmet Sağlayıcı Çerçevesi</span>
+            <span class="en-text">Service Provider Framework</span>
+        </div>
+        <div class="modal-subtitle">Service Provider Framework (SPF)</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Hizmet sağlayıcı çerçevesi (Service Provider Framework), sağlayıcıların bir hizmeti uyguladığı ve sistemin bu uygulamaları istemcilere sunarak istemcileri uygulamalardan ayırdığı bir mimari kalıptır. Üç temel bileşenden oluşur: hizmet arayüzü (service interface), sağlayıcı kayıt API'si (provider registration API) ve hizmet erişim API'si (service access API). JDBC bu kalıbın en bilinen örneğidir.
+            </span>
+            <span class="en-text">
+                A Service Provider Framework (SPF) is an architectural pattern where providers implement a service, and the system makes implementations available to clients while decoupling them from implementations. It has three essential components: service interface, provider registration API, and service access API. JDBC is the best-known example of this pattern.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// İstemci doğrudan uygulamaya bağımlı</span>
+<span class="keyword">public class</span> <span class="type">NotificationService</span> {
+    <span class="keyword">public void</span> <span class="method">send</span>(<span class="type">String</span> message) {
+        <span class="comment">// Doğrudan e-posta gönderimi — değiştirmek zor</span>
+        <span class="type">SmtpClient</span> smtp = <span class="keyword">new</span> <span class="type">SmtpClient</span>(<span class="string">"smtp.gmail.com"</span>);
+        smtp.send(message);
+    }
+}
+
+<span class="comment">// SMS'e geçmek istediğinizde tüm kodu değiştirmelisiniz</span></pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Bildirim hizmeti doğrudan <code>SmtpClient</code> somut sınıfına bağlıdır. SMS, push notification veya başka bir kanal eklemek istediğinizde tüm kodu değiştirmeniz gerekir. Sağlayıcı ve istemci sıkı bağımlıdır.
+            </span>
+            <span class="en-text">
+                The notification service depends directly on the <code>SmtpClient</code> concrete class. Adding SMS, push notifications, or other channels requires changing all the code. Provider and client are tightly coupled.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// 1. Hizmet arayüzü (Service Interface)</span>
+<span class="keyword">public interface</span> <span class="type">NotificationSender</span> {
+    <span class="keyword">void</span> <span class="method">send</span>(<span class="type">String</span> to, <span class="type">String</span> message);
+}
+
+<span class="comment">// 2. Sağlayıcı kayıt + hizmet erişim API'si</span>
+<span class="keyword">public class</span> <span class="type">Notifications</span> {
+    <span class="keyword">private static final</span> <span class="type">Map</span>&lt;<span class="type">String</span>, <span class="type">NotificationSender</span>&gt;
+        providers = <span class="keyword">new</span> <span class="type">ConcurrentHashMap</span>&lt;&gt;();
+
+    <span class="keyword">private</span> <span class="type">Notifications</span>() {}
+
+    <span class="comment">// Sağlayıcı kayıt API'si</span>
+    <span class="keyword">public static void</span> <span class="method">register</span>(<span class="type">String</span> name,
+                                    <span class="type">NotificationSender</span> sender) {
+        providers.put(name, sender);
+    }
+
+    <span class="comment">// Hizmet erişim API'si</span>
+    <span class="keyword">public static</span> <span class="type">NotificationSender</span> <span class="method">of</span>(<span class="type">String</span> name) {
+        <span class="keyword">return</span> providers.get(name);
+    }
+}
+
+<span class="comment">// Kullanım — istemci uygulamadan bağımsız</span>
+<span class="type">Notifications</span>.register(<span class="string">"email"</span>, <span class="keyword">new</span> <span class="type">EmailSender</span>());
+<span class="type">Notifications</span>.register(<span class="string">"sms"</span>, <span class="keyword">new</span> <span class="type">SmsSender</span>());
+
+<span class="type">NotificationSender</span> sender = <span class="type">Notifications</span>.of(<span class="string">"sms"</span>);
+sender.send(<span class="string">"+905551234567"</span>, <span class="string">"Merhaba!"</span>);</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                <code>NotificationSender</code> hizmet arayüzüdür. <code>Notifications.register</code> sağlayıcı kayıt API'sidir. <code>Notifications.of</code> hizmet erişim API'sidir. İstemci yalnızca arayüze bağımlıdır &mdash; yeni sağlayıcılar eklemek mevcut kodu etkilemez.
+            </span>
+            <span class="en-text">
+                <code>NotificationSender</code> is the service interface. <code>Notifications.register</code> is the provider registration API. <code>Notifications.of</code> is the service access API. The client depends only on the interface &mdash; adding new providers doesn't affect existing code.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Java 6+'da <code>java.util.ServiceLoader</code> kullanarak kendi hizmet sağlayıcı çerçevenizi sıfırdan yazmaktan kaçının. <code>ServiceLoader</code>, <code>META-INF/services</code> dosyaları aracılığıyla sağlayıcıları otomatik keşfeder. Daha karmaşık ihtiyaçlar için Dagger veya Spring gibi bağımlılık enjeksiyonu çerçeveleri kullanın.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> In Java 6+, use <code>java.util.ServiceLoader</code> to avoid writing your own service provider framework from scratch. <code>ServiceLoader</code> automatically discovers providers through <code>META-INF/services</code> files. For more complex needs, use dependency injection frameworks like Dagger or Spring.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+    Effective Java &mdash; Joshua Bloch &bull; Sayfa 6 &bull; Chapter 2: Item 1
+</div>
+
+<script>const CURRENT_PAGE = 6;</script>
+<script src="../js/common.js"></script>
+
+</body>
+</html>
