@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sayfa 4 — Chapter 1: Introduction | Effective Java Türkçe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.8;
+            font-size: 17px;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: #0d2137;
+            color: #e0e0e0;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-bar-left { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+        .home-link {
+            color: #f5a623;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border: 1px solid rgba(245,166,35,0.3);
+            border-radius: 6px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .home-link:hover { background: rgba(245,166,35,0.1); border-color: #f5a623; }
+
+        .top-bar-title { display: flex; flex-direction: column; }
+        .book-title { font-size: 16px; font-weight: 700; color: #f5a623; }
+        .chapter-info { font-size: 12px; color: #adb5bd; }
+        .top-bar-right { display: flex; align-items: center; gap: 12px; }
+
+        .lang-toggle { display: flex; border: 1px solid rgba(245,166,35,0.3); border-radius: 6px; overflow: hidden; }
+        .lang-btn { padding: 5px 12px; font-size: 13px; font-weight: 700; background: transparent; color: #adb5bd; border: none; cursor: pointer; transition: all 0.3s; }
+        .lang-btn.active { background: #f5a623; color: #0d2137; }
+        .lang-btn:hover:not(.active) { color: #f5a623; }
+
+        .page-number-wrapper { display: flex; align-items: center; gap: 6px; position: relative; }
+        .page-number-label { font-size: 12px; color: #adb5bd; white-space: nowrap; }
+        .page-number-input {
+            width: 52px; padding: 4px 8px; text-align: center;
+            border: 1px solid rgba(245,166,35,0.3); border-radius: 6px;
+            background: rgba(255,255,255,0.08); color: #f5a623;
+            font-size: 14px; font-weight: 700; font-family: inherit; outline: none;
+            transition: border-color 0.3s;
+        }
+        .page-number-input:focus { border-color: #f5a623; }
+        .page-number-input.error { border-color: #dc3545; animation: shake 0.4s ease; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .page-nav-tooltip {
+            position: absolute; top: 100%; right: 0; margin-top: 6px;
+            background: #dc3545; color: #fff; font-size: 12px; padding: 6px 12px;
+            border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s; z-index: 200;
+        }
+        .page-nav-tooltip.visible { opacity: 1; }
+
+        .content { max-width: 760px; margin: 0 auto; padding: 40px 24px 60px; }
+
+        .page-badge {
+            display: inline-block; background: #0d2137; color: #f5a623;
+            font-size: 13px; font-weight: 700; padding: 4px 14px;
+            border-radius: 20px; margin-bottom: 24px;
+        }
+
+        .chapter-title { font-size: 28px; font-weight: 800; color: #0d2137; margin-bottom: 8px; line-height: 1.3; }
+        .chapter-title-en { font-size: 18px; color: #6c757d; font-weight: 400; font-style: italic; margin-bottom: 32px; }
+
+        .divider {
+            height: 3px; background: linear-gradient(90deg, #f5a623 0%, transparent 100%);
+            border: none; margin-bottom: 32px; border-radius: 2px;
+        }
+
+        .text-paragraph { margin-bottom: 20px; text-align: justify; hyphens: auto; }
+        .text-paragraph em { font-style: italic; color: #555; }
+        .text-paragraph strong { font-weight: 700; color: #0d2137; }
+        .text-paragraph code {
+            background: #f0f0f0; padding: 2px 6px; border-radius: 4px;
+            font-size: 15px; color: #0d2137;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+
+        /* Kavram Butonları */
+        .concepts-section { margin-top: 40px; padding-top: 32px; border-top: 2px solid #eee; }
+        .concepts-title { font-size: 18px; font-weight: 700; color: #0d2137; margin-bottom: 16px; }
+        .concepts-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+        .concept-btn {
+            padding: 10px 20px; background: #fff; border: 2px solid #0d2137;
+            border-radius: 10px; color: #0d2137; font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s; font-family: inherit;
+        }
+        .concept-btn:hover {
+            background: #0d2137; color: #f5a623; transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13,33,55,0.2);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center;
+            align-items: flex-start; padding: 40px 16px; overflow-y: auto;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: #fff; border-radius: 16px; max-width: 720px; width: 100%;
+            padding: 32px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-close {
+            position: absolute; top: 16px; right: 16px; width: 32px; height: 32px;
+            border-radius: 50%; border: none; background: #f0f0f0; color: #333;
+            font-size: 18px; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; transition: all 0.3s;
+        }
+        .modal-close:hover { background: #dc3545; color: #fff; }
+        .modal-title { font-size: 22px; font-weight: 800; color: #0d2137; margin-bottom: 4px; }
+        .modal-subtitle { font-size: 14px; color: #6c757d; font-style: italic; margin-bottom: 20px; }
+        .modal-desc { margin-bottom: 24px; line-height: 1.7; color: #333; }
+
+        .example-label {
+            font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 8px; padding: 4px 10px; border-radius: 4px; display: inline-block;
+        }
+        .example-label.bad { background: #fce4e4; color: #dc3545; }
+        .example-label.good { background: #e3f9e5; color: #28a745; }
+        .example-explain { font-size: 14px; color: #555; margin: 8px 0 20px; padding-left: 12px; border-left: 3px solid #dee2e6; }
+        .modal-tip {
+            background: #fdf6eb; border: 1px solid #f5a623; border-radius: 8px;
+            padding: 14px 18px; margin-top: 20px; font-size: 14px; color: #0d2137;
+        }
+        .modal-tip strong { color: #f5a623; }
+
+        /* Kod blokları */
+        pre {
+            background: #1e1e2e; color: #cdd6f4; padding: 18px 20px; border-radius: 10px;
+            overflow-x: auto; font-size: 14px; line-height: 1.6; margin-bottom: 12px;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+        pre .keyword { color: #cba6f7; }
+        pre .type { color: #89b4fa; }
+        pre .string { color: #a6e3a1; }
+        pre .comment { color: #6c7086; font-style: italic; }
+        pre .annotation { color: #f9e2af; }
+        pre .number { color: #fab387; }
+        pre .method { color: #89dceb; }
+
+        /* Navigasyon */
+        .page-nav { display: flex; justify-content: space-between; gap: 16px; margin-top: 48px; padding-top: 24px; border-top: 2px solid #eee; }
+        .nav-btn {
+            flex: 1; padding: 16px 20px; border: 2px solid #dee2e6; border-radius: 12px;
+            text-decoration: none; color: #0d2137; background: #fff; cursor: pointer;
+            transition: all 0.3s; text-align: center; font-family: inherit; font-size: 15px;
+        }
+        .nav-btn:hover:not(.disabled) { border-color: #0d2137; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .nav-btn.disabled { opacity: 0.4; cursor: not-allowed; background: #f0f0f0; }
+        .nav-btn-label { font-size: 12px; color: #6c757d; margin-bottom: 4px; }
+        .nav-btn-title { font-weight: 700; font-size: 15px; }
+
+        .footer { text-align: center; padding: 24px; color: #adb5bd; font-size: 13px; border-top: 1px solid #dee2e6; margin-top: 20px; }
+
+        /* Chapter sonu vurgusu */
+        .chapter-end-banner {
+            background: linear-gradient(135deg, #0d2137 0%, #1a3a5c 100%);
+            color: #f5a623;
+            padding: 20px 24px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 32px 0;
+            font-weight: 700;
+            font-size: 16px;
+        }
+        .chapter-end-banner small {
+            display: block;
+            color: #adb5bd;
+            font-weight: 400;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        @media (max-width: 700px) {
+            .top-bar { padding: 12px 16px; }
+            .book-title { font-size: 14px; }
+            .content { padding: 24px 16px 40px; }
+            .chapter-title { font-size: 22px; }
+            .modal-content { padding: 24px 18px; }
+            .page-nav { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Üst Bar -->
+<div class="top-bar">
+    <div class="top-bar-left">
+        <a href="../index.html" class="home-link">Ana Sayfa</a>
+        <div class="top-bar-title">
+            <div class="book-title">Effective Java &mdash; Joshua Bloch</div>
+            <div class="chapter-info">Chapter 1: Introduction / Giriş</div>
+        </div>
+    </div>
+    <div class="top-bar-right">
+        <div class="lang-toggle">
+            <button class="lang-btn" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="page-number-wrapper">
+            <span class="page-number-label">Sayfa</span>
+            <input type="text" class="page-number-input" id="pageNumInput" value="4" maxlength="4" autocomplete="off"
+                   onkeydown="if(event.key==='Enter') goToPageNum()"
+                   onblur="resetPageInput()">
+            <div class="page-nav-tooltip" id="pageNavTooltip"></div>
+        </div>
+    </div>
+</div>
+
+<!-- İçerik -->
+<div class="content">
+    <div class="page-badge">Sayfa 4</div>
+
+    <h1 class="chapter-title">
+        <span class="tr-text">Bölüm 1: Giriş (son)</span>
+        <span class="en-text">Chapter 1: Introduction (end)</span>
+    </h1>
+    <div class="chapter-title-en">
+        <span class="tr-text">Chapter 1: Introduction</span>
+        <span class="en-text">Bölüm 1: Giriş</span>
+    </div>
+    <hr class="divider">
+
+    <!-- Paragraf 1: Exported API tanımı (sayfa 3'ten devam) -->
+    <p class="text-paragraph tr-text">
+        bir programcının bir sınıfa, arayüze veya pakete erişmek için kullandığı sınıflar, arayüzler, yapıcı metotlar (constructors), üyeler ve serileştirilmiş formları (serialized forms) ifade eder. (<em>API</em> terimi, <em>Application Programming Interface</em>'in kısaltması olup, dil yapısı olan <em>interface</em> (arayüz) terimiyle karışıklığı önlemek amacıyla tercih edilen <em>application programming interface</em> ifadesi yerine kullanılmaktadır.) API kullanan bir program yazan programcıya, API'nin <em>kullanıcısı</em> (user) denir. Uygulaması bir API kullanan sınıf ise API'nin <em>istemcisi</em> (client) olarak adlandırılır.
+    </p>
+    <p class="text-paragraph en-text">
+        classes, interfaces, constructors, members, and serialized forms by which a programmer accesses a class, interface, or package. (The term <em>API</em>, which is short for <em>application programming interface</em>, is used in preference to the otherwise preferable term <em>interface</em> to avoid confusion with the language construct of that name.) A programmer who writes a program that uses an API is referred to as a <em>user</em> of the API. A class whose implementation uses an API is a <em>client</em> of the API.
+    </p>
+
+    <!-- Paragraf 2: API Elemanları -->
+    <p class="text-paragraph tr-text">
+        Sınıflar, arayüzler, yapıcı metotlar, üyeler ve serileştirilmiş formlar topluca <em>API elemanları</em> (API elements) olarak bilinir. Dışa aktarılan bir API (exported API), API'yi tanımlayan paketin dışından erişilebilen API elemanlarından oluşur. Bunlar, herhangi bir istemcinin kullanabileceği ve API yazarının desteklemeyi taahhüt ettiği API elemanlarıdır. Tesadüf değildir ki, bunlar aynı zamanda Javadoc yardımcı programının varsayılan çalışma modunda belgeleme oluşturduğu elemanlardır. Genel bir ifadeyle, bir paketin dışa aktarılan API'si, paketteki her kamusal (public) sınıf veya arayüzün kamusal ve korumalı (protected) üyeleri ile yapıcı metotlarından oluşur.
+    </p>
+    <p class="text-paragraph en-text">
+        Classes, interfaces, constructors, members, and serialized forms are collectively known as <em>API elements</em>. An exported API consists of the API elements that are accessible outside of the package that defines the API. These are the API elements that any client can use and the author of the API commits to support. Not coincidentally, they are also the elements for which the Javadoc utility generates documentation in its default mode of operation. Loosely speaking, the exported API of a package consists of the public and protected members and constructors of every public class or interface in the package.
+    </p>
+
+    <!-- Paragraf 3: Modül Sistemi -->
+    <p class="text-paragraph tr-text">
+        Java 9'da platforma bir <em>modül sistemi</em> (module system) eklendi. Bir kütüphane modül sistemini kullanıyorsa, dışa aktarılan API'si, kütüphanenin modül bildiriminin (module declaration) dışa aktardığı tüm paketlerin dışa aktarılan API'lerinin birleşimidir.
+    </p>
+    <p class="text-paragraph en-text">
+        In Java 9, a <em>module system</em> was added to the platform. If a library makes use of the module system, its exported API is the union of the exported APIs of all the packages exported by the library's module declaration.
+    </p>
+
+    <!-- Chapter 1 Sonu Bannerı -->
+    <div class="chapter-end-banner">
+        <span class="tr-text">
+            Bölüm 1: Giriş &mdash; Tamamlandı
+            <small>Sonraki: Bölüm 2 &mdash; Nesnelerin Oluşturulması ve Yok Edilmesi (Creating and Destroying Objects)</small>
+        </span>
+        <span class="en-text">
+            Chapter 1: Introduction &mdash; Complete
+            <small>Next: Chapter 2 &mdash; Creating and Destroying Objects</small>
+        </span>
+    </div>
+
+    <!-- Kavram Butonları -->
+    <div class="concepts-section">
+        <h2 class="concepts-title">
+            <span class="tr-text">Kavramlar</span>
+            <span class="en-text">Concepts</span>
+        </h2>
+        <div class="concepts-grid">
+            <button class="concept-btn" onclick="openModal('exported-api')">
+                <span class="tr-text">Dışa Aktarılan API (Exported API)</span>
+                <span class="en-text">Exported API</span>
+            </button>
+            <button class="concept-btn" onclick="openModal('api-elements')">
+                <span class="tr-text">API Elemanları (API Elements)</span>
+                <span class="en-text">API Elements</span>
+            </button>
+            <button class="concept-btn" onclick="openModal('module-system')">
+                <span class="tr-text">Modül Sistemi (Module System)</span>
+                <span class="en-text">Module System</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigasyon -->
+    <div class="page-nav">
+        <a href="page-3.html" class="nav-btn">
+            <div class="nav-btn-label">
+                <span class="tr-text">Önceki Sayfa</span>
+                <span class="en-text">Previous Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 3 &mdash; Bölüm 1: Giriş</span>
+                <span class="en-text">Page 3 &mdash; Chapter 1: Introduction</span>
+            </div>
+        </a>
+        <a href="#" class="nav-btn" onclick="return handleUntranslated(event, 5)">
+            <div class="nav-btn-label">
+                <span class="tr-text">Sonraki Sayfa</span>
+                <span class="en-text">Next Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 5 &mdash; Bölüm 2: Nesnelerin Oluşturulması ve Yok Edilmesi</span>
+                <span class="en-text">Page 5 &mdash; Chapter 2: Creating and Destroying Objects</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Modal: Exported API -->
+<div class="modal-overlay" id="modal-exported-api">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('exported-api')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Dışa Aktarılan API</span>
+            <span class="en-text">Exported API</span>
+        </div>
+        <div class="modal-subtitle">Exported API / Public API</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Dışa aktarılan API (Exported API), bir paketin dışından erişilebilen API elemanlarının tamamıdır. Kamusal (public) sınıfların kamusal ve korumalı (protected) üyeleri bu kapsamdadır. Bir API'yi tasarlarken, dışa aktarılan kısmı mümkün olduğunca küçük tutmak önemlidir &mdash; çünkü bir kez yayımlandığında, geriye dönük uyumluluğu korumak için süresiz desteklenmelidir.
+            </span>
+            <span class="en-text">
+                An Exported API consists of all API elements accessible from outside a package. This includes public and protected members of public classes. When designing an API, keeping the exported part as small as possible is important &mdash; once published, it must be supported indefinitely for backward compatibility.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Çok geniş bir exported API — her şey public</span>
+<span class="keyword">public class</span> <span class="type">HttpClient</span> {
+    <span class="keyword">public</span> <span class="type">Socket</span> socket;
+    <span class="keyword">public int</span> retryCount;
+    <span class="keyword">public</span> <span class="type">Map</span>&lt;<span class="type">String</span>, <span class="type">String</span>&gt; headers;
+
+    <span class="keyword">public void</span> <span class="method">openSocket</span>() { <span class="comment">/* ... */</span> }
+    <span class="keyword">public void</span> <span class="method">writeHeaders</span>() { <span class="comment">/* ... */</span> }
+    <span class="keyword">public void</span> <span class="method">parseResponse</span>() { <span class="comment">/* ... */</span> }
+    <span class="keyword">public</span> <span class="type">String</span> <span class="method">get</span>(<span class="type">String</span> url) { <span class="comment">/* ... */</span> }
+    <span class="keyword">public</span> <span class="type">String</span> <span class="method">post</span>(<span class="type">String</span> url, <span class="type">String</span> body) { <span class="comment">/* ... */</span> }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Dahili uygulama detayları (<code>socket</code>, <code>openSocket</code>, <code>writeHeaders</code>, <code>parseResponse</code>) kamusal API'nin bir parçası haline gelmiş. İstemciler bu detaylara bağımlı hale gelir ve gelecekte iç yapıyı değiştirmek imkansızlaşır.
+            </span>
+            <span class="en-text">
+                Internal implementation details (<code>socket</code>, <code>openSocket</code>, <code>writeHeaders</code>, <code>parseResponse</code>) have become part of the public API. Clients depend on these details, making future internal changes impossible.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Minimal exported API — yalnızca gerekli olanlar public</span>
+<span class="keyword">public class</span> <span class="type">HttpClient</span> {
+    <span class="keyword">private</span> <span class="type">Socket</span> socket;
+    <span class="keyword">private int</span> retryCount;
+    <span class="keyword">private</span> <span class="type">Map</span>&lt;<span class="type">String</span>, <span class="type">String</span>&gt; headers;
+
+    <span class="keyword">public</span> <span class="type">HttpClient</span>(<span class="type">HttpClientConfig</span> config) {
+        <span class="comment">/* yapılandırma ile başlatma */</span>
+    }
+
+    <span class="keyword">public</span> <span class="type">HttpResponse</span> <span class="method">get</span>(<span class="type">String</span> url) { <span class="comment">/* ... */</span> }
+    <span class="keyword">public</span> <span class="type">HttpResponse</span> <span class="method">post</span>(<span class="type">String</span> url, <span class="type">String</span> body) { <span class="comment">/* ... */</span> }
+
+    <span class="comment">// Dahili metotlar — private</span>
+    <span class="keyword">private void</span> <span class="method">openSocket</span>() { <span class="comment">/* ... */</span> }
+    <span class="keyword">private void</span> <span class="method">writeHeaders</span>() { <span class="comment">/* ... */</span> }
+    <span class="keyword">private</span> <span class="type">HttpResponse</span> <span class="method">parseResponse</span>() { <span class="comment">/* ... */</span> }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Yalnızca <code>get</code> ve <code>post</code> metotları kamusal API'de yer alıyor. Dahili detaylar <code>private</code> yapılarak gizlendi. Dönüş tipi olarak tip-güvenli <code>HttpResponse</code> nesnesi kullanıldı. İç yapı serbestçe değiştirilebilir.
+            </span>
+            <span class="en-text">
+                Only <code>get</code> and <code>post</code> methods are in the public API. Internal details are hidden as <code>private</code>. A type-safe <code>HttpResponse</code> object is used as the return type. Internal structure can be freely changed.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> API tasarımında "şüpheye düşersen gizle" kuralını uygulayın. Bir üyeyi <code>public</code> yapmak kolaydır, ancak bir kez <code>public</code> yaptığınızda geri almak çok zordur &mdash; istemcileriniz ona bağımlı hale gelmiştir. Her zaman en kısıtlayıcı erişim düzeyinden başlayın.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> Apply the "when in doubt, hide it" rule in API design. Making a member <code>public</code> is easy, but once it's <code>public</code>, taking it back is very hard &mdash; your clients have become dependent on it. Always start with the most restrictive access level.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: API Elemanları -->
+<div class="modal-overlay" id="modal-api-elements">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('api-elements')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">API Elemanları</span>
+            <span class="en-text">API Elements</span>
+        </div>
+        <div class="modal-subtitle">API Elements</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                API elemanları (API Elements), sınıflar, arayüzler, yapıcı metotlar (constructors), üyeler ve serileştirilmiş formların (serialized forms) tümünü kapsayan genel terimdir. Javadoc aracı varsayılan olarak bu elemanlar için belgeleme oluşturur. İyi belgelenmiş API elemanları, kütüphanenizin kullanılabilirliğini doğrudan etkiler.
+            </span>
+            <span class="en-text">
+                API Elements is the collective term covering classes, interfaces, constructors, members, and serialized forms. The Javadoc tool generates documentation for these elements by default. Well-documented API elements directly affect the usability of your library.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Belgelenmemiş API elemanları</span>
+<span class="keyword">public class</span> <span class="type">CacheManager</span> {
+    <span class="keyword">public void</span> <span class="method">put</span>(<span class="type">String</span> k, <span class="type">Object</span> v, <span class="keyword">long</span> t) {
+        <span class="comment">/* ... */</span>
+    }
+
+    <span class="keyword">public</span> <span class="type">Object</span> <span class="method">get</span>(<span class="type">String</span> k, <span class="keyword">boolean</span> f) {
+        <span class="comment">/* ... */</span>
+    }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Parametreler (<code>k</code>, <code>v</code>, <code>t</code>, <code>f</code>) hiçbir anlam ifade etmiyor. Javadoc yok. Dönüş tipi <code>Object</code>. Boolean parametre ne işe yarıyor belli değil. İstemci bu API'yi anlamak için kaynak kodu okumak zorunda.
+            </span>
+            <span class="en-text">
+                Parameters (<code>k</code>, <code>v</code>, <code>t</code>, <code>f</code>) convey no meaning. No Javadoc. Return type is <code>Object</code>. The boolean parameter's purpose is unclear. A client must read source code to understand this API.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">/**
+ * İş parçacığı güvenli (thread-safe) önbellek yöneticisi.
+ * Girişlerin belirli bir süre sonra otomatik süresi dolar.
+ */</span>
+<span class="keyword">public class</span> <span class="type">CacheManager</span>&lt;<span class="type">V</span>&gt; {
+
+    <span class="comment">/**
+     * Verilen anahtar ile değeri önbelleğe ekler.
+     *
+     * @param key   önbellek anahtarı, null olamaz
+     * @param value saklanacak değer
+     * @param ttl   yaşam süresi (time-to-live)
+     * @param unit  zaman birimi
+     */</span>
+    <span class="keyword">public void</span> <span class="method">put</span>(<span class="type">String</span> key, <span class="type">V</span> value,
+                     <span class="keyword">long</span> ttl, <span class="type">TimeUnit</span> unit) {
+        <span class="comment">/* ... */</span>
+    }
+
+    <span class="comment">/**
+     * Verilen anahtar ile ilişkili değeri döndürür.
+     *
+     * @return değer, veya anahtar bulunamazsa boş Optional
+     */</span>
+    <span class="keyword">public</span> <span class="type">Optional</span>&lt;<span class="type">V</span>&gt; <span class="method">get</span>(<span class="type">String</span> key) {
+        <span class="comment">/* ... */</span>
+    }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Sınıf jenerik yapılarak tip güvenliği sağlandı. Parametreler açıklayıcı isimler taşıyor. Javadoc ile her elemanın ne yaptığı belgelenmiş. <code>Optional</code> dönüş tipiyle null döndürme anti-kalıbından kaçınılmış. Boolean parametre kaldırılıp yerine daha anlamlı bir API sunulmuş.
+            </span>
+            <span class="en-text">
+                The class is made generic for type safety. Parameters have descriptive names. Javadoc documents each element. <code>Optional</code> return type avoids the null-return antipattern. The boolean parameter was removed in favor of a more meaningful API.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Kamusal (public) API elemanlarınızın her biri için Javadoc yazın. Bu sadece belgeleme değildir &mdash; Javadoc yazmak sizi API'nizi dışarıdan bir gözle değerlendirmeye zorlar. Eğer bir metodu Javadoc'ta açıklamakta zorlanıyorsanız, muhtemelen API tasarımınız iyileştirilmelidir.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> Write Javadoc for every public API element. This is not just documentation &mdash; writing Javadoc forces you to evaluate your API from an outside perspective. If you struggle to explain a method in Javadoc, your API design probably needs improvement.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Modül Sistemi -->
+<div class="modal-overlay" id="modal-module-system">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('module-system')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Modül Sistemi</span>
+            <span class="en-text">Module System</span>
+        </div>
+        <div class="modal-subtitle">Java Platform Module System (JPMS) &mdash; Java 9</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Java 9 ile birlikte gelen modül sistemi (Java Platform Module System / JPMS), paketlerin ötesinde ek bir kapsülleme katmanı sağlar. Bir modül, <code>module-info.java</code> dosyasında hangi paketleri dışa aktardığını ve hangi modüllere bağımlı olduğunu bildirir. Bu sayede, <code>public</code> olan sınıflar bile modül tarafından dışa aktarılmadığı sürece dış dünyaya görünür olmaz.
+            </span>
+            <span class="en-text">
+                The module system introduced in Java 9 (Java Platform Module System / JPMS) provides an additional layer of encapsulation beyond packages. A module declares which packages it exports and which modules it depends on in a <code>module-info.java</code> file. This way, even <code>public</code> classes are not visible to the outside world unless exported by the module.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Modül kullanmadan — tüm public sınıflar herkese açık</span>
+<span class="comment">// com/mylib/internal/DatabaseHelper.java</span>
+<span class="keyword">package</span> com.mylib.internal;
+
+<span class="keyword">public class</span> <span class="type">DatabaseHelper</span> {
+    <span class="keyword">public static</span> <span class="type">Connection</span> <span class="method">getRawConnection</span>() {
+        <span class="comment">// Dahili kullanım için tasarlanmış</span>
+        <span class="comment">// ama public olduğu için herkes erişebilir!</span>
+        <span class="keyword">return</span> <span class="type">DriverManager</span>.getConnection(<span class="string">"..."</span>);
+    }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                <code>internal</code> paketindeki sınıf kamusal olduğu için, modül sistemi olmadan kütüphane kullanıcıları bu dahili sınıfa erişebilir ve ona bağımlı hale gelebilir. Paket adında "internal" yazması hiçbir şeyi zorlamaz.
+            </span>
+            <span class="en-text">
+                Since the class in the <code>internal</code> package is public, without the module system, library users can access and depend on this internal class. Having "internal" in the package name enforces nothing.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// module-info.java — yalnızca API paketini dışa aktar</span>
+<span class="keyword">module</span> com.mylib {
+    <span class="keyword">exports</span> com.mylib.api;
+    <span class="comment">// com.mylib.internal dışa aktarılMAZ</span>
+    <span class="comment">// → DatabaseHelper dışarıdan erişilemez</span>
+}
+
+<span class="comment">// com/mylib/api/DatabaseService.java — kamusal API</span>
+<span class="keyword">package</span> com.mylib.api;
+
+<span class="keyword">public class</span> <span class="type">DatabaseService</span> {
+    <span class="keyword">public</span> <span class="type">QueryResult</span> <span class="method">execute</span>(<span class="type">String</span> query) {
+        <span class="comment">// İç detayları gizleyerek güvenli erişim sağlar</span>
+    }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                <code>module-info.java</code> dosyası yalnızca <code>com.mylib.api</code> paketini dışa aktarıyor. <code>com.mylib.internal</code> paketi ve içindeki <code>DatabaseHelper</code> sınıfı, <code>public</code> olsa bile modül dışından erişilemez hale geliyor. Bu, gerçek kapsülleme sağlar.
+            </span>
+            <span class="en-text">
+                The <code>module-info.java</code> file only exports <code>com.mylib.api</code>. The <code>com.mylib.internal</code> package and its <code>DatabaseHelper</code> class become inaccessible from outside the module, even though they are <code>public</code>. This provides true encapsulation.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Yeni bir kütüphane tasarlıyorsanız, modül sistemini en baştan kullanmayı düşünün. Bu, dahili uygulama detaylarınızı gerçek anlamda korur ve API yüzeyinizi küçük tutar. Mevcut projeler için geçiş zor olabilir, ancak yeni projeler için büyük avantaj sağlar.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> If you're designing a new library, consider using the module system from the start. This truly protects your internal implementation details and keeps your API surface small. Migration can be difficult for existing projects, but it provides a significant advantage for new ones.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+    Effective Java &mdash; Joshua Bloch &bull; Sayfa 4 &bull; Chapter 1: Introduction
+</div>
+
+<script>const CURRENT_PAGE = 4;</script>
+<script src="../js/common.js"></script>
+
+</body>
+</html>
