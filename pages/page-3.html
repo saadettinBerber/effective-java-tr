@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sayfa 3 — Chapter 1: Introduction | Effective Java Türkçe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.8;
+            font-size: 17px;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: #0d2137;
+            color: #e0e0e0;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .home-link {
+            color: #f5a623;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border: 1px solid rgba(245,166,35,0.3);
+            border-radius: 6px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .home-link:hover {
+            background: rgba(245,166,35,0.1);
+            border-color: #f5a623;
+        }
+
+        .top-bar-title {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .book-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #f5a623;
+        }
+
+        .chapter-info {
+            font-size: 12px;
+            color: #adb5bd;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lang-toggle {
+            display: flex;
+            border: 1px solid rgba(245,166,35,0.3);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .lang-btn {
+            padding: 5px 12px;
+            font-size: 13px;
+            font-weight: 700;
+            background: transparent;
+            color: #adb5bd;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            color: #0d2137;
+        }
+
+        .lang-btn:hover:not(.active) {
+            color: #f5a623;
+        }
+
+        .page-number-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+        }
+
+        .page-number-label {
+            font-size: 12px;
+            color: #adb5bd;
+            white-space: nowrap;
+        }
+
+        .page-number-input {
+            width: 52px;
+            padding: 4px 8px;
+            text-align: center;
+            border: 1px solid rgba(245,166,35,0.3);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.08);
+            color: #f5a623;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .page-number-input:focus {
+            border-color: #f5a623;
+        }
+
+        .page-number-input.error {
+            border-color: #dc3545;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .page-nav-tooltip {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 6px;
+            background: #dc3545;
+            color: #fff;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 200;
+        }
+
+        .page-nav-tooltip.visible {
+            opacity: 1;
+        }
+
+        .content {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 40px 24px 60px;
+        }
+
+        .page-badge {
+            display: inline-block;
+            background: #0d2137;
+            color: #f5a623;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+        }
+
+        .chapter-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #0d2137;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .chapter-title-en {
+            font-size: 18px;
+            color: #6c757d;
+            font-weight: 400;
+            font-style: italic;
+            margin-bottom: 32px;
+        }
+
+        .divider {
+            height: 3px;
+            background: linear-gradient(90deg, #f5a623 0%, transparent 100%);
+            border: none;
+            margin-bottom: 32px;
+            border-radius: 2px;
+        }
+
+        .text-paragraph {
+            margin-bottom: 20px;
+            text-align: justify;
+            hyphens: auto;
+        }
+
+        .text-paragraph em {
+            font-style: italic;
+            color: #555;
+        }
+
+        .text-paragraph strong {
+            font-weight: 700;
+            color: #0d2137;
+        }
+
+        .text-paragraph code, .inline-code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 15px;
+            color: #0d2137;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+
+        /* Tablo */
+        .feature-table-wrapper {
+            overflow-x: auto;
+            margin: 28px 0;
+        }
+
+        .feature-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 15px;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+
+        .feature-table thead {
+            background: #0d2137;
+            color: #f5a623;
+        }
+
+        .feature-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        .feature-table td {
+            padding: 10px 16px;
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+
+        .feature-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .feature-table tbody tr:hover {
+            background: #fdf6eb;
+        }
+
+        /* Kavram Butonları */
+        .concepts-section {
+            margin-top: 40px;
+            padding-top: 32px;
+            border-top: 2px solid #eee;
+        }
+
+        .concepts-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0d2137;
+            margin-bottom: 16px;
+        }
+
+        .concepts-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .concept-btn {
+            padding: 10px 20px;
+            background: #fff;
+            border: 2px solid #0d2137;
+            border-radius: 10px;
+            color: #0d2137;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .concept-btn:hover {
+            background: #0d2137;
+            color: #f5a623;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13,33,55,0.2);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 16px;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 16px;
+            max-width: 720px;
+            width: 100%;
+            padding: 32px;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: #f0f0f0;
+            color: #333;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #0d2137;
+            margin-bottom: 4px;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
+        .modal-desc {
+            margin-bottom: 24px;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        .example-label {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .example-label.bad {
+            background: #fce4e4;
+            color: #dc3545;
+        }
+
+        .example-label.good {
+            background: #e3f9e5;
+            color: #28a745;
+        }
+
+        .example-explain {
+            font-size: 14px;
+            color: #555;
+            margin: 8px 0 20px;
+            padding-left: 12px;
+            border-left: 3px solid #dee2e6;
+        }
+
+        .modal-tip {
+            background: #fdf6eb;
+            border: 1px solid #f5a623;
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #0d2137;
+        }
+
+        .modal-tip strong {
+            color: #f5a623;
+        }
+
+        /* Kod blokları */
+        pre {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            padding: 18px 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+
+        pre .keyword { color: #cba6f7; }
+        pre .type { color: #89b4fa; }
+        pre .string { color: #a6e3a1; }
+        pre .comment { color: #6c7086; font-style: italic; }
+        pre .annotation { color: #f9e2af; }
+        pre .number { color: #fab387; }
+        pre .method { color: #89dceb; }
+
+        /* Navigasyon */
+        .page-nav {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 2px solid #eee;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 16px 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #0d2137;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-family: inherit;
+            font-size: 15px;
+        }
+
+        .nav-btn:hover:not(.disabled) {
+            border-color: #0d2137;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: #f0f0f0;
+        }
+
+        .nav-btn-label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 4px;
+        }
+
+        .nav-btn-title {
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: #adb5bd;
+            font-size: 13px;
+            border-top: 1px solid #dee2e6;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 700px) {
+            .top-bar {
+                padding: 12px 16px;
+            }
+            .book-title {
+                font-size: 14px;
+            }
+            .content {
+                padding: 24px 16px 40px;
+            }
+            .chapter-title {
+                font-size: 22px;
+            }
+            .modal-content {
+                padding: 24px 18px;
+            }
+            .page-nav {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Üst Bar -->
+<div class="top-bar">
+    <div class="top-bar-left">
+        <a href="../index.html" class="home-link">Ana Sayfa</a>
+        <div class="top-bar-title">
+            <div class="book-title">Effective Java &mdash; Joshua Bloch</div>
+            <div class="chapter-info">Chapter 1: Introduction / Giriş</div>
+        </div>
+    </div>
+    <div class="top-bar-right">
+        <div class="lang-toggle">
+            <button class="lang-btn" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="page-number-wrapper">
+            <span class="page-number-label">Sayfa</span>
+            <input type="text" class="page-number-input" id="pageNumInput" value="3" maxlength="4" autocomplete="off"
+                   onkeydown="if(event.key==='Enter') goToPageNum()"
+                   onblur="resetPageInput()">
+            <div class="page-nav-tooltip" id="pageNavTooltip"></div>
+        </div>
+    </div>
+</div>
+
+<!-- İçerik -->
+<div class="content">
+    <div class="page-badge">Sayfa 3</div>
+
+    <h1 class="chapter-title">
+        <span class="tr-text">Bölüm 1: Giriş (devam)</span>
+        <span class="en-text">Chapter 1: Introduction (cont.)</span>
+    </h1>
+    <div class="chapter-title-en">
+        <span class="tr-text">Chapter 1: Introduction</span>
+        <span class="en-text">Bölüm 1: Giriş</span>
+    </div>
+    <hr class="divider">
+
+    <!-- Sürüm Tablosu (sayfa 2'den devam) -->
+    <div class="feature-table-wrapper">
+        <table class="feature-table">
+            <thead>
+                <tr>
+                    <th>
+                        <span class="tr-text">Resmi Sürüm Adı (Official Release Name)</span>
+                        <span class="en-text">Official Release Name</span>
+                    </th>
+                    <th>
+                        <span class="tr-text">Takma Ad (Nickname)</span>
+                        <span class="en-text">Nickname</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>JDK 1.1.<em>x</em></td><td>Java 1.1</td></tr>
+                <tr><td>Java 2 Platform, Standard Edition, v1.2</td><td>Java 2</td></tr>
+                <tr><td>Java 2 Platform, Standard Edition, v1.3</td><td>Java 3</td></tr>
+                <tr><td>Java 2 Platform, Standard Edition, v1.4</td><td>Java 4</td></tr>
+                <tr><td>Java 2 Platform, Standard Edition, v5.0</td><td>Java 5</td></tr>
+                <tr><td>Java Platform, Standard Edition 6</td><td>Java 6</td></tr>
+                <tr><td>Java Platform, Standard Edition 7</td><td>Java 7</td></tr>
+                <tr><td>Java Platform, Standard Edition 8</td><td>Java 8</td></tr>
+                <tr><td>Java Platform, Standard Edition 9</td><td>Java 9</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paragraf 1: Örnekler Hakkında -->
+    <p class="text-paragraph tr-text">
+        Örnekler makul ölçüde eksiksizdir, ancak tamlık yerine okunabilirliği (readability) ön planda tutar. <code>java.util</code> ve <code>java.io</code> paketlerinden sınıfları serbestçe kullanırlar. Örnekleri derlemek için bir veya daha fazla <code>import</code> bildirimi veya benzeri standart kalıp kod (boilerplate) eklemeniz gerekebilir. Kitabın web sitesi, her örneğin derlenebilir ve çalıştırılabilir genişletilmiş bir sürümünü içermektedir.
+    </p>
+    <p class="text-paragraph en-text">
+        The examples are reasonably complete, but favor readability over completeness. They freely use classes from packages <code>java.util</code> and <code>java.io</code>. In order to compile examples, you may have to add one or more import declarations, or other such boilerplate. The book's website contains an expanded version of each example, which you can compile and run.
+    </p>
+
+    <!-- Paragraf 2: Teknik Terimler (JLS) -->
+    <p class="text-paragraph tr-text">
+        Bu kitap çoğunlukla teknik terimleri <em>The Java Language Specification, Java SE 8 Edition</em> [JLS]'de tanımlandığı şekliyle kullanmaktadır. Birkaç terim özel olarak belirtilmeyi hak etmektedir. Dil dört tür tip (type) destekler: <em>arayüzler</em> (interfaces &mdash; ek açıklamalar (annotations) dahil), <em>sınıflar</em> (classes &mdash; enum'lar dahil), <em>diziler</em> (arrays) ve <em>ilkel tipler</em> (primitives). İlk üçü <em>referans tipleri</em> (reference types) olarak bilinir. Sınıf örnekleri (class instances) ve diziler <em>nesnedir</em> (objects); ilkel değerler (primitive values) nesne değildir. Bir sınıfın <em>üyeleri</em> (members); <em>alanlar</em> (fields), <em>metotlar</em> (methods), <em>üye sınıflar</em> (member classes) ve <em>üye arayüzlerden</em> (member interfaces) oluşur. Bir metodun <em>imzası</em> (signature), adından ve biçimsel parametrelerinin tiplerinden oluşur; imza, metodun dönüş tipini <em>içermez</em>.
+    </p>
+    <p class="text-paragraph en-text">
+        For the most part, this book uses technical terms as they are defined in <em>The Java Language Specification, Java SE 8 Edition</em> [JLS]. A few terms deserve special mention. The language supports four kinds of types: <em>interfaces</em> (including <em>annotations</em>), <em>classes</em> (including <em>enums</em>), <em>arrays</em>, and <em>primitives</em>. The first three are known as <em>reference types</em>. Class instances and arrays are <em>objects</em>; primitive values are not. A class's <em>members</em> consist of its <em>fields</em>, <em>methods</em>, <em>member classes</em>, and <em>member interfaces</em>. A method's <em>signature</em> consists of its name and the types of its formal parameters; the signature does <em>not</em> include the method's return type.
+    </p>
+
+    <!-- Paragraf 3: Kitabın Farklı Terimleri -->
+    <p class="text-paragraph tr-text">
+        Bu kitap birkaç terimi <em>The Java Language Specification</em>'dan farklı kullanmaktadır. <em>The Java Language Specification</em>'ın aksine bu kitap, <em>kalıtım</em> (inheritance) terimini <em>alt sınıflama</em> (subclassing) ile eş anlamlı olarak kullanır. Arayüzler için kalıtım terimi yerine bu kitap basitçe bir sınıfın bir arayüzü <em>uyguladığını</em> (implements) veya bir arayüzün başka bir arayüzü <em>genişlettiğini</em> (extends) belirtir. Hiçbir erişim düzeyi belirtilmediğinde geçerli olan erişim düzeyini tanımlamak için bu kitap, teknik olarak doğru olan <em>paket erişimi</em> (package access) [JLS, 6.6.1] yerine geleneksel <em>paket-özel</em> (package-private) terimini kullanır.
+    </p>
+    <p class="text-paragraph en-text">
+        This book uses a few terms differently from <em>The Java Language Specification</em>. Unlike <em>The Java Language Specification</em>, this book uses <em>inheritance</em> as a synonym for <em>subclassing</em>. Instead of using the term inheritance for interfaces, this book simply states that a class <em>implements</em> an interface or that one interface <em>extends</em> another. To describe the access level that applies when none is specified, this book uses the traditional <em>package-private</em> instead of the technically correct <em>package access</em> [JLS, 6.6.1].
+    </p>
+
+    <!-- Paragraf 4: Exported API başlangıcı -->
+    <p class="text-paragraph tr-text">
+        Bu kitap, <em>The Java Language Specification</em>'da tanımlanmayan birkaç teknik terim de kullanmaktadır. <em>Dışa aktarılan API</em> (exported API) veya kısaca <em>API</em> terimi, şu anlama gelir:
+    </p>
+    <p class="text-paragraph en-text">
+        This book uses a few technical terms that are not defined in <em>The Java Language Specification</em>. The term <em>exported API</em>, or simply <em>API</em>, refers to the
+    </p>
+
+    <!-- Kavram Butonları -->
+    <div class="concepts-section">
+        <h2 class="concepts-title">
+            <span class="tr-text">Kavramlar</span>
+            <span class="en-text">Concepts</span>
+        </h2>
+        <div class="concepts-grid">
+            <button class="concept-btn" onclick="openModal('reference-types')">
+                <span class="tr-text">Referans Tipleri (Reference Types)</span>
+                <span class="en-text">Reference Types</span>
+            </button>
+            <button class="concept-btn" onclick="openModal('method-signature')">
+                <span class="tr-text">Metot İmzası (Method Signature)</span>
+                <span class="en-text">Method Signature</span>
+            </button>
+            <button class="concept-btn" onclick="openModal('inheritance')">
+                <span class="tr-text">Kalıtım (Inheritance)</span>
+                <span class="en-text">Inheritance</span>
+            </button>
+            <button class="concept-btn" onclick="openModal('package-private')">
+                <span class="tr-text">Paket-Özel Erişim (Package-Private)</span>
+                <span class="en-text">Package-Private Access</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigasyon -->
+    <div class="page-nav">
+        <a href="page-2.html" class="nav-btn">
+            <div class="nav-btn-label">
+                <span class="tr-text">Önceki Sayfa</span>
+                <span class="en-text">Previous Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 2 &mdash; Bölüm 1: Giriş</span>
+                <span class="en-text">Page 2 &mdash; Chapter 1: Introduction</span>
+            </div>
+        </a>
+        <a href="#" class="nav-btn" onclick="return handleUntranslated(event, 4)">
+            <div class="nav-btn-label">
+                <span class="tr-text">Sonraki Sayfa</span>
+                <span class="en-text">Next Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 4 &mdash; Bölüm 1: Giriş</span>
+                <span class="en-text">Page 4 &mdash; Chapter 1: Introduction</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Modal: Referans Tipleri -->
+<div class="modal-overlay" id="modal-reference-types">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('reference-types')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Referans Tipleri</span>
+            <span class="en-text">Reference Types</span>
+        </div>
+        <div class="modal-subtitle">Reference Types vs. Primitive Types</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Java'da tipler iki ana kategoriye ayrılır: <em>ilkel tipler</em> (primitives) ve <em>referans tipleri</em> (reference types). İlkel tipler (<code>int</code>, <code>boolean</code>, <code>double</code> vb.) doğrudan değer taşır. Referans tipleri (arayüzler, sınıflar, diziler) ise bellekteki bir nesneye işaret eder. Bu ayrım, performans, null güvenliği ve jenerik kullanımı açısından kritik öneme sahiptir.
+            </span>
+            <span class="en-text">
+                In Java, types fall into two main categories: <em>primitive types</em> and <em>reference types</em>. Primitives (<code>int</code>, <code>boolean</code>, <code>double</code>, etc.) carry values directly. Reference types (interfaces, classes, arrays) point to an object in memory. This distinction is critical for performance, null safety, and generics usage.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Gereksiz kutulama — performans kaybı</span>
+<span class="keyword">public static long</span> <span class="method">sumFirstMillion</span>() {
+    <span class="type">Long</span> sum = <span class="number">0</span>L;  <span class="comment">// kutulu tip (boxed type)</span>
+    <span class="keyword">for</span> (<span class="keyword">long</span> i = <span class="number">0</span>; i &lt; <span class="number">1_000_000</span>; i++) {
+        sum += i;  <span class="comment">// her döngüde yeni Long nesnesi!</span>
+    }
+    <span class="keyword">return</span> sum;
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                <code>Long</code> (referans tipi) yerine <code>long</code> (ilkel tip) kullanılmalıydı. Her toplama işleminde otomatik kutulama (autoboxing) gerçekleşerek milyonlarca gereksiz nesne oluşturulur ve performans ciddi ölçüde düşer.
+            </span>
+            <span class="en-text">
+                <code>Long</code> (reference type) should have been <code>long</code> (primitive). Autoboxing at each addition creates millions of unnecessary objects, severely degrading performance.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// İlkel tip kullanarak verimli toplama</span>
+<span class="keyword">public static long</span> <span class="method">sumFirstMillion</span>() {
+    <span class="keyword">long</span> sum = <span class="number">0</span>L;  <span class="comment">// ilkel tip (primitive)</span>
+    <span class="keyword">for</span> (<span class="keyword">long</span> i = <span class="number">0</span>; i &lt; <span class="number">1_000_000</span>; i++) {
+        sum += i;  <span class="comment">// kutulama yok, hızlı</span>
+    }
+    <span class="keyword">return</span> sum;
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                İlkel <code>long</code> kullanarak kutulama masrafından tamamen kaçınılır. Bu basit değişiklik, performansı büyük ölçüde artırır. Referans tipleri yalnızca jenerik koleksiyonlar veya null değer gerektiğinde tercih edilmelidir.
+            </span>
+            <span class="en-text">
+                Using primitive <code>long</code> completely avoids boxing overhead. This simple change dramatically improves performance. Reference types should be preferred only for generic collections or when null values are needed.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> İlkel tipler ile kutulu karşılıkları arasında seçim yaparken, varsayılan olarak ilkel tipleri tercih edin. <code>Integer</code>, <code>Long</code>, <code>Double</code> gibi kutulu tipleri yalnızca koleksiyonlarda (<code>List&lt;Integer&gt;</code>) veya null semantiğine ihtiyaç duyduğunuzda kullanın.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> When choosing between primitives and their boxed counterparts, prefer primitives by default. Use boxed types like <code>Integer</code>, <code>Long</code>, <code>Double</code> only in collections (<code>List&lt;Integer&gt;</code>) or when you need null semantics.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Metot İmzası -->
+<div class="modal-overlay" id="modal-method-signature">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('method-signature')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Metot İmzası</span>
+            <span class="en-text">Method Signature</span>
+        </div>
+        <div class="modal-subtitle">Method Signature</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Bir metodun <em>imzası</em> (signature), adından ve biçimsel parametrelerinin tiplerinden oluşur. Önemli bir detay: <strong>dönüş tipi imzanın parçası değildir</strong>. Bu, Java'da aynı ada ve parametre tiplerine sahip ancak farklı dönüş tipli iki metot tanımlayamayacağınız anlamına gelir. Metot aşırı yükleme (overloading) yalnızca parametre tipleri farklı olduğunda mümkündür.
+            </span>
+            <span class="en-text">
+                A method's <em>signature</em> consists of its name and the types of its formal parameters. An important detail: <strong>the return type is not part of the signature</strong>. This means you cannot define two methods with the same name and parameter types but different return types in Java. Method overloading is only possible when parameter types differ.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Derleme hatası! Aynı imza, farklı dönüş tipi</span>
+<span class="keyword">public class</span> <span class="type">DataFetcher</span> {
+
+    <span class="keyword">public</span> <span class="type">String</span> <span class="method">fetch</span>(<span class="type">String</span> url) {
+        <span class="keyword">return</span> <span class="string">"raw response"</span>;
+    }
+
+    <span class="comment">// DERLEME HATASI: fetch(String) zaten tanımlanmış</span>
+    <span class="keyword">public</span> <span class="type">byte</span>[] <span class="method">fetch</span>(<span class="type">String</span> url) {
+        <span class="keyword">return new byte</span>[<span class="number">0</span>];
+    }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                İki metot da <code>fetch(String)</code> imzasına sahip. Dönüş tipi farklı olsa bile (<code>String</code> vs. <code>byte[]</code>), Java bunu aynı imza olarak değerlendirir ve derleme hatası verir.
+            </span>
+            <span class="en-text">
+                Both methods have the signature <code>fetch(String)</code>. Even though return types differ (<code>String</code> vs. <code>byte[]</code>), Java treats them as the same signature and raises a compilation error.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Açık, farklı metot isimleri ile ayrım</span>
+<span class="keyword">public class</span> <span class="type">DataFetcher</span> {
+
+    <span class="keyword">public</span> <span class="type">String</span> <span class="method">fetchAsText</span>(<span class="type">String</span> url) {
+        <span class="keyword">return</span> <span class="string">"raw response"</span>;
+    }
+
+    <span class="keyword">public</span> <span class="type">byte</span>[] <span class="method">fetchAsBytes</span>(<span class="type">String</span> url) {
+        <span class="keyword">return new byte</span>[<span class="number">0</span>];
+    }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Farklı metot adları (<code>fetchAsText</code>, <code>fetchAsBytes</code>) kullanarak hem derleme hatasından kaçınılır hem de API kendini belgelemiş olur. Metot adı, dönüş tipini zaten ima etmektedir.
+            </span>
+            <span class="en-text">
+                Using different method names (<code>fetchAsText</code>, <code>fetchAsBytes</code>) avoids the compilation error and makes the API self-documenting. The method name already implies the return type.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Metot aşırı yüklemesi (overloading) yaparken dikkatli olun. Aynı parametre sayısına sahip aşırı yüklemelerden kaçının &mdash; bunun yerine farklı, açıklayıcı metot isimleri tercih edin. Bu hem okunabilirliği artırır hem de gelecekteki bakımı kolaylaştırır.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> Be careful with method overloading. Avoid overloads with the same number of parameters &mdash; prefer different, descriptive method names instead. This improves readability and future maintainability.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Kalıtım -->
+<div class="modal-overlay" id="modal-inheritance">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('inheritance')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Kalıtım</span>
+            <span class="en-text">Inheritance</span>
+        </div>
+        <div class="modal-subtitle">Inheritance / Subclassing</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Effective Java'da <em>kalıtım</em> (inheritance) terimi, <em>alt sınıflama</em> (subclassing) ile eş anlamlı kullanılır &mdash; yani bir sınıfın başka bir sınıfı genişletmesi (<code>extends</code>). Arayüz uygulaması (<code>implements</code>) veya arayüz genişletmesi kalıtım olarak adlandırılmaz. Bu ayrım önemlidir çünkü sınıf kalıtımı güçlü bir bağımlılık yaratırken, arayüz uygulaması daha esnek bir yapı sağlar.
+            </span>
+            <span class="en-text">
+                In Effective Java, <em>inheritance</em> is used as a synonym for <em>subclassing</em> &mdash; meaning a class extending another class (<code>extends</code>). Interface implementation (<code>implements</code>) or interface extension is not called inheritance. This distinction matters because class inheritance creates strong coupling, while interface implementation provides more flexibility.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Kırılgan kalıtım - üst sınıf değişirse bozulur</span>
+<span class="keyword">public class</span> <span class="type">LoggingList</span>&lt;<span class="type">E</span>&gt;
+        <span class="keyword">extends</span> <span class="type">ArrayList</span>&lt;<span class="type">E</span>&gt; {
+
+    <span class="keyword">private int</span> addCount = <span class="number">0</span>;
+
+    <span class="annotation">@Override</span>
+    <span class="keyword">public boolean</span> <span class="method">add</span>(<span class="type">E</span> e) {
+        addCount++;
+        <span class="keyword">return super</span>.add(e);
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="keyword">public boolean</span> <span class="method">addAll</span>(<span class="type">Collection</span>&lt;? <span class="keyword">extends</span> <span class="type">E</span>&gt; c) {
+        addCount += c.size();
+        <span class="keyword">return super</span>.addAll(c);
+        <span class="comment">// BUG: addAll içeride add'ı çağırır!</span>
+        <span class="comment">// Sayaç iki kez artırılır.</span>
+    }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                <code>ArrayList.addAll()</code> dahili olarak <code>add()</code>'ı çağırır. Bu nedenle <code>addAll</code> çağrıldığında sayaç hem <code>addAll</code>'da hem de her <code>add</code> çağrısında artırılır. Üst sınıfın iç uygulama detaylarına bağımlılık, kırılgan bir kalıtım yaratır.
+            </span>
+            <span class="en-text">
+                <code>ArrayList.addAll()</code> internally calls <code>add()</code>. So when <code>addAll</code> is called, the counter is incremented both in <code>addAll</code> and in each <code>add</code> call. Dependency on the superclass's internal implementation details creates fragile inheritance.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Bileşim (composition) ile güvenli sarmalama</span>
+<span class="keyword">public class</span> <span class="type">LoggingList</span>&lt;<span class="type">E</span>&gt;
+        <span class="keyword">implements</span> <span class="type">List</span>&lt;<span class="type">E</span>&gt; {
+
+    <span class="keyword">private final</span> <span class="type">List</span>&lt;<span class="type">E</span>&gt; delegate;
+    <span class="keyword">private int</span> addCount = <span class="number">0</span>;
+
+    <span class="keyword">public</span> <span class="method">LoggingList</span>(<span class="type">List</span>&lt;<span class="type">E</span>&gt; delegate) {
+        <span class="keyword">this</span>.delegate = delegate;
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="keyword">public boolean</span> <span class="method">add</span>(<span class="type">E</span> e) {
+        addCount++;
+        <span class="keyword">return</span> delegate.add(e);
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="keyword">public boolean</span> <span class="method">addAll</span>(<span class="type">Collection</span>&lt;? <span class="keyword">extends</span> <span class="type">E</span>&gt; c) {
+        addCount += c.size();
+        <span class="keyword">return</span> delegate.addAll(c);
+    }
+    <span class="comment">// ... diğer List metotları delegate'e yönlendirilir</span>
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Kalıtım yerine bileşim (composition) kullanılarak, <code>delegate</code> nesnesinin iç uygulama detaylarından bağımsız hale gelindi. <code>addAll</code> doğrudan delegate'e yönlendirilir ve sayaç doğru çalışır.
+            </span>
+            <span class="en-text">
+                By using composition instead of inheritance, we become independent of the <code>delegate</code> object's internal implementation. <code>addAll</code> is forwarded directly to the delegate and the counter works correctly.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> "Kalıtım yerine bileşimi tercih edin" (Favor composition over inheritance) &mdash; Effective Java'nın en önemli tavsiyelerinden biridir (Madde 18). Kalıtımı yalnızca gerçek bir "A bir B'dir" (is-a) ilişkisi varsa kullanın; aksi halde bileşim ve yönlendirme (delegation) tercih edin.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> "Favor composition over inheritance" &mdash; one of the most important recommendations in Effective Java (Item 18). Use inheritance only when there is a genuine "is-a" relationship; otherwise, prefer composition and delegation.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Paket-Özel Erişim -->
+<div class="modal-overlay" id="modal-package-private">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('package-private')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Paket-Özel Erişim</span>
+            <span class="en-text">Package-Private Access</span>
+        </div>
+        <div class="modal-subtitle">Package-Private (Default Access)</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Java'da bir sınıf üyesine hiçbir erişim belirleyicisi (access modifier) verilmezse, o üye <em>paket-özel</em> (package-private) erişim düzeyine sahip olur. Bu, üyenin yalnızca aynı paketteki sınıflar tarafından erişilebilir olduğu anlamına gelir. Effective Java bu terimi, JLS'deki teknik olarak doğru olan <em>paket erişimi</em> (package access) yerine tercih eder.
+            </span>
+            <span class="en-text">
+                In Java, when no access modifier is specified for a class member, it has <em>package-private</em> access level. This means the member is accessible only by classes in the same package. Effective Java uses this term in preference to the technically correct <em>package access</em> from JLS.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Her şey public — kapsülleme ihlali</span>
+<span class="keyword">public class</span> <span class="type">Point</span> {
+    <span class="keyword">public double</span> x;
+    <span class="keyword">public double</span> y;
+
+    <span class="keyword">public double</span> <span class="method">distanceTo</span>(<span class="type">Point</span> other) {
+        <span class="keyword">return</span> <span class="type">Math</span>.sqrt(
+            <span class="type">Math</span>.pow(x - other.x, <span class="number">2</span>)
+            + <span class="type">Math</span>.pow(y - other.y, <span class="number">2</span>));
+    }
+
+    <span class="keyword">public</span> <span class="type">String</span> <span class="method">formatForDebug</span>() {
+        <span class="keyword">return</span> <span class="string">"("</span> + x + <span class="string">", "</span> + y + <span class="string">")"</span>;
+    }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Tüm alanlar ve yardımcı metotlar <code>public</code> yapılmış. <code>formatForDebug</code> gibi yalnızca dahili olarak kullanılan metotlar dışa açılmamalıdır. Alanlar doğrudan erişime açık olduğu için gelecekte temsil değişikliği yapılamaz.
+            </span>
+            <span class="en-text">
+                All fields and helper methods are <code>public</code>. Methods like <code>formatForDebug</code> that are only used internally should not be exposed. Since fields are directly accessible, representation changes are impossible in the future.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Doğru erişim düzeyleri ile kapsülleme</span>
+<span class="keyword">public class</span> <span class="type">Point</span> {
+    <span class="keyword">private final double</span> x;
+    <span class="keyword">private final double</span> y;
+
+    <span class="keyword">public</span> <span class="method">Point</span>(<span class="keyword">double</span> x, <span class="keyword">double</span> y) {
+        <span class="keyword">this</span>.x = x;
+        <span class="keyword">this</span>.y = y;
+    }
+
+    <span class="keyword">public double</span> <span class="method">distanceTo</span>(<span class="type">Point</span> other) {
+        <span class="keyword">return</span> <span class="type">Math</span>.hypot(x - other.x, y - other.y);
+    }
+
+    <span class="comment">// paket-özel: yalnızca aynı paketteki testler kullanır</span>
+    <span class="type">String</span> <span class="method">formatForDebug</span>() {
+        <span class="keyword">return</span> <span class="string">"("</span> + x + <span class="string">", "</span> + y + <span class="string">")"</span>;
+    }
+}</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Alanlar <code>private final</code> yapılarak kapsülleme sağlandı. <code>formatForDebug</code> metodu paket-özel bırakılarak yalnızca aynı paketteki kodlar (testler gibi) tarafından erişilebilir hale getirildi. Kamusal API sadece gerçekten gerekli olanları içeriyor.
+            </span>
+            <span class="en-text">
+                Fields are <code>private final</code> for encapsulation. <code>formatForDebug</code> is left package-private, accessible only to code in the same package (like tests). The public API contains only what is truly necessary.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Erişim düzeylerini mümkün olan en kısıtlayıcı düzeyde tutun. Bir üyeyi <code>public</code> yapmadan önce kendinize sorun: "Bu üyeye paketin dışından erişilmesi gerçekten gerekli mi?" Paket-özel erişim, <code>private</code> ile <code>public</code> arasında güçlü bir ara seçenektir.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> Keep access levels as restrictive as possible. Before making a member <code>public</code>, ask yourself: "Does this member really need to be accessed from outside the package?" Package-private access is a powerful middle ground between <code>private</code> and <code>public</code>.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+    Effective Java &mdash; Joshua Bloch &bull; Sayfa 3 &bull; Chapter 1: Introduction
+</div>
+
+<script>const CURRENT_PAGE = 3;</script>
+<script src="../js/common.js"></script>
+
+</body>
+</html>

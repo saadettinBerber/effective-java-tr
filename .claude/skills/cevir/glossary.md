@@ -16,23 +16,48 @@ Her yeni sayfa çevrildikten sonra, o sayfada geçen yeni teknik terimler buraya
 | Design Pattern | Tasarım kalıbı | Yazılım tasarım kalıpları (GoF) |
 | Feature | Özellik | Platform/dil özelliği |
 | Idiom | Deyim | Programlama deyimi/kalıbı |
+| Inheritance | Kalıtım | Sınıf kalıtımı (subclassing ile eş anlamlı) |
+| Interface | Arayüz | Java arayüz tipi |
 | Item | Madde | Kitaptaki her bir kural/madde |
 | Library | Kütüphane | Yazılım kütüphanesi |
+| Member | Üye | Sınıfın alanları, metotları, üye sınıfları ve üye arayüzleri |
+| Member class | Üye sınıf | Bir sınıf içinde tanımlanan sınıf |
+| Member interface | Üye arayüz | Bir sınıf içinde tanımlanan arayüz |
+| Method | Metot | Sınıf metodu |
 | Module | Modül | Java 9 modül sistemi |
+| Object | Nesne | Sınıf örneği veya dizi |
+| Overloading | Aşırı yükleme | Aynı isimde farklı parametreli metot tanımlama |
 | Package | Paket | Java paketi |
+| Package-private | Paket-özel | Erişim belirleyicisi belirtilmediğinde varsayılan erişim düzeyi |
+| Primitive | İlkel tip | int, boolean, double vb. temel veri tipleri |
 | Program example | Program örneği | Kitaptaki kod örnekleri |
+| Readability | Okunabilirlik | Kodun okunma ve anlaşılma kolaylığı |
+| Reference type | Referans tipi | Arayüz, sınıf ve dizi tipleri |
 | Release | Sürüm | Java sürümü |
 | Software design | Yazılım tasarımı | Genel yazılım tasarım kavramı |
+| Access modifier | Erişim belirleyicisi | public, private, protected, package-private |
+| Annotation | Ek açıklama | Java ek açıklama tipi (@interface) |
 | Antipattern | Anti-kalıp | Yaygın ama zararlı programlama pratiği |
+| Array | Dizi | Java dizi tipi |
 | Clarity | Açıklık | Kodun okunabilirliği ve anlaşılırlığı |
+| Boilerplate | Standart kalıp kod | Tekrarlanan zorunlu kod (import bildirimleri vb.) |
+| Class | Sınıf | Java sınıf tipi |
 | Compile time | Derleme zamanı | Kodun derleme aşaması |
 | Component | Bileşen | Yeniden kullanılabilir yazılım elemanı (metottan framework'e kadar) |
+| Composition | Bileşim | Kalıtım yerine nesne içerme yoluyla yeniden kullanım |
 | Dependency | Bağımlılık | Bileşenler arası ilişki |
+| Enum | Enum | Java numaralandırma tipi (çevrilmeden kullanılır) |
 | Error detection | Hata tespiti | Hataların yakalanması |
+| Exported API | Dışa aktarılan API | Paketin dışından erişilebilen API elemanları |
+| Field | Alan | Sınıf üye değişkeni |
+| Formal parameter | Biçimsel parametre | Metot tanımındaki parametre |
 | Framework | Çerçeve | Yazılım çerçevesi (İngilizce de kullanılır) |
 | Nickname | Takma ad | Java sürüm takma adları |
 | Reuse | Yeniden kullanım | Kodun kopyalanmak yerine tekrar kullanılması |
 | Runtime | Çalışma zamanı | Programın çalışma aşaması |
+| Signature | İmza | Metot adı + biçimsel parametre tipleri (dönüş tipi dahil değil) |
 | Simplicity | Basitlik | Kodun sade ve anlaşılır olması |
+| Subclassing | Alt sınıflama | Bir sınıfın başka bir sınıfı extends ile genişletmesi |
 | Subpackage | Alt paket | Java alt paketi |
+| Type | Tip | Java tip sistemi (interface, class, array, primitive) |
 
