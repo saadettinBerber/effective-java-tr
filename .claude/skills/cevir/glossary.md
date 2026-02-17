@@ -25,10 +25,12 @@ Her yeni sayfa çevrildikten sonra, o sayfada geçen yeni teknik terimler buraya
 | Member class | Üye sınıf | Bir sınıf içinde tanımlanan sınıf |
 | Member interface | Üye arayüz | Bir sınıf içinde tanımlanan arayüz |
 | Method | Metot | Sınıf metodu |
+| Method chaining | Metot zincirleme | Builder kalıbında metotları art arda çağırma tekniği |
 | Module | Modül | Java 9 modül sistemi |
 | Module declaration | Modül bildirimi | module-info.java dosyası |
 | Module system | Modül sistemi | Java Platform Module System (JPMS) |
 | Object | Nesne | Sınıf örneği veya dizi |
+| Optional parameter | Opsiyonel parametre | Zorunlu olmayan, varsayılan değeri olan parametre |
 | Overloading | Aşırı yükleme | Aynı isimde farklı parametreli metot tanımlama |
 | Package | Paket | Java paketi |
 | Package-private | Paket-özel | Erişim belirleyicisi belirtilmediğinde varsayılan erişim düzeyi |
@@ -69,15 +71,18 @@ Her yeni sayfa çevrildikten sonra, o sayfada geçen yeni teknik terimler buraya
 | Subclassing | Alt sınıflama | Bir sınıfın başka bir sınıfı extends ile genişletmesi |
 | Subpackage | Alt paket | Java alt paketi |
 | Type | Tip | Java tip sistemi (interface, class, array, primitive) |
+| Builder pattern | Builder kalıbı | Karmaşık nesnelerin adım adım oluşturulmasını sağlayan tasarım kalıbı |
 | Boxed primitive | Sarmalayıcı ilkel sınıf | İlkel tiplerin nesne karşılıkları (Integer, Boolean vb.) |
 | Bridge pattern | Bridge kalıbı | Soyutlama ile uygulamayı ayıran tasarım kalıbı |
 | Conceptual weight | Kavramsal ağırlık | API'yi kullanmak için öğrenilmesi gereken kavramların sayısı ve zorluğu |
 | Companion class | Eşlikçi sınıf | Arayüz için statik metotları barındıran örneklenemez sınıf |
 | Flyweight pattern | Flyweight kalıbı | Paylaşılan nesnelerle bellek tasarrufu sağlayan tasarım kalıbı |
 | Immutable class | Değişmez sınıf | Oluşturulduktan sonra durumu değiştirilemeyen sınıf |
+| Inconsistent state | Tutarsız durum | Nesnenin oluşturma sırasında yarım kalmış, geçersiz durumu |
 | Instance | Örnek | Bir sınıftan oluşturulan nesne |
 | Instance-controlled | Örnek-kontrollü | Hangi örneklerin var olduğunu kontrol eden sınıf |
 | Interface-based framework | Arayüz tabanlı çerçeve | API'sini arayüzler üzerinden tanımlayan çerçeve |
+| JavaBeans pattern | JavaBeans kalıbı | Boş yapıcı + setter'lar ile nesne oluşturma kalıbı |
 | Noninstantiable | Örneklenemez | Örneği oluşturulamayan sınıf (private constructor ile) |
 | Provider registration API | Sağlayıcı kayıt API'si | Hizmet sağlayıcıların uygulamalarını kaydettiği API |
 | Reflection | Yansıtma | Çalışma zamanında sınıf bilgilerine erişim mekanizması |
@@ -90,6 +95,7 @@ Her yeni sayfa çevrildikten sonra, o sayfada geçen yeni teknik terimler buraya
 | Subtype | Alt tip | Bir tipin alt tipi (extends veya implements ile) |
 | Aggregation method | Toplama metodu | Birden fazla parametreyi birleştiren fabrika metodu (of) |
 | Naming convention | Adlandırma kuralı | Metot ve sınıf isimlendirme standartları |
+| Telescoping constructor | Teleskopik yapıcı | Giderek artan parametreli yapıcı metotlar zinciri kalıbı |
 | Tight coupling | Sıkı bağımlılık | Bileşenler arası güçlü ve kırılgan bağımlılık |
 | Type-conversion method | Tip dönüştürme metodu | Tek parametreli fabrika metodu (from) |
 | User (of API) | Kullanıcı (API'nin) | API kullanan program yazan programcı |

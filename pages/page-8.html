@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sayfa 8 — Chapter 2: Item 1 (son) &amp; Item 2 | Effective Java Türkçe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.8;
+            font-size: 17px;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: #0d2137;
+            color: #e0e0e0;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-bar-left { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+        .home-link {
+            color: #f5a623;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border: 1px solid rgba(245,166,35,0.3);
+            border-radius: 6px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .home-link:hover { background: rgba(245,166,35,0.1); border-color: #f5a623; }
+
+        .top-bar-title { display: flex; flex-direction: column; }
+        .book-title { font-size: 16px; font-weight: 700; color: #f5a623; }
+        .chapter-info { font-size: 12px; color: #adb5bd; }
+        .top-bar-right { display: flex; align-items: center; gap: 12px; }
+
+        .lang-toggle { display: flex; border: 1px solid rgba(245,166,35,0.3); border-radius: 6px; overflow: hidden; }
+        .lang-btn { padding: 5px 12px; font-size: 13px; font-weight: 700; background: transparent; color: #adb5bd; border: none; cursor: pointer; transition: all 0.3s; }
+        .lang-btn.active { background: #f5a623; color: #0d2137; }
+        .lang-btn:hover:not(.active) { color: #f5a623; }
+
+        .page-number-wrapper { display: flex; align-items: center; gap: 6px; position: relative; }
+        .page-number-label { font-size: 12px; color: #adb5bd; white-space: nowrap; }
+        .page-number-input {
+            width: 52px; padding: 4px 8px; text-align: center;
+            border: 1px solid rgba(245,166,35,0.3); border-radius: 6px;
+            background: rgba(255,255,255,0.08); color: #f5a623;
+            font-size: 14px; font-weight: 700; font-family: inherit; outline: none;
+            transition: border-color 0.3s;
+        }
+        .page-number-input:focus { border-color: #f5a623; }
+        .page-number-input.error { border-color: #dc3545; animation: shake 0.4s ease; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .page-nav-tooltip {
+            position: absolute; top: 100%; right: 0; margin-top: 6px;
+            background: #dc3545; color: #fff; font-size: 12px; padding: 6px 12px;
+            border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s; z-index: 200;
+        }
+        .page-nav-tooltip.visible { opacity: 1; }
+
+        .content { max-width: 760px; margin: 0 auto; padding: 40px 24px 60px; }
+
+        .page-badge {
+            display: inline-block; background: #0d2137; color: #f5a623;
+            font-size: 13px; font-weight: 700; padding: 4px 14px;
+            border-radius: 20px; margin-bottom: 24px;
+        }
+
+        .chapter-title { font-size: 28px; font-weight: 800; color: #0d2137; margin-bottom: 8px; line-height: 1.3; }
+        .chapter-title-en { font-size: 18px; color: #6c757d; font-weight: 400; font-style: italic; margin-bottom: 32px; }
+
+        .item-title { font-size: 24px; font-weight: 800; color: #0d2137; margin: 40px 0 8px; line-height: 1.3; }
+        .item-title-en { font-size: 16px; color: #6c757d; font-weight: 400; font-style: italic; margin-bottom: 24px; }
+
+        .divider {
+            height: 3px; background: linear-gradient(90deg, #f5a623 0%, transparent 100%);
+            border: none; margin-bottom: 32px; border-radius: 2px;
+        }
+
+        .item-divider {
+            height: 2px; background: linear-gradient(90deg, #0d2137 0%, #f5a623 50%, transparent 100%);
+            border: none; margin: 40px 0 32px; border-radius: 2px;
+        }
+
+        .text-paragraph { margin-bottom: 20px; text-align: justify; hyphens: auto; }
+        .text-paragraph em { font-style: italic; color: #555; }
+        .text-paragraph strong { font-weight: 700; color: #0d2137; }
+        .text-paragraph code {
+            background: #f0f0f0; padding: 2px 6px; border-radius: 4px;
+            font-size: 15px; color: #0d2137;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+
+        .naming-list { margin-bottom: 24px; }
+        .naming-item { margin-bottom: 20px; padding-left: 16px; border-left: 3px solid #f5a623; }
+        .naming-item-header { font-weight: 700; color: #0d2137; margin-bottom: 4px; }
+        .naming-item-header code {
+            background: #0d2137; color: #f5a623; padding: 2px 8px; border-radius: 4px;
+            font-size: 15px; font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+        .naming-item-desc { font-size: 15px; color: #495057; margin-bottom: 6px; }
+
+        .summary-box {
+            background: #fdf6eb; border: 2px solid #f5a623; border-radius: 12px;
+            padding: 20px 24px; margin: 28px 0; line-height: 1.7;
+        }
+        .summary-box strong { color: #0d2137; }
+
+        pre {
+            background: #1e1e2e; color: #cdd6f4; padding: 18px 20px; border-radius: 10px;
+            overflow-x: auto; font-size: 14px; line-height: 1.6; margin-bottom: 12px;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+        pre .keyword { color: #cba6f7; }
+        pre .type { color: #89b4fa; }
+        pre .string { color: #a6e3a1; }
+        pre .comment { color: #6c7086; font-style: italic; }
+        pre .annotation { color: #f9e2af; }
+        pre .number { color: #fab387; }
+        pre .method { color: #89dceb; }
+
+        .concepts-section { margin-top: 40px; padding-top: 32px; border-top: 2px solid #eee; }
+        .concepts-title { font-size: 18px; font-weight: 700; color: #0d2137; margin-bottom: 16px; }
+        .concepts-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+        .concept-btn {
+            padding: 10px 20px; background: #fff; border: 2px solid #0d2137;
+            border-radius: 10px; color: #0d2137; font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s; font-family: inherit;
+        }
+        .concept-btn:hover {
+            background: #0d2137; color: #f5a623; transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13,33,55,0.2);
+        }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center;
+            align-items: flex-start; padding: 40px 16px; overflow-y: auto;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: #fff; border-radius: 16px; max-width: 720px; width: 100%;
+            padding: 32px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-close {
+            position: absolute; top: 16px; right: 16px; width: 32px; height: 32px;
+            border-radius: 50%; border: none; background: #f0f0f0; color: #333;
+            font-size: 18px; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; transition: all 0.3s;
+        }
+        .modal-close:hover { background: #dc3545; color: #fff; }
+        .modal-title { font-size: 22px; font-weight: 800; color: #0d2137; margin-bottom: 4px; }
+        .modal-subtitle { font-size: 14px; color: #6c757d; font-style: italic; margin-bottom: 20px; }
+        .modal-desc { margin-bottom: 24px; line-height: 1.7; color: #333; }
+
+        .example-label {
+            font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 8px; padding: 4px 10px; border-radius: 4px; display: inline-block;
+        }
+        .example-label.bad { background: #fce4e4; color: #dc3545; }
+        .example-label.good { background: #e3f9e5; color: #28a745; }
+        .example-explain { font-size: 14px; color: #555; margin: 8px 0 20px; padding-left: 12px; border-left: 3px solid #dee2e6; }
+        .modal-tip {
+            background: #fdf6eb; border: 1px solid #f5a623; border-radius: 8px;
+            padding: 14px 18px; margin-top: 20px; font-size: 14px; color: #0d2137;
+        }
+        .modal-tip strong { color: #f5a623; }
+
+        .page-nav { display: flex; justify-content: space-between; gap: 16px; margin-top: 48px; padding-top: 24px; border-top: 2px solid #eee; }
+        .nav-btn {
+            flex: 1; padding: 16px 20px; border: 2px solid #dee2e6; border-radius: 12px;
+            text-decoration: none; color: #0d2137; background: #fff; cursor: pointer;
+            transition: all 0.3s; text-align: center; font-family: inherit; font-size: 15px;
+        }
+        .nav-btn:hover:not(.disabled) { border-color: #0d2137; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .nav-btn.disabled { opacity: 0.4; cursor: not-allowed; background: #f0f0f0; }
+        .nav-btn-label { font-size: 12px; color: #6c757d; margin-bottom: 4px; }
+        .nav-btn-title { font-weight: 700; font-size: 15px; }
+
+        .footer { text-align: center; padding: 24px; color: #adb5bd; font-size: 13px; border-top: 1px solid #dee2e6; margin-top: 20px; }
+
+        @media (max-width: 700px) {
+            .top-bar { padding: 12px 16px; }
+            .book-title { font-size: 14px; }
+            .content { padding: 24px 16px 40px; }
+            .chapter-title { font-size: 22px; }
+            .item-title { font-size: 20px; }
+            .modal-content { padding: 24px 18px; }
+            .page-nav { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Üst Bar -->
+<div class="top-bar">
+    <div class="top-bar-left">
+        <a href="../index.html" class="home-link">Ana Sayfa</a>
+        <div class="top-bar-title">
+            <div class="book-title">Effective Java &mdash; Joshua Bloch</div>
+            <div class="chapter-info">Chapter 2: Creating and Destroying Objects / Item 1 (son) &amp; Item 2</div>
+        </div>
+    </div>
+    <div class="top-bar-right">
+        <div class="lang-toggle">
+            <button class="lang-btn" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="page-number-wrapper">
+            <span class="page-number-label">Sayfa</span>
+            <input type="text" class="page-number-input" id="pageNumInput" value="8" maxlength="4" autocomplete="off"
+                   onkeydown="if(event.key==='Enter') goToPageNum()"
+                   onblur="resetPageInput()">
+            <div class="page-nav-tooltip" id="pageNavTooltip"></div>
+        </div>
+    </div>
+</div>
+
+<!-- İçerik -->
+<div class="content">
+    <div class="page-badge">Sayfa 8</div>
+
+    <h1 class="chapter-title">
+        <span class="tr-text">Madde 1: Yapıcı Metot Yerine Statik Fabrika Metotlarını Düşünün (son)</span>
+        <span class="en-text">Item 1: Consider Static Factory Methods Instead of Constructors (final)</span>
+    </h1>
+    <div class="chapter-title-en">
+        <span class="tr-text">Item 1: Consider static factory methods instead of constructors</span>
+        <span class="en-text">Madde 1: Yapıcı Metot Yerine Statik Fabrika Metotlarını Düşünün</span>
+    </div>
+    <hr class="divider">
+
+    <!-- Adlandırma kuralları devamı (sayfa 7'den) -->
+    <div class="naming-list">
+        <!-- newType -->
+        <div class="naming-item">
+            <div class="naming-item-header">
+                <code>new<em>Type</em></code>
+            </div>
+            <p class="naming-item-desc tr-text">
+                <code>newInstance</code> gibidir, ancak fabrika metodu farklı bir sınıftaysa kullanılır. <em>Type</em>, fabrika metodu tarafından döndürülen nesnenin tipidir. Örnek:
+            </p>
+            <p class="naming-item-desc en-text">
+                Like <code>newInstance</code>, but used if the factory method is in a different class. <em>Type</em> is the type of object returned by the factory method, for example:
+            </p>
+<pre><span class="type">BufferedReader</span> br = <span class="type">Files</span>.newBufferedReader(path);</pre>
+        </div>
+
+        <!-- type -->
+        <div class="naming-item">
+            <div class="naming-item-header">
+                <code><em>type</em></code>
+            </div>
+            <p class="naming-item-desc tr-text">
+                <code>getType</code> ve <code>newType</code>'ın kısa bir alternatifi. Örnek:
+            </p>
+            <p class="naming-item-desc en-text">
+                A concise alternative to <code>getType</code> and <code>newType</code>, for example:
+            </p>
+<pre><span class="type">List</span>&lt;<span class="type">Complaint</span>&gt; litany = <span class="type">Collections</span>.list(legacyLitany);</pre>
+        </div>
+    </div>
+
+    <!-- Item 1 Özet -->
+    <div class="summary-box">
+        <p class="tr-text">
+            <strong>Özet:</strong> Statik fabrika metotları ve kamusal yapıcı metotların (public constructors) her ikisinin de kullanım yerleri vardır ve göreceli avantajlarını anlamak önemlidir. Statik fabrikalar genellikle tercih edilmelidir, bu yüzden önce statik fabrikalari değerlendirmeden kamusal yapıcı metot sağlama refleksinden kaçının.
+        </p>
+        <p class="en-text">
+            <strong>Summary:</strong> In summary, static factory methods and public constructors both have their uses, and it pays to understand their relative merits. Often static factories are preferable, so avoid the reflex to provide public constructors without first considering static factories.
+        </p>
+    </div>
+
+    <!-- Item 2 Başlangıcı -->
+    <hr class="item-divider">
+
+    <h2 class="item-title">
+        <span class="tr-text">Madde 2: Çok Sayıda Yapıcı Parametresiyle Karşılaşınca Builder Kullanmayı Düşünün</span>
+        <span class="en-text">Item 2: Consider a Builder When Faced with Many Constructor Parameters</span>
+    </h2>
+    <div class="item-title-en">
+        <span class="tr-text">Item 2: Consider a builder when faced with many constructor parameters</span>
+        <span class="en-text">Madde 2: Çok Sayıda Yapıcı Parametresiyle Karşılaşınca Builder Kullanmayı Düşünün</span>
+    </div>
+
+    <!-- Paragraf: Item 2 Giriş -->
+    <p class="text-paragraph tr-text">
+        Statik fabrikalar ve yapıcı metotlar (constructors) ortak bir sınırlamayı paylaşır: çok sayıda opsiyonel parametreye iyi ölçeklenmezler. Paketlenmiş gıdaların üzerinde görülen Besin Bilgileri etiketini temsil eden bir sınıf düşünün. Bu etiketlerin birkaç zorunlu alanı vardır &mdash; porsiyon büyüklüğü, kaptaki porsiyon sayısı ve porsiyon başına kalori &mdash; ve yirmiden fazla opsiyonel alanı vardır: toplam yağ, doymuş yağ, trans yağ, kolesterol, sodyum vb. Çoğu ürün bu opsiyonel alanların yalnızca birkaçında sıfırdan farklı değerlere sahiptir.
+    </p>
+    <p class="text-paragraph en-text">
+        Static factories and constructors share a limitation: they do not scale well to large numbers of optional parameters. Consider the case of a class representing the Nutrition Facts label that appears on packaged foods. These labels have a few required fields&mdash;serving size, servings per container, and calories per serving&mdash;and more than twenty optional fields&mdash;total fat, saturated fat, trans fat, cholesterol, sodium, and so on. Most products have nonzero values for only a few of these optional fields.
+    </p>
+
+    <!-- Paragraf: Telescoping Constructor -->
+    <p class="text-paragraph tr-text">
+        Böyle bir sınıf için ne tür yapıcı metotlar veya statik fabrikalar yazmalısınız? Geleneksel olarak, programcılar <em>teleskopik yapıcı</em> (telescoping constructor) kalıbını kullanmışlardır; bu kalıpta yalnızca zorunlu parametrelere sahip bir yapıcı, tek bir opsiyonel parametreli başka bir yapıcı, iki opsiyonel parametreli başka bir yapıcı ve böyle devam ederek, tüm opsiyonel parametreleri içeren bir yapıcıyla sonlandırılır. İşte pratikte nasıl göründüğü. Kısa tutmak amacıyla yalnızca dört opsiyonel alan gösterilmektedir:
+    </p>
+    <p class="text-paragraph en-text">
+        What sort of constructors or static factories should you write for such a class? Traditionally, programmers have used the <em>telescoping constructor</em> pattern, in which you provide a constructor with only the required parameters, another with a single optional parameter, a third with two optional parameters, and so on, culminating in a constructor with all the optional parameters. Here's how it looks in practice. For brevity's sake, only four optional fields are shown:
+    </p>
+
+    <!-- Kod: NutritionFacts Telescoping Constructor (sayfa sonunda kesilecek) -->
+<pre><span class="comment">// Telescoping constructor pattern - does not scale well!</span>
+<span class="keyword">public class</span> <span class="type">NutritionFacts</span> {
+    <span class="keyword">private final int</span> servingSize;  <span class="comment">// (mL)            required</span>
+    <span class="keyword">private final int</span> servings;     <span class="comment">// (per container)  required</span></pre>
+
+    <p class="text-paragraph tr-text" style="margin-top: 12px;">
+        <em>(Kod bloğu sonraki sayfada devam etmektedir.)</em>
+    </p>
+    <p class="text-paragraph en-text" style="margin-top: 12px;">
+        <em>(Code block continues on the next page.)</em>
+    </p>
+
+    <!-- Kavram Butonları -->
+    <div class="concepts-section">
+        <h2 class="concepts-title">
+            <span class="tr-text">Kavramlar</span>
+            <span class="en-text">Concepts</span>
+        </h2>
+        <div class="concepts-grid">
+            <button class="concept-btn" onclick="openModal('telescoping-constructor')">
+                <span class="tr-text">Teleskopik Yapıcı Kalıbı (Telescoping Constructor)</span>
+                <span class="en-text">Telescoping Constructor Pattern</span>
+            </button>
+            <button class="concept-btn" onclick="openModal('builder-pattern')">
+                <span class="tr-text">Builder Kalıbı (Builder Pattern)</span>
+                <span class="en-text">Builder Pattern</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigasyon -->
+    <div class="page-nav">
+        <a href="page-7.html" class="nav-btn">
+            <div class="nav-btn-label">
+                <span class="tr-text">Önceki Sayfa</span>
+                <span class="en-text">Previous Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 7 &mdash; Madde 1: Sınırlamalar ve Adlandırma</span>
+                <span class="en-text">Page 7 &mdash; Item 1: Limitations &amp; Naming</span>
+            </div>
+        </a>
+        <a href="#" class="nav-btn" onclick="return handleUntranslated(event, 9)">
+            <div class="nav-btn-label">
+                <span class="tr-text">Sonraki Sayfa</span>
+                <span class="en-text">Next Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 9 &mdash; Madde 2: Builder Kalıbı (devam)</span>
+                <span class="en-text">Page 9 &mdash; Item 2: Builder Pattern (cont.)</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Modal: Teleskopik Yapıcı Kalıbı -->
+<div class="modal-overlay" id="modal-telescoping-constructor">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('telescoping-constructor')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Teleskopik Yapıcı Kalıbı</span>
+            <span class="en-text">Telescoping Constructor Pattern</span>
+        </div>
+        <div class="modal-subtitle">Telescoping Constructor Pattern</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Teleskopik yapıcı kalıbı (Telescoping Constructor Pattern), çok sayıda opsiyonel parametreye sahip sınıflar için giderek daha fazla parametre içeren yapıcı metotlar zinciri oluşturmaktır. Her yapıcı bir öncekini çağırır ve yeni bir parametre ekler. Parametre sayısı arttıkça kod okunması ve yazılması çok zorlaşır &mdash; hangi parametrenin ne anlama geldiğini takip etmek neredeyse imkansız hale gelir.
+            </span>
+            <span class="en-text">
+                The Telescoping Constructor Pattern creates a chain of constructors with increasing numbers of parameters for classes with many optional parameters. Each constructor calls the previous one and adds a new parameter. As the parameter count grows, the code becomes very hard to read and write &mdash; tracking which parameter means what becomes nearly impossible.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Teleskopik yapıcı — parametre sayısı arttıkça kabus</span>
+<span class="keyword">public class</span> <span class="type">Pizza</span> {
+    <span class="keyword">private final</span> <span class="type">String</span> crust;     <span class="comment">// zorunlu</span>
+    <span class="keyword">private final</span> <span class="type">String</span> sauce;     <span class="comment">// zorunlu</span>
+    <span class="keyword">private final boolean</span> cheese;
+    <span class="keyword">private final boolean</span> pepperoni;
+    <span class="keyword">private final boolean</span> mushrooms;
+    <span class="keyword">private final boolean</span> olives;
+
+    <span class="keyword">public</span> <span class="type">Pizza</span>(<span class="type">String</span> crust, <span class="type">String</span> sauce) {
+        <span class="keyword">this</span>(crust, sauce, <span class="keyword">false</span>, <span class="keyword">false</span>,
+             <span class="keyword">false</span>, <span class="keyword">false</span>);
+    }
+    <span class="keyword">public</span> <span class="type">Pizza</span>(<span class="type">String</span> crust, <span class="type">String</span> sauce,
+                 <span class="keyword">boolean</span> cheese) {
+        <span class="keyword">this</span>(crust, sauce, cheese, <span class="keyword">false</span>,
+             <span class="keyword">false</span>, <span class="keyword">false</span>);
+    }
+    <span class="comment">// ... 4 yapıcı daha</span>
+}
+
+<span class="comment">// Çağrı — hangi boolean ne anlama geliyor?</span>
+<span class="type">Pizza</span> p = <span class="keyword">new</span> <span class="type">Pizza</span>(<span class="string">"thin"</span>, <span class="string">"tomato"</span>,
+    <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="keyword">true</span>, <span class="keyword">false</span>);</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Altı yapıcı gerekiyor ve her yeni malzeme için bir tane daha eklenecek. Çağrı noktasında <code>true, false, true, false</code> dizisi hangi malzemenin ne olduğunu söylemiyor &mdash; parametre sırasını ezberlemeniz gerekiyor.
+            </span>
+            <span class="en-text">
+                Six constructors are needed, and each new topping requires another. At the call site, the <code>true, false, true, false</code> sequence doesn't tell you which topping is which &mdash; you need to memorize the parameter order.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Builder kalıbı — okunabilir ve esnek</span>
+<span class="keyword">public class</span> <span class="type">Pizza</span> {
+    <span class="keyword">private final</span> <span class="type">String</span> crust;
+    <span class="keyword">private final</span> <span class="type">String</span> sauce;
+    <span class="keyword">private final boolean</span> cheese;
+    <span class="keyword">private final boolean</span> pepperoni;
+    <span class="keyword">private final boolean</span> mushrooms;
+    <span class="keyword">private final boolean</span> olives;
+
+    <span class="keyword">public static class</span> <span class="type">Builder</span> {
+        <span class="keyword">private final</span> <span class="type">String</span> crust;
+        <span class="keyword">private final</span> <span class="type">String</span> sauce;
+        <span class="keyword">private boolean</span> cheese    = <span class="keyword">false</span>;
+        <span class="keyword">private boolean</span> pepperoni = <span class="keyword">false</span>;
+        <span class="keyword">private boolean</span> mushrooms = <span class="keyword">false</span>;
+        <span class="keyword">private boolean</span> olives    = <span class="keyword">false</span>;
+
+        <span class="keyword">public</span> <span class="type">Builder</span>(<span class="type">String</span> crust, <span class="type">String</span> sauce) {
+            <span class="keyword">this</span>.crust = crust;
+            <span class="keyword">this</span>.sauce = sauce;
+        }
+        <span class="keyword">public</span> <span class="type">Builder</span> <span class="method">cheese</span>()    { cheese = <span class="keyword">true</span>; <span class="keyword">return this</span>; }
+        <span class="keyword">public</span> <span class="type">Builder</span> <span class="method">pepperoni</span>() { pepperoni = <span class="keyword">true</span>; <span class="keyword">return this</span>; }
+        <span class="keyword">public</span> <span class="type">Builder</span> <span class="method">mushrooms</span>() { mushrooms = <span class="keyword">true</span>; <span class="keyword">return this</span>; }
+        <span class="keyword">public</span> <span class="type">Builder</span> <span class="method">olives</span>()    { olives = <span class="keyword">true</span>; <span class="keyword">return this</span>; }
+
+        <span class="keyword">public</span> <span class="type">Pizza</span> <span class="method">build</span>() {
+            <span class="keyword">return new</span> <span class="type">Pizza</span>(<span class="keyword">this</span>);
+        }
+    }
+    <span class="keyword">private</span> <span class="type">Pizza</span>(<span class="type">Builder</span> b) { <span class="comment">/* alanları kopyala */</span> }
+}
+
+<span class="comment">// Çağrı — her parametre açıkça okunabilir</span>
+<span class="type">Pizza</span> p = <span class="keyword">new</span> <span class="type">Pizza</span>.<span class="type">Builder</span>(<span class="string">"thin"</span>, <span class="string">"tomato"</span>)
+    .cheese()
+    .mushrooms()
+    .build();</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Builder kalıbı ile her opsiyonel parametre adıyla belirtilir. Çağrı noktasında <code>.cheese().mushrooms()</code> yazmak, <code>true, false, true, false</code>'dan çok daha okunabilir. Yeni malzeme eklemek mevcut kodu bozmaz.
+            </span>
+            <span class="en-text">
+                With the Builder pattern, each optional parameter is specified by name. Writing <code>.cheese().mushrooms()</code> at the call site is far more readable than <code>true, false, true, false</code>. Adding new toppings doesn't break existing code.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Üç veya daha fazla opsiyonel parametreniz varsa, teleskopik yapıcı yerine Builder kalıbını tercih edin. Özellikle parametreler aynı tipteyse (birden fazla <code>boolean</code> veya <code>int</code> gibi), Builder hataları önler. IDE'ler Builder oluşturmayı otomatikleştirebilir (IntelliJ: "Replace Constructor with Builder" refactoring).
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> If you have three or more optional parameters, prefer the Builder pattern over telescoping constructors. Especially when parameters share the same type (multiple <code>boolean</code>s or <code>int</code>s), Builder prevents errors. IDEs can automate Builder creation (IntelliJ: "Replace Constructor with Builder" refactoring).
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Builder Kalıbı -->
+<div class="modal-overlay" id="modal-builder-pattern">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('builder-pattern')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Builder Kalıbı</span>
+            <span class="en-text">Builder Pattern</span>
+        </div>
+        <div class="modal-subtitle">Builder Pattern (GoF)</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Builder kalıbı (Builder Pattern), karmaşık nesnelerin adım adım oluşturulmasını sağlayan bir tasarım kalıbıdır. İstemci önce bir Builder nesnesi oluşturur, ardından setter benzeri metotlarla istenen parametreleri belirler ve son olarak <code>build()</code> çağrısıyla değişmez (immutable) nesneyi elde eder. Bu kalıp hem okunabilirlik hem de güvenlik sağlar: nesne tamamlanmadan kullanılamaz ve alan değerleri sonradan değiştirilemez.
+            </span>
+            <span class="en-text">
+                The Builder Pattern is a design pattern for step-by-step construction of complex objects. The client first creates a Builder object, sets desired parameters through setter-like methods, and finally obtains the immutable object via a <code>build()</code> call. This pattern provides both readability and safety: the object cannot be used before completion, and field values cannot be changed afterward.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// JavaBeans kalıbı — tutarsız durum riski</span>
+<span class="keyword">public class</span> <span class="type">HttpRequest</span> {
+    <span class="keyword">private</span> <span class="type">String</span> url;
+    <span class="keyword">private</span> <span class="type">String</span> method;
+    <span class="keyword">private</span> <span class="type">Map</span>&lt;<span class="type">String</span>, <span class="type">String</span>&gt; headers;
+    <span class="keyword">private</span> <span class="type">String</span> body;
+    <span class="keyword">private int</span> timeout;
+
+    <span class="keyword">public</span> <span class="type">HttpRequest</span>() {}
+    <span class="keyword">public void</span> <span class="method">setUrl</span>(<span class="type">String</span> url) { <span class="keyword">this</span>.url = url; }
+    <span class="keyword">public void</span> <span class="method">setMethod</span>(<span class="type">String</span> m) { <span class="keyword">this</span>.method = m; }
+    <span class="keyword">public void</span> <span class="method">setHeaders</span>(<span class="type">Map</span>&lt;<span class="type">String</span>,<span class="type">String</span>&gt; h) { <span class="keyword">this</span>.headers = h; }
+    <span class="keyword">public void</span> <span class="method">setBody</span>(<span class="type">String</span> b) { <span class="keyword">this</span>.body = b; }
+    <span class="keyword">public void</span> <span class="method">setTimeout</span>(<span class="keyword">int</span> t) { <span class="keyword">this</span>.timeout = t; }
+}
+
+<span class="comment">// Nesne tutarsız durumda olabilir</span>
+<span class="type">HttpRequest</span> req = <span class="keyword">new</span> <span class="type">HttpRequest</span>();
+req.setUrl(<span class="string">"https://api.example.com"</span>);
+<span class="comment">// method ayarlanmadan kullanılabilir → BUG!</span>
+req.setTimeout(<span class="number">5000</span>);</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                JavaBeans kalıbında nesne boş yapıcı ile oluşturulup setter'larla doldurulur. Sorun: nesne birden fazla çağrıyla oluşturulduğu için oluşturma sürecinde <em>tutarsız durumda</em> (inconsistent state) kalabilir. Ayrıca setter'lar nesneyi değişebilir (mutable) kılar, bu da thread güvenliğini zorlaştırır.
+            </span>
+            <span class="en-text">
+                In the JavaBeans pattern, the object is created with an empty constructor and filled via setters. Problem: since the object is constructed over multiple calls, it may be in an <em>inconsistent state</em> during construction. Also, setters make the object mutable, complicating thread safety.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Builder kalıbı — güvenli ve okunabilir</span>
+<span class="keyword">public class</span> <span class="type">HttpRequest</span> {
+    <span class="keyword">private final</span> <span class="type">String</span> url;
+    <span class="keyword">private final</span> <span class="type">String</span> method;
+    <span class="keyword">private final</span> <span class="type">Map</span>&lt;<span class="type">String</span>, <span class="type">String</span>&gt; headers;
+    <span class="keyword">private final</span> <span class="type">String</span> body;
+    <span class="keyword">private final int</span> timeout;
+
+    <span class="keyword">public static class</span> <span class="type">Builder</span> {
+        <span class="keyword">private final</span> <span class="type">String</span> url;    <span class="comment">// zorunlu</span>
+        <span class="keyword">private</span> <span class="type">String</span> method = <span class="string">"GET"</span>;
+        <span class="keyword">private</span> <span class="type">Map</span>&lt;<span class="type">String</span>,<span class="type">String</span>&gt; headers = <span class="type">Map</span>.of();
+        <span class="keyword">private</span> <span class="type">String</span> body = <span class="string">""</span>;
+        <span class="keyword">private int</span> timeout = <span class="number">30_000</span>;
+
+        <span class="keyword">public</span> <span class="type">Builder</span>(<span class="type">String</span> url) {
+            <span class="keyword">this</span>.url = Objects.requireNonNull(url);
+        }
+        <span class="keyword">public</span> <span class="type">Builder</span> <span class="method">method</span>(<span class="type">String</span> m) { method = m; <span class="keyword">return this</span>; }
+        <span class="keyword">public</span> <span class="type">Builder</span> <span class="method">header</span>(<span class="type">String</span> k, <span class="type">String</span> v) {
+            headers = <span class="keyword">new</span> <span class="type">HashMap</span>&lt;&gt;(headers);
+            headers.put(k, v); <span class="keyword">return this</span>;
+        }
+        <span class="keyword">public</span> <span class="type">Builder</span> <span class="method">body</span>(<span class="type">String</span> b) { body = b; <span class="keyword">return this</span>; }
+        <span class="keyword">public</span> <span class="type">Builder</span> <span class="method">timeout</span>(<span class="keyword">int</span> ms) { timeout = ms; <span class="keyword">return this</span>; }
+        <span class="keyword">public</span> <span class="type">HttpRequest</span> <span class="method">build</span>() {
+            <span class="keyword">return new</span> <span class="type">HttpRequest</span>(<span class="keyword">this</span>);
+        }
+    }
+
+    <span class="keyword">private</span> <span class="type">HttpRequest</span>(<span class="type">Builder</span> b) {
+        <span class="keyword">this</span>.url = b.url;
+        <span class="keyword">this</span>.method = b.method;
+        <span class="keyword">this</span>.headers = <span class="type">Map</span>.copyOf(b.headers);
+        <span class="keyword">this</span>.body = b.body;
+        <span class="keyword">this</span>.timeout = b.timeout;
+    }
+}
+
+<span class="comment">// Kullanım — akıcı ve güvenli</span>
+<span class="type">HttpRequest</span> req = <span class="keyword">new</span> <span class="type">HttpRequest</span>.<span class="type">Builder</span>(<span class="string">"https://api.example.com"</span>)
+    .method(<span class="string">"POST"</span>)
+    .header(<span class="string">"Content-Type"</span>, <span class="string">"application/json"</span>)
+    .body(<span class="string">"{\"key\": \"value\"}"</span>)
+    .timeout(<span class="number">5000</span>)
+    .build();</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Builder kalıbı ile zorunlu parametreler (<code>url</code>) Builder yapıcısında alınır, opsiyonel parametreler metot zincirleme (method chaining) ile ayarlanır. <code>build()</code> çağrılana kadar nesne oluşturulmaz &mdash; tutarsız durum imkansızdır. Sonuçta elde edilen <code>HttpRequest</code> değişmezdir (immutable).
+            </span>
+            <span class="en-text">
+                With the Builder pattern, required parameters (<code>url</code>) are taken in the Builder constructor, optional parameters are set via method chaining. The object isn't created until <code>build()</code> is called &mdash; inconsistent state is impossible. The resulting <code>HttpRequest</code> is immutable.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Builder kalıbı ilk başta daha fazla kod gibi görünse de, opsiyonel parametre sayısı arttıkça karşılığını verir. Lombok'un <code>@Builder</code> ek açıklaması veya IDE refactoring araçlarıyla standart kalıp kodu (boilerplate) otomatik üretilebilir. Kural: 4+ parametre veya aynı tipte 2+ opsiyonel parametre varsa Builder düşünün.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> The Builder pattern may seem like more code initially, but it pays off as optional parameters grow. Lombok's <code>@Builder</code> annotation or IDE refactoring tools can auto-generate the boilerplate. Rule of thumb: consider Builder for 4+ parameters or 2+ optional parameters of the same type.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+    Effective Java &mdash; Joshua Bloch &bull; Sayfa 8 &bull; Chapter 2: Item 1 &amp; Item 2
+</div>
+
+<script>const CURRENT_PAGE = 8;</script>
+<script src="../js/common.js"></script>
+
+</body>
+</html>
