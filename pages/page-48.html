@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 48</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 11: hashCode — PhoneNumber Örneği &amp;
+                Objects.hash()</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="48" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 48 / Page 48</div>
+        <div class="chapter-badge">Chapter 3 — Item 11: hashCode — PhoneNumber &amp; Objects.hash()</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 11: PhoneNumber hashCode uygulaması</em></div>
+
+        <div class="tr-text">
+            <p>Önceki tarifi <code>PhoneNumber</code> sınıfına uygulayalım:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Let's apply the previous recipe to the <code>PhoneNumber</code> class:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Tipik hashCode metodu</span>
+            <span class="an">@Override</span> <span class="kw">public int</span> hashCode() {
+            <span class="kw">int</span> result = <span class="cl">Short</span>.hashCode(areaCode);
+            result = <span class="num">31</span> * result + <span class="cl">Short</span>.hashCode(prefix);
+            result = <span class="num">31</span> * result + <span class="cl">Short</span>.hashCode(lineNum);
+            <span class="kw">return</span> result;
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Bu metot basit, makul ölçüde hızlıdır ve eşit olmayan telefon numaralarını farklı hash kovalarına makul
+                ölçüde dağıtır. Java platform kütüphanelerindeki değer türlerindeki hash fonksiyonlarıyla
+                karşılaştırılabilir kalitededir ve çoğu kullanım için yeterlidir.</p>
+
+            <p><code>Objects</code> sınıfı, rastgele sayıda nesne alan ve onlar için bir hash kodu döndüren
+                <code>hash</code> adlı statik bir metoda sahiptir. Bu metot, tarife göre yazılanlarla kalitesi
+                karşılaştırılabilir tek satırlık <code>hashCode</code> metotları yazmanıza olanak tanır. Ne yazık ki,
+                değişken sayıda argüman geçirmek için dizi oluşturmayı, ayrıca ilkel türlerden herhangi biri varsa
+                sarmalama (boxing) ve çözme (unboxing) gerektirdiğinden daha yavaş çalışırlar. Bu tarz hash fonksiyonu
+                yalnızca <b>performansın kritik olmadığı</b> durumlarda önerilir:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>This method is simple, reasonably fast, and does a reasonable job of dispersing unequal phone numbers
+                into different hash buckets. Comparable in quality to Java platform libraries' value types.</p>
+
+            <p><code>Objects</code> class has a static <code>hash</code> method that takes arbitrary number of objects.
+                Lets you write one-line <code>hashCode</code> methods, but runs slower due to array creation and
+                boxing/unboxing. Recommended only when performance is not critical:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Tek satırlık hashCode — orta düzeyde performans</span>
+            <span class="an">@Override</span> <span class="kw">public int</span> hashCode() {
+            <span class="kw">return</span> <span class="cl">Objects</span>.hash(lineNum, prefix, areaCode);
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Bir sınıf değişmez (immutable) ise ve hash kodunu hesaplama maliyeti önemliyse, hash kodunu her
+                istendiğinde yeniden hesaplamak yerine <b>nesnenin içinde önbelleğe almayı (caching)</b>
+                düşünebilirsiniz. Hash kodu istendiğinde <b>tembel başlatma (lazy initialization)</b> ile
+                hesaplayabilirsiniz:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>If a class is immutable and hash code computation is significant, consider caching the hash code. You can
+                use <b>lazy initialization</b>:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Tembel başlatmalı önbellekli hashCode metodu</span>
+            <span class="kw">private int</span> hashCode; <span class="cm">// Otomatik olarak 0'a başlatılır</span>
+
+            <span class="an">@Override</span> <span class="kw">public int</span> hashCode() {
+            <span class="kw">int</span> result = hashCode;
+            <span class="kw">if</span> (result == <span class="num">0</span>) {
+            result = <span class="cl">Short</span>.hashCode(areaCode);
+            result = <span class="num">31</span> * result + <span class="cl">Short</span>.hashCode(prefix);
+            result = <span class="num">31</span> * result + <span class="cl">Short</span>.hashCode(lineNum);
+            hashCode = result;
+            }
+            <span class="kw">return</span> result;
+            }
+        </div>
+
+        <div class="tr-text">
+            <p><b>Performansı iyileştirmek amacıyla önemli alanları hash kodu hesaplamasından çıkarmaya kalkışmayın.</b>
+                Ortaya çıkan hash fonksiyonu daha hızlı çalışabilir; ancak düşük kalitesi hash tablolarının
+                performansını kullanılamaz hale getirecek düzeyde düşürebilir. Java 2'den önce <code>String</code> hash
+                fonksiyonu en fazla 16 karakter kullanırdı — bu kararın URL gibi hiyerarşik isim koleksiyonlarında tam
+                olarak patolojik davranışa yol açtığı görüldü.</p>
+
+            <p><b><code>hashCode</code> tarafından döndürülen değer için ayrıntılı bir belirtim (specification)
+                    sağlamayın</b> — istemciler ona makul ölçüde bağımlı olamasın; bu size onu değiştirme esnekliği
+                verir. <code>String</code> ve <code>Integer</code> gibi birçok Java sınıfı <code>hashCode</code>
+                değerini belirli bir formül olarak belirtir — bu iyi bir fikir değildi, ama birlikte yaşamak zorunda
+                olduğumuz bir hataydı.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p><b>Don't exclude significant fields to improve performance.</b> Pre-Java 2 <code>String</code> hash used
+                only 16 characters — caused pathological behavior with URLs.</p>
+
+            <p><b>Don't specify the exact value returned by hashCode</b> so clients can't depend on it.
+                <code>String</code> and <code>Integer</code> specifying their formulas was a mistake.</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 11 sonucu ve Madde 12 (toString) sonraki sayfada.</div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('objects-hash')">Objects.hash()</button>
+            <button class="concept-btn" onclick="openModal('lazy-hash')">Tembel hashCode Önbelleği</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-47.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 47 — HashMap senaryosu, hashCode tarifi</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-49.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 49 — Madde 11 sonuç, Madde 12 giriş</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Objects.hash() -->
+    <div class="modal-overlay" id="modal-objects-hash">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Objects.hash()</h3>
+                <button class="modal-close" onclick="closeModal('objects-hash')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>Objects.hash(Object... values)</code> Java 7'den beri mevcuttur. Kısa ve temiz bir
+                        <code>hashCode</code> uygulaması sağlar; ancak iki dezavantajı vardır:</p>
+                    <p>1. <b>Dizi oluşturma:</b> Varargs parametreleri için her çağrıda bir <code>Object[]</code> dizisi
+                        oluşturulur.</p>
+                    <p>2. <b>Autoboxing:</b> İlkel tür alanları otomatik olarak sarmalanır (<code>int → Integer</code>),
+                        ek maliyet yaratır.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><code>Objects.hash()</code> is available since Java 7. Clean but has overhead: array creation for
+                        varargs and autoboxing for primitives.</p>
+                </div>
+                <div class="tip-box tr-text">💡 Performans kritikse elle <code>31 * result + c</code> tarifini
+                    uygulayın. Kritik değilse <code>Objects.hash()</code> kullanmak sorun değildir.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Lazy Hash Cache -->
+    <div class="modal-overlay" id="modal-lazy-hash">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Tembel hashCode Önbelleği</h3>
+                <button class="modal-close" onclick="closeModal('lazy-hash')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Değişmez sınıflarda hash kodu yalnızca bir kez hesaplanıp bir alana kaydedilebilir. İlk istekte
+                        hesaplanır (tembel başlatma), sonraki çağrılarda önbellekteki değer döndürülür.</p>
+                    <p><b>Dikkat:</b> Başlangıç değeri (<code>0</code>), yaygın olarak oluşturulan bir örneğin hash kodu
+                        olmamalıdır; aksi halde tembel başlatma tetiklenmez. Ayrıca, tembel başlatılmış alan varken
+                        sınıfın iş parçacığı güvenli (thread-safe) kalmasına dikkat edilmelidir (Madde 83).</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>In immutable classes, the hash code can be computed once and cached. Computed lazily on first
+                        request, then returns cached value. Initial value (0) shouldn't be the hash code of a commonly
+                        created instance.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 48;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

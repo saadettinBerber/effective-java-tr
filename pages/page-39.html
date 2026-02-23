@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 39</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .example-label {
+            font-size: .75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin: 1rem 0 .3rem
+        }
+
+        .bad {
+            color: #c0392b
+        }
+
+        .good {
+            color: #27ae60
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 10: equals — Simetri İhlali</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="39" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 39 / Page 39</div>
+        <div class="chapter-badge">Chapter 3 — Item 10: equals Sözleşmesi — Simetri</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 10: Simetri (Symmetry) — CaseInsensitiveString
+                örneği</em></div>
+
+        <div class="tr-text">
+            <p>...büyük/küçük harfe duyarsız (case-insensitive) bir string uygulayan aşağıdaki sınıfı düşünün. String'in
+                büyük/küçük harf durumu <code>toString</code> tarafından korunur ancak <code>equals</code>
+                karşılaştırmalarında göz ardı edilir:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>...consider the following class, which implements a case-insensitive string. The case of the string is
+                preserved by <code>toString</code> but ignored in <code>equals</code> comparisons:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Hatalı — simetriyi ihlal eder!</span>
+            <span class="cm">// Broken - violates symmetry!</span>
+            <span class="kw">public final class</span> <span class="cl">CaseInsensitiveString</span> {
+            <span class="kw">private final</span> <span class="cl">String</span> s;
+
+            <span class="kw">public</span> CaseInsensitiveString(<span class="cl">String</span> s) {
+            <span class="kw">this</span>.s = <span class="cl">Objects</span>.requireNonNull(s);
+            }
+
+            <span class="cm">// Hatalı — simetriyi ihlal eder!</span>
+            <span class="an">@Override</span> <span class="kw">public boolean</span> equals(<span
+                class="cl">Object</span> o) {
+            <span class="kw">if</span> (o <span class="kw">instanceof</span> <span
+                class="cl">CaseInsensitiveString</span>)
+            <span class="kw">return</span> s.equalsIgnoreCase(
+            ((<span class="cl">CaseInsensitiveString</span>) o).s);
+            <span class="kw">if</span> (o <span class="kw">instanceof</span> <span class="cl">String</span>) <span
+                class="cm">// Tek yönlü birlikte çalışılabilirlik!</span>
+            <span class="kw">return</span> s.equalsIgnoreCase((<span class="cl">String</span>) o);
+            <span class="kw">return false</span>;
+            }
+            ... <span class="cm">// Kalan kısım çıkarıldı</span>
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Bu sınıftaki iyi niyetli <code>equals</code> metodu, saf bir şekilde sıradan string'lerle birlikte
+                çalışmaya (interoperate) çalışır. Bir adet büyük/küçük harfe duyarsız string ve bir adet sıradan string
+                olduğunu varsayalım:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>The well-intentioned <code>equals</code> method in this class naively attempts to interoperate with
+                ordinary strings. Let's suppose that we have one case-insensitive string and one ordinary one:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cl">CaseInsensitiveString</span> cis = <span class="kw">new</span> <span
+                class="cl">CaseInsensitiveString</span>(<span class="st">"Polish"</span>);
+            <span class="cl">String</span> s = <span class="st">"polish"</span>;
+        </div>
+
+        <div class="tr-text">
+            <p>Beklediğiniz gibi, <code>cis.equals(s)</code> <code>true</code> döndürür. Sorun şu ki,
+                <code>CaseInsensitiveString</code>'deki <code>equals</code> metodu sıradan string'leri tanırken,
+                <code>String</code>'deki <code>equals</code> metodu büyük/küçük harfe duyarsız string'lerden
+                <b>habersizdir (oblivious)</b>. Bu nedenle, <code>s.equals(cis)</code> <code>false</code> döndürür —
+                açık bir simetri ihlali.</p>
+
+            <p>Büyük/küçük harfe duyarsız bir string'i bir koleksiyona koyduğunuzu varsayalım:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>As expected, <code>cis.equals(s)</code> returns <code>true</code>. The problem is that while the
+                <code>equals</code> method in <code>CaseInsensitiveString</code> knows about ordinary strings, the
+                <code>equals</code> method in <code>String</code> is oblivious to case-insensitive strings. Therefore,
+                <code>s.equals(cis)</code> returns <code>false</code>, a clear violation of symmetry.</p>
+
+            <p>Suppose you put a case-insensitive string into a collection:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cl">List</span>&lt;<span class="cl">CaseInsensitiveString</span>&gt; list = <span
+                class="kw">new</span> <span class="cl">ArrayList</span>&lt;&gt;();
+            list.add(cis);
+        </div>
+
+        <div class="tr-text">
+            <p>Bu noktada <code>list.contains(s)</code> ne döndürür? Kim bilir? Mevcut OpenJDK uygulamasında
+                <code>false</code> döndürür; ancak bu yalnızca bir uygulama detayıdır (implementation artifact). Başka
+                bir uygulamada kolayca <code>true</code> döndürebilir veya çalışma zamanı istisnası fırlatabilir. <b>Bir
+                    kez <code>equals</code> sözleşmesini ihlal ettiniz mi, diğer nesnelerin sizin nesnenizle
+                    karşılaştığında nasıl davranacağını bilemezsiniz.</b></p>
+
+            <p>Sorunu ortadan kaldırmak için, <code>equals</code> metodundan <code>String</code> ile birlikte çalışma
+                girişimini kaldırmanız yeterlidir. Bunu yaptığınızda, metodu tek bir <code>return</code> ifadesine
+                yeniden düzenleyebilirsiniz (refactor):</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>What does <code>list.contains(s)</code> return at this point? Who knows? In the current OpenJDK
+                implementation, it happens to return <code>false</code>, but that's just an implementation artifact. In
+                another implementation, it could just as easily return <code>true</code> or throw a runtime exception.
+                <b>Once you've violated the equals contract, you simply don't know how other objects will behave when
+                    confronted with your object.</b></p>
+
+            <p>To eliminate the problem, merely remove the ill-conceived attempt to interoperate with
+                <code>String</code> from the <code>equals</code> method. Once you do this, you can refactor the method
+                into a single return statement:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Doğru — yalnızca kendi türüyle karşılaştırır</span>
+            <span class="an">@Override</span> <span class="kw">public boolean</span> equals(<span
+                class="cl">Object</span> o) {
+            <span class="kw">return</span> o <span class="kw">instanceof</span> <span
+                class="cl">CaseInsensitiveString</span> &&
+            ((<span class="cl">CaseInsensitiveString</span>) o).s.equalsIgnoreCase(s);
+            }
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 10 devamı: Geçişlilik (Transitivity) — Point ve
+            ColorPoint örnekleri sonraki sayfada.</div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('symmetry-violation')">Simetri İhlali (Symmetry
+                Violation)</button>
+            <button class="concept-btn" onclick="openModal('cross-type-equality')">Türler Arası Eşitlik Tuzağı</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-38.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 38 — equals sözleşmesi detayları</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-40.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 40 — Geçişlilik: Point/ColorPoint</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Symmetry Violation -->
+    <div class="modal-overlay" id="modal-symmetry-violation">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Simetri İhlali (Symmetry Violation)</h3>
+                <button class="modal-close" onclick="closeModal('symmetry-violation')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>CaseInsensitiveString</code> → <code>String</code> karşılaştırmasında <code>true</code>,
+                        ancak <code>String</code> → <code>CaseInsensitiveString</code> karşılaştırmasında
+                        <code>false</code> döner. Bu, <code>x.equals(y) != y.equals(x)</code> anlamına gelir — simetri
+                        ihlali!</p>
+                    <p><b>Sonuç:</b> Koleksiyonlar öngörülemez davranır. <code>ArrayList</code> bir JVM'de
+                        <code>false</code>, başka bir JVM'de <code>true</code> döndürebilir veya istisna fırlatabilir.
+                    </p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><code>CaseInsensitiveString</code> → <code>String</code> returns <code>true</code>, but
+                        <code>String</code> → <code>CaseInsensitiveString</code> returns <code>false</code>. This means
+                        <code>x.equals(y) != y.equals(x)</code> — symmetry violation!</p>
+                    <p><b>Result:</b> Collections behave unpredictably. <code>ArrayList</code> may return
+                        <code>false</code> in one JVM, <code>true</code> in another, or throw an exception.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Cross-Type Equality -->
+    <div class="modal-overlay" id="modal-cross-type-equality">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Türler Arası Eşitlik Tuzağı</h3>
+                <button class="modal-close" onclick="closeModal('cross-type-equality')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>equals</code> metodunda farklı türlerle (cross-type) eşitlik sağlamaya çalışmak neredeyse
+                        her zaman yanlıştır. <code>CaseInsensitiveString</code>, <code>String</code> ile eşit olmaya
+                        çalıştı; ancak <code>String</code> bu eşitliği bilmediği için simetri bozuldu.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Attempting cross-type equality in <code>equals</code> is almost always wrong.
+                        <code>CaseInsensitiveString</code> tried to be equal to <code>String</code>, but
+                        <code>String</code> didn't know about this equality, breaking symmetry.</p>
+                </div>
+                <div class="tip-box tr-text">💡 <b>Kural:</b> <code>equals</code> metodu yalnızca kendi sınıfının
+                    örnekleriyle (<code>instanceof</code> kontrolü ile) karşılaştırma yapmalıdır. Başka türlerle
+                    birlikte çalışmaya çalışmayın.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 39;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

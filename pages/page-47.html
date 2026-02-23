@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 47</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 11: hashCode — HashMap Senaryosu &amp; Tarif</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="47" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 47 / Page 47</div>
+        <div class="chapter-badge">Chapter 3 — Item 11: hashCode — HashMap Sorunu</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 11: hashCode sözleşmesinin ihlali ve HashMap'teki
+                etkisi</em></div>
+
+        <div class="tr-text">
+            <p><code>hashCode</code>'u ezmediğinizde ihlal edilen anahtar kural <b>ikincisidir</b>: <b>eşit nesnelerin
+                    eşit hash kodlarına sahip olması gerekir.</b> İki ayrı örnek, bir sınıfın <code>equals</code>
+                metoduna göre mantıksal olarak eşit olabilir; ancak <code>Object</code>'in <code>hashCode</code> metodu
+                açısından, bunlar ortak bir yanı olmayan iki nesnedir. Bu nedenle, <code>Object</code>'in
+                <code>hashCode</code> metodu, sözleşmenin gerektirdiği iki eşit sayı yerine görünüşte rastgele iki sayı
+                döndürür.</p>
+
+            <p>Örneğin, Madde 10'daki <code>PhoneNumber</code> sınıfının örneklerini bir <code>HashMap</code>'te anahtar
+                olarak kullanmaya çalıştığınızı varsayalım:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>The key provision violated when you fail to override <code>hashCode</code> is the second one: equal
+                objects must have equal hash codes. Two distinct instances may be logically equal, but
+                <code>Object</code>'s <code>hashCode</code> returns two random numbers instead of two equal ones as
+                required.</p>
+
+            <p>For example, suppose you use <code>PhoneNumber</code> instances as keys in a <code>HashMap</code>:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cl">Map</span>&lt;<span class="cl">PhoneNumber</span>, <span class="cl">String</span>&gt; m =
+            <span class="kw">new</span> <span class="cl">HashMap</span>&lt;&gt;();
+            m.put(<span class="kw">new</span> <span class="cl">PhoneNumber</span>(<span class="num">707</span>, <span
+                class="num">867</span>, <span class="num">5309</span>), <span class="st">"Jenny"</span>);
+
+            <span class="cm">// Beklenti: "Jenny" döndürür</span>
+            <span class="cm">// Gerçek: null döndürür!</span>
+            m.get(<span class="kw">new</span> <span class="cl">PhoneNumber</span>(<span class="num">707</span>, <span
+                class="num">867</span>, <span class="num">5309</span>));
+        </div>
+
+        <div class="tr-text">
+            <p><code>m.get(new PhoneNumber(707, 867, 5309))</code>'un <code>"Jenny"</code> döndürmesini beklersiniz;
+                ancak bunun yerine <code>null</code> döndürür. İki <code>PhoneNumber</code> örneği söz konusudur: biri
+                <code>HashMap</code>'e ekleme için, diğeri (eşit olan) geri alma denemesi için kullanılır.
+                <code>PhoneNumber</code> sınıfının <code>hashCode</code>'u ezmemiş olması, iki eşit örneğin eşit olmayan
+                hash kodlarına sahip olmasına neden olur. Bu nedenle, <code>get</code> metodu telefon numarasını,
+                <code>put</code> metodunun onu sakladığı kovadan (bucket) farklı bir kovada arar. İki örnek aynı kovaya
+                denk gelse bile, <code>get</code> metodu neredeyse kesinlikle <code>null</code> döndürecektir; çünkü
+                <code>HashMap</code>, her giriş ile ilişkilendirilen hash kodunu önbelleğe alan bir optimizasyona
+                sahiptir ve hash kodları eşleşmiyorsa nesne eşitliğini kontrol etme zahmetine girmez.</p>
+
+            <p>Bu sorunu düzeltmek, <code>PhoneNumber</code> için düzgün bir <code>hashCode</code> metodu yazmak kadar
+                basittir. Peki bir <code>hashCode</code> metodu nasıl görünmeli? İşte en kötü ama "yasal" uygulama —
+                <b>asla kullanmayın</b>:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>You'd expect <code>"Jenny"</code>, but get <code>null</code>. Two <code>PhoneNumber</code> instances are
+                involved: one for insertion, one (equal) for retrieval. Without <code>hashCode</code> override, they get
+                different hash codes, so <code>get</code> looks in the wrong bucket. Even if they hash to the same
+                bucket, <code>HashMap</code> caches hash codes and won't check equality if codes don't match.</p>
+
+            <p>Fixing this is simple — write a proper <code>hashCode</code>. Here's the worst legal one — <b>never
+                    use</b>:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Mümkün olan en kötü yasal hashCode — asla kullanmayın!</span>
+            <span class="an">@Override</span> <span class="kw">public int</span> hashCode() { <span
+                class="kw">return</span> <span class="num">42</span>; }
+        </div>
+
+        <div class="tr-text">
+            <p>Bu "yasal"dır çünkü eşit nesnelerin aynı hash koduna sahip olmasını garanti eder. Korkunçtur çünkü
+                <b>her</b> nesnenin aynı hash koduna sahip olmasını garanti eder. Bu nedenle, her nesne aynı kovaya
+                (bucket) düşer ve hash tabloları bağlantılı listelere (linked lists) dönüşür. Doğrusal (linear) zamanda
+                çalışması gereken programlar, bunun yerine <b>ikinci dereceden (quadratic)</b> zamanda çalışır.</p>
+
+            <p>İyi bir hash fonksiyonu, eşit olmayan örnekler için eşit olmayan hash kodları üretme eğilimindedir. İşte
+                basit bir tarif:</p>
+
+            <p><b>1.</b> <code>result</code> adında bir <code>int</code> değişkeni tanımlayın ve bunu nesnenizde ilk
+                anlamlı alan için hesaplanan hash kodu <code>c</code> ile başlatın.</p>
+
+            <p><b>2.</b> Kalan her anlamlı alan <code>f</code> için bir <code>int</code> hash kodu <code>c</code>
+                hesaplayın: İlkel tür ise <code>Type.hashCode(f)</code>, nesne referansı ise <code>f.hashCode()</code>
+                özyinelemeli olarak, dizi ise <code>Arrays.hashCode()</code>, <code>null</code> ise <code>0</code>
+                kullanın. Sonra birleştirin: <code>result = 31 * result + c;</code></p>
+
+            <p><b>3.</b> <code>result</code>'ı döndürün.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>It's legal but atrocious — every object hashes to the same bucket, degenerating hash tables to linked
+                lists. Programs that should run in linear time run in quadratic time.</p>
+            <p>A good hash function produces unequal codes for unequal instances. Recipe:</p>
+            <p><b>1.</b> Initialize <code>result</code> to hash code of first significant field.</p>
+            <p><b>2.</b> For each remaining field: compute hash code <code>c</code> and combine:
+                <code>result = 31 * result + c;</code></p>
+            <p><b>3.</b> Return <code>result</code>.</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 11 devamı: 31 çarpanının nedeni, PhoneNumber hashCode
+            örneği ve Objects.hash() sonraki sayfada.</div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('hashmap-failure')">HashMap Başarısızlık Senaryosu</button>
+            <button class="concept-btn" onclick="openModal('hash-recipe')">hashCode Tarifi (31 Çarpanı)</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-46.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 46 — AutoValue, Madde 10 özet, Madde 11 giriş</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-48.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 48 — PhoneNumber hashCode, Objects.hash()</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: HashMap Failure -->
+    <div class="modal-overlay" id="modal-hashmap-failure">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>HashMap Başarısızlık Senaryosu</h3>
+                <button class="modal-close" onclick="closeModal('hashmap-failure')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>HashMap</code> her anahtar nesne için hash kodunu hesaplar ve bunu bir "kova" (bucket)
+                        dizinine dönüştürür. <code>put</code> ve <code>get</code> çağrıları arasında eşit olan iki
+                        nesnenin hash kodları farklıysa, farklı kovalara düşerler.</p>
+                    <p>Ek olarak, <code>HashMap</code> bir optimizasyon olarak her girişteki hash kodunu önbelleğe alır
+                        ve hash kodları eşleşmezse <code>equals</code>'ı bile çağırmaz — doğrudan <code>null</code>
+                        döndürür.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><code>HashMap</code> computes a hash code for each key and maps it to a bucket index. If two
+                        equal objects have different codes, they land in different buckets. Additionally,
+                        <code>HashMap</code> caches hash codes and skips <code>equals</code> entirely if codes don't
+                        match.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Hash Recipe -->
+    <div class="modal-overlay" id="modal-hash-recipe">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>hashCode Tarifi (31 Çarpanı)</h3>
+                <button class="modal-close" onclick="closeModal('hash-recipe')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Hash hesaplamasında çarpan olarak <b>31</b> kullanılır çünkü:</p>
+                    <p>• <b>Tek sayı (odd):</b> Çift sayı olsaydı ve çarpma taşsaydı bilgi kaybedilirdi (çünkü 2 ile
+                        çarpma kaydırma demektir).</p>
+                    <p>• <b>Asal sayı (prime):</b> Geleneksel olarak tercih edilir, daha iyi dağılım sağlar.</p>
+                    <p>• <b>Optimizasyon:</b> <code>31 * i == (i &lt;&lt; 5) - i</code> — modern JVM'ler bu dönüşümü
+                        otomatik yapar.</p>
+                    <p>• <b>Sıra bağımlılığı:</b> Çarpma, sonucun alan sırasına bağlı olmasını sağlar —
+                        <b>anagramlar</b> farklı hash kodları alır.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>31 is used because it's an odd prime. <code>31 * i == (i &lt;&lt; 5) - i</code>. The
+                        multiplication makes the result order-dependent, so anagrams get different codes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 47;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

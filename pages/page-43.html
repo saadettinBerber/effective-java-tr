@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 43</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 10: equals — Tutarlılık, Null-olmama &amp;
+                Tarif</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="43" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 43 / Page 43</div>
+        <div class="chapter-badge">Chapter 3 — Item 10: equals — Tutarlılık &amp; Null-olmama</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 10: Tutarlılık (Consistency) ve Null-olmama
+                (Non-nullity)</em></div>
+
+        <div class="tr-text">
+            <p><strong>Tutarlılık (Consistency)</strong> — <code>equals</code> sözleşmesinin dördüncü gereksinimi, eğer
+                iki nesne eşitse süresiz olarak eşit kalmaları gerektiğini (ve eğer eşit değilse süresiz olarak eşit
+                olmamaları gerektiğini) söyler. Başka bir deyişle, değişebilir (mutable) nesneler farklı zamanlarda
+                farklı nesnelere eşit olabilir; ancak değişmez (immutable) nesneler olamaz. Bir sınıf yazarken, değişmez
+                olup olmayacağını dikkatle düşünün (Madde 17). Eğer değişmez olması gerektiğine karar verirseniz, eşit
+                nesnelerin sonsuza kadar eşit ve eşit olmayan nesnelerin sonsuza kadar eşit olmayan kalmasını sağlayın.
+            </p>
+
+            <p>Bir sınıf değişmez olsun ya da olmasın, <b>güvenilmez kaynaklara (unreliable resources) bağımlı bir
+                    <code>equals</code> metodu yazmayın</b>. Bu yasağı ihlal ederseniz tutarlılık gereksinimini
+                karşılamak son derece güçtür. Örneğin, <code>java.net.URL</code>'in <code>equals</code> metodu,
+                URL'lerle ilişkilendirilen ana bilgisayarların (hosts) IP adreslerinin karşılaştırılmasına dayanır. Bir
+                ana bilgisayar adını bir IP adresine çevirmek ağ erişimi gerektirebilir ve zamanla aynı sonuçları
+                vermesi garanti değildir. Bu, <code>URL equals</code> metodunun <code>equals</code> sözleşmesini ihlal
+                etmesine neden olabilir ve pratikte sorunlara yol açmıştır. <code>URL</code>'in <code>equals</code>
+                metodunun bu davranışı büyük bir hataydı ve taklit edilmemelidir. Bu tür sorunlardan kaçınmak için
+                <code>equals</code> metotları <b>yalnızca bellekte bulunan (memory-resident) nesneler üzerinde
+                    deterministik hesaplamalar</b> gerçekleştirmelidir.</p>
+
+            <p><strong>Null-olmama (Non-nullity)</strong> — Son gereksinimin resmi bir adı yoktur, bu yüzden onu
+                "null-olmama" (non-nullity) olarak adlandırma özgürlüğünü kullandım. Tüm nesnelerin <code>null</code>'a
+                eşit olmaması gerektiğini söyler. <code>o.equals(null)</code> çağrısına karşılık yanlışlıkla
+                <code>true</code> döndürmeyi hayal etmek zor olsa da, yanlışlıkla <code>NullPointerException</code>
+                fırlatmayı hayal etmek zor değildir. Birçok sınıf, buna karşı açık (explicit) bir <code>null</code>
+                testi ile koruma sağlayan <code>equals</code> metotlarına sahiptir:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p><strong>Consistency</strong> — The fourth requirement says equal objects must remain equal and unequal
+                objects remain unequal for all time. Mutable objects can be equal to different objects at different
+                times, but immutable objects cannot. Whether or not a class is immutable, <b>do not write an equals
+                    method that depends on unreliable resources</b>. For example, <code>java.net.URL</code>'s equals
+                relies on IP address comparison of hosts which requires network access — a big mistake. To avoid this,
+                <code>equals</code> should perform only deterministic computations on memory-resident objects.</p>
+
+            <p><strong>Non-nullity</strong> — The final requirement says all objects must be unequal to
+                <code>null</code>. Many classes guard against this with an explicit null test:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Gereksiz — açık null kontrolü gerekli değil</span>
+            <span class="an">@Override</span> <span class="kw">public boolean</span> equals(<span
+                class="cl">Object</span> o) {
+            <span class="kw">if</span> (o == <span class="kw">null</span>)
+            <span class="kw">return false</span>;
+            ...
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Bu test gereksizdir. <code>equals</code> metodu, önce argümanını uygun türe dönüştürmek için
+                <code>instanceof</code> operatörünü kullanmalıdır. <code>instanceof</code> operatörü, ilk operandı
+                <code>null</code> ise ikinci operandın türü ne olursa olsun <code>false</code> döndürecek şekilde
+                belirtilmiştir. Bu nedenle, <code>null</code> aktarılırsa tür denetimi <code>false</code> döndürecektir
+                — açık bir <code>null</code> kontrolüne ihtiyaç yoktur:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>This test is unnecessary. The <code>instanceof</code> operator returns <code>false</code> if null is
+                passed in, so you don't need an explicit null check:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Doğru yaklaşım — instanceof null kontrolünü de kapsar</span>
+            <span class="an">@Override</span> <span class="kw">public boolean</span> equals(<span
+                class="cl">Object</span> o) {
+            <span class="kw">if</span> (!(o <span class="kw">instanceof</span> <span class="cl">MyType</span>))
+            <span class="kw">return false</span>;
+            <span class="cl">MyType</span> mt = (<span class="cl">MyType</span>) o;
+            ...
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Her şeyi bir araya koyarak, işte yüksek kaliteli bir <code>equals</code> metodu için bir <b>tarif
+                    (recipe)</b>:</p>
+
+            <p><b>1.</b> Argümanın bu nesneye bir referans olup olmadığını kontrol etmek için <code>==</code>
+                operatörünü kullanın. Öyleyse, <code>true</code> döndürün. Bu yalnızca bir performans optimizasyonudur,
+                ancak karşılaştırma potansiyel olarak pahalıysa yapılmaya değerdir.</p>
+
+            <p><b>2.</b> Argümanın doğru türe sahip olup olmadığını kontrol etmek için <code>instanceof</code>
+                operatörünü kullanın. Değilse, <code>false</code> döndürün.</p>
+
+            <p><b>3.</b> Argümanı doğru türe dönüştürün (cast). Bu dönüştürme bir <code>instanceof</code> testiyle
+                önceden yapıldığından, başarılı olacağı garantidir.</p>
+
+            <p><b>4.</b> Sınıftaki her "anlamlı" (significant) alan için, argümanın ilgili alanının bu nesnenin karşılık
+                gelen alanıyla eşleşip eşleşmediğini kontrol edin. Tüm testler başarılı olursa <code>true</code>
+                döndürün; aksi halde <code>false</code>.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Putting it all together, here's a <b>recipe</b> for a high-quality <code>equals</code> method:</p>
+            <p><b>1.</b> Use <code>==</code> to check if the argument is a reference to this object. If so, return
+                <code>true</code>.</p>
+            <p><b>2.</b> Use <code>instanceof</code> to check if the argument has the correct type. If not, return
+                <code>false</code>.</p>
+            <p><b>3.</b> Cast the argument to the correct type.</p>
+            <p><b>4.</b> For each "significant" field, check if it matches the corresponding field of this object.</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 10 devamı: Alan karşılaştırma detayları (float, double,
+            null), performans ipuçları ve PhoneNumber equals örneği sonraki sayfada.</div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('consistency-url')">Tutarlılık &amp; URL Hatası</button>
+            <button class="concept-btn" onclick="openModal('instanceof-null')">instanceof ile Null Kontrolü</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-42.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 42 — Liskov Prensibi, Bileşim çözümü</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-44.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 44 — equals tarifi detayları, PhoneNumber</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Consistency & URL -->
+    <div class="modal-overlay" id="modal-consistency-url">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Tutarlılık &amp; URL Hatası</h3>
+                <button class="modal-close" onclick="closeModal('consistency-url')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>java.net.URL</code>'in <code>equals</code> metodu, ana bilgisayar adlarını IP adreslerine
+                        çevirmeye çalışır — bu ağ gerektiren ve zamanla değişebilen bir işlem. Aynı URL, farklı
+                        zamanlarda farklı sonuçlar döndürebilir.</p>
+                    <p>Bu, <code>equals</code> sözleşmesini ihlal eder ve geri uyumluluk nedeniyle düzeltilemez.
+                        Java'nın en büyük tasarım hatalarından biridir.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><code>java.net.URL</code>'s <code>equals</code> method translates hostnames to IP addresses — a
+                        network-dependent, time-varying operation. The same URL may yield different results at different
+                        times. This violates the contract and can't be fixed due to backward compatibility.</p>
+                </div>
+                <div class="tip-box tr-text">💡 <b>Kural:</b> <code>equals</code> metotları yalnızca bellekte bulunan
+                    nesneler üzerinde deterministik hesaplamalar yapmalıdır. Ağ, dosya sistemi veya diğer dış kaynaklara
+                    bağımlı olmayın.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: instanceof null -->
+    <div class="modal-overlay" id="modal-instanceof-null">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>instanceof ile Otomatik Null Kontrolü</h3>
+                <button class="modal-close" onclick="closeModal('instanceof-null')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>JLS 15.20.2'ye göre: <code>null instanceof HerhangiBirTür</code> her zaman <code>false</code>
+                        döndürür. Bu nedenle <code>equals</code> metodunuzda ayrı bir
+                        <code>if (o == null) return false;</code> kontrolüne gerek yoktur.</p>
+                    <p><code>instanceof</code> operatörü hem tür kontrolünü hem de null kontrolünü tek satırda yapar; bu
+                        daha temiz ve daha az hata eğilimli koddur.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Per JLS 15.20.2: <code>null instanceof AnyType</code> always returns <code>false</code>. So
+                        explicit <code>if (o == null) return false;</code> is unnecessary in <code>equals</code>.
+                        <code>instanceof</code> handles both type checking and null checking in one shot.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 43;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

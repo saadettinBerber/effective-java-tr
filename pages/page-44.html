@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 44</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 10: equals — Alan Karşılaştırma &amp;
+                Performans</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="44" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 44 / Page 44</div>
+        <div class="chapter-badge">Chapter 3 — Item 10: equals tarifi — Alan Karşılaştırma</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 10: Alan karşılaştırma detayları ve performans
+                ipuçları</em></div>
+
+        <div class="tr-text">
+            <p>Türü <code>float</code> veya <code>double</code> olmayan ilkel (primitive) alanlar için <code>==</code>
+                operatörünü kullanın; nesne referansı alanları için <code>equals</code> metodunu özyinelemeli olarak
+                (recursively) çağırın; <code>float</code> alanları için statik <code>Float.compare(float, float)</code>
+                metodunu; ve <code>double</code> alanları için <code>Double.compare(double, double)</code> kullanın.
+                <code>float</code> ve <code>double</code> alanlarının özel muamele görmesi, <code>Float.NaN</code>,
+                <code>-0.0f</code> ve bunların <code>double</code> karşılıklarının varlığından kaynaklanır. Dizi
+                alanları için bu kuralları her elemana uygulayın. Her eleman anlamlıysa, <code>Arrays.equals</code>
+                metotlarından birini kullanın.</p>
+
+            <p>Bazı nesne referansı alanları meşru olarak <code>null</code> içerebilir.
+                <code>NullPointerException</code> olasılığından kaçınmak için, bu tür alanların eşitliğini statik
+                <code>Objects.equals(Object, Object)</code> metodu ile kontrol edin.</p>
+
+            <p>Bazı sınıflar için alan karşılaştırmaları basit eşitlik testlerinden daha karmaşıktır. Bu durumda,
+                <code>equals</code> metodunun pahalı standart olmayan (nonstandard) bir karşılaştırma yerine kanonik
+                (canonical) biçimler üzerinde ucuz bir tam karşılaştırma yapabilmesi için alanın kanonik biçimini
+                saklayabilirsiniz. Bu teknik en çok değişmez sınıflar (immutable classes) için uygundur (Madde 17).</p>
+
+            <p><code>equals</code> metodunun performansı, alanların karşılaştırılma sırasından etkilenebilir. En iyi
+                performans için, <b>farklılık ihtimali daha yüksek</b>, <b>karşılaştırması daha ucuz</b> olan veya ideal
+                olarak her ikisi olan alanları önce karşılaştırmalısınız. Bir nesnenin mantıksal durumunun (logical
+                state) parçası olmayan alanları karşılaştırmamalısınız (örn. işlemleri senkronize etmek için kullanılan
+                kilit alanları). "Anlamlı alanlardan" hesaplanabilen türetilmiş alanları (derived fields)
+                karşılaştırmanıza gerek yoktur; ancak bunu yapmak <code>equals</code> metodunun performansını
+                iyileştirebilir. Bir türetilmiş alan tüm nesnenin bir özet açıklamasıysa (summary description),
+                karşılaştırma başarısız olursa gerçek veriyi karşılaştırma masrafından kurtulursunuz.</p>
+
+            <p><code>equals</code> metodunuzu yazmayı bitirdiğinizde kendinize üç soru sorun: <b>Simetrik mi? Geçişli
+                    mi? Tutarlı mı?</b> Sadece kendinize sormayın; birim testleri (unit tests) yazarak kontrol edin —
+                AutoValue kullanmadıysanız tabii.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>For primitive fields not <code>float</code> or <code>double</code>, use <code>==</code>; for object
+                references, call <code>equals</code> recursively; for <code>float</code> use
+                <code>Float.compare()</code>; for <code>double</code> use <code>Double.compare()</code>. For arrays, use
+                <code>Arrays.equals</code>. For nullable fields, use <code>Objects.equals(Object, Object)</code>.</p>
+
+            <p>For some classes, you may want to store a canonical form for cheaper comparison. For best performance,
+                compare fields most likely to differ first. Don't compare fields that aren't part of logical state.
+                Derived fields can improve performance if they summarize the entire object.</p>
+
+            <p>When done, ask yourself: <b>Is it symmetric? Is it transitive? Is it consistent?</b> Write unit tests to
+                verify — unless you used AutoValue.</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 10 devamı: PhoneNumber equals örneği ve son uyarılar
+            sonraki sayfada.</div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('field-comparison')">Alan Karşılaştırma Kuralları</button>
+            <button class="concept-btn" onclick="openModal('performance-order')">Performans: Karşılaştırma
+                Sırası</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-43.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 43 — Tutarlılık, null-olmama, tarif</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-45.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 45 — PhoneNumber equals, son uyarılar</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Field Comparison Rules -->
+    <div class="modal-overlay" id="modal-field-comparison">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Alan Karşılaştırma Kuralları</h3>
+                <button class="modal-close" onclick="closeModal('field-comparison')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><b>İlkel türler</b> (int, long, short...): <code>==</code> ile karşılaştırın.<br>
+                        <b>float</b>: <code>Float.compare(a, b)</code> kullanın (<code>NaN</code> ve <code>-0.0f</code>
+                        yüzünden).<br>
+                        <b>double</b>: <code>Double.compare(a, b)</code> kullanın.<br>
+                        <b>Nesne referansları</b>: <code>equals()</code> ile özyinelemeli karşılaştırın.<br>
+                        <b>Null olabilir alanlar</b>: <code>Objects.equals(a, b)</code> kullanın.<br>
+                        <b>Diziler</b>: <code>Arrays.equals(a, b)</code> kullanın.
+                    </p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><b>Primitives</b> (int, long...): compare with <code>==</code>.<br>
+                        <b>float</b>: use <code>Float.compare(a, b)</code>.<br>
+                        <b>double</b>: use <code>Double.compare(a, b)</code>.<br>
+                        <b>Object references</b>: use <code>equals()</code> recursively.<br>
+                        <b>Nullable fields</b>: use <code>Objects.equals(a, b)</code>.<br>
+                        <b>Arrays</b>: use <code>Arrays.equals(a, b)</code>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Performance Order -->
+    <div class="modal-overlay" id="modal-performance-order">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Performans: Karşılaştırma Sırası</h3>
+                <button class="modal-close" onclick="closeModal('performance-order')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Alan karşılaştırma sırası performansı doğrudan etkiler. Erken başarısızlık (early failure)
+                        prensibi:</p>
+                    <p>1. <b>Farklılık olması en muhtemel</b> alanları önce karşılaştırın</p>
+                    <p>2. <b>Karşılaştırması ucuz</b> olan alanları önce karşılaştırın</p>
+                    <p>3. Türetilmiş alan (özet/alan sayısı gibi) varsa, onu ilk kontrolü yaparak gerçek veriyi
+                        karşılaştırmaktan kaçınabilirsiniz</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Field comparison order directly affects performance. Early failure principle:</p>
+                    <p>1. Compare fields most likely to differ first</p>
+                    <p>2. Compare cheapest-to-compare fields first</p>
+                    <p>3. If a derived/summary field exists, compare it first to skip expensive checks</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 44;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

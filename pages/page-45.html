@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 45</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 10: equals — PhoneNumber Örneği &amp; Son
+                Uyarılar</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="45" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 45 / Page 45</div>
+        <div class="chapter-badge">Chapter 3 — Item 10: equals — PhoneNumber &amp; Son Uyarılar</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 10: PhoneNumber equals örneği</em></div>
+
+        <div class="tr-text">
+            <p>Önceki tarife göre oluşturulmuş bir <code>equals</code> metodu, bu basitleştirilmiş
+                <code>PhoneNumber</code> sınıfında gösterilmiştir:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>An <code>equals</code> method constructed according to the previous recipe is shown in this simplistic
+                <code>PhoneNumber</code> class:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Tipik bir equals metoduna sahip sınıf</span>
+            <span class="kw">public final class</span> <span class="cl">PhoneNumber</span> {
+            <span class="kw">private final short</span> areaCode, prefix, lineNum;
+
+            <span class="kw">public</span> PhoneNumber(<span class="kw">int</span> areaCode, <span class="kw">int</span>
+            prefix, <span class="kw">int</span> lineNum) {
+            <span class="kw">this</span>.areaCode = rangeCheck(areaCode, <span class="num">999</span>, <span
+                class="st">"area code"</span>);
+            <span class="kw">this</span>.prefix = rangeCheck(prefix, <span class="num">999</span>, <span
+                class="st">"prefix"</span>);
+            <span class="kw">this</span>.lineNum = rangeCheck(lineNum, <span class="num">9999</span>, <span
+                class="st">"line num"</span>);
+            }
+
+            <span class="kw">private static short</span> rangeCheck(<span class="kw">int</span> val, <span
+                class="kw">int</span> max, <span class="cl">String</span> arg) {
+            <span class="kw">if</span> (val < <span class="num">0</span> || val > max)
+                <span class="kw">throw new</span> <span class="cl">IllegalArgumentException</span>(arg + <span
+                    class="st">": "</span> + val);
+                <span class="kw">return</span> (<span class="kw">short</span>) val;
+                }
+
+                <span class="an">@Override</span> <span class="kw">public boolean</span> equals(<span
+                    class="cl">Object</span> o) {
+                <span class="kw">if</span> (o == <span class="kw">this</span>) <span class="cm">// 1. Referans
+                    kontrolü</span>
+                <span class="kw">return true</span>;
+                <span class="kw">if</span> (!(o <span class="kw">instanceof</span> <span class="cl">PhoneNumber</span>))
+                <span class="cm">// 2. Tür kontrolü</span>
+                <span class="kw">return false</span>;
+                <span class="cl">PhoneNumber</span> pn = (<span class="cl">PhoneNumber</span>) o; <span class="cm">// 3.
+                    Dönüştürme</span>
+                <span class="kw">return</span> pn.lineNum == lineNum <span class="cm">// 4. Alan karşılaştırma</span>
+                && pn.prefix == prefix
+                && pn.areaCode == areaCode;
+                }
+                ... <span class="cm">// Kalan kısım çıkarıldı</span>
+                }
+        </div>
+
+        <div class="tr-text">
+            <p>İşte birkaç son uyarı (caveats):</p>
+
+            <p>• <b>equals'ı ezdiğinizde hashCode'u da her zaman ezin</b> (Madde 11).</p>
+
+            <p>• <b>Çok akıllı olmaya çalışmayın.</b> Alanları basitçe eşitlik için test ederseniz, <code>equals</code>
+                sözleşmesine uymak zor değildir. Eşdeğerlik arayışında aşırı agresif olursanız, başınız belaya girer.
+                Herhangi bir <b>takma ad (aliasing)</b> biçimini hesaba katmak genellikle kötü bir fikirdir. Örneğin,
+                <code>File</code> sınıfı aynı dosyaya atıfta bulunan sembolik bağlantıları eşitlemeye çalışmamalıdır.
+                Neyse ki çalışmıyor.</p>
+
+            <p>• <b><code>equals</code> bildiriminde (declaration) <code>Object</code> yerine başka bir tür
+                    kullanmayın.</b> Programcıların şöyle görünen bir <code>equals</code> metodu yazması alışılmadık
+                değildir:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Here are a few final caveats:</p>
+            <p>• <b>Always override hashCode when you override equals</b> (Item 11).</p>
+            <p>• <b>Don't try to be too clever.</b> If you simply test fields for equality, it's not hard to adhere to
+                the contract. Don't take aliasing into account.</p>
+            <p>• <b>Don't substitute another type for Object in the equals declaration.</b></p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// YanlıŞ — parametre türü Object olmalı!</span>
+            <span class="kw">public boolean</span> equals(<span class="cl">MyClass</span> o) {
+            ...
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Bu metot <code>Object.equals</code>'ı ezmez (override), aksine <b>aşırı yükler (overload)</b>.
+                <code>@Override</code> anotasyonunu tutarlı bir şekilde kullanarak bu hatadan kaçınabilirsiniz (Madde
+                40); bu <code>equals</code> metodu derlenmeyecektir:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>This method does not override <code>Object.equals</code>; it <b>overloads</b> it instead. You can avoid
+                this error by using the <code>@Override</code> annotation consistently (Item 40); this
+                <code>equals</code> method won't compile:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Derlenemez! — doğru şekilde hata yakalar</span>
+            <span class="an">@Override</span> <span class="kw">public boolean</span> equals(<span
+                class="cl">MyClass</span> o) {
+            ...
+            }
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 10 devamı: AutoValue, son özet ve Madde 11 (hashCode)
+            başlangıcı sonraki sayfada.</div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('override-overload')">Override vs Overload Tuzağı</button>
+            <button class="concept-btn" onclick="openModal('autovalue')">AutoValue</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-44.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 44 — Alan karşılaştırma, performans</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-46.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 46 — AutoValue, Madde 10 özet</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Override vs Overload -->
+    <div class="modal-overlay" id="modal-override-overload">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Override vs Overload Tuzağı</h3>
+                <button class="modal-close" onclick="closeModal('override-overload')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>equals(MyClass o)</code> yazmak <code>Object.equals(Object o)</code>'yu <b>ezmez</b>
+                        (override), yalnızca <b>aşırı yükler</b> (overload). Koleksiyonlar ve framework'ler hâlâ
+                        <code>Object.equals</code>'ı çağıracağından, sizin metodunuz hiç çalışmaz!</p>
+                    <p><b>Çözüm:</b> Her zaman <code>@Override</code> anotasyonunu kullanın. Derleyici yanlış imzayı
+                        (signature) tespit edecektir.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><code>equals(MyClass o)</code> <b>overloads</b> rather than <b>overrides</b>
+                        <code>Object.equals(Object o)</code>. Collections will call the original, so yours never runs!
+                    </p>
+                    <p><b>Fix:</b> Always use <code>@Override</code>. The compiler will catch the wrong signature.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: AutoValue -->
+    <div class="modal-overlay" id="modal-autovalue">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>AutoValue</h3>
+                <button class="modal-close" onclick="closeModal('autovalue')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Google'ın açık kaynak <b>AutoValue</b> kütüphanesi, <code>equals</code>, <code>hashCode</code> ve
+                        <code>toString</code> metotlarını sınıfın alanlarına bakarak otomatik üretir. Doğru ve tutarlı
+                        uygulamalar sağlar; böylece elle yazma hataları elimine edilir.</p>
+                    <p>IDE'ler de <code>equals</code> ve <code>hashCode</code> üretebilir; ancak AutoValue, kaynak kod
+                        değişikliklerinde otomatik güncelleme yapması açısından daha güvenilirdir.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Google's open-source <b>AutoValue</b> generates <code>equals</code>, <code>hashCode</code>, and
+                        <code>toString</code> automatically from class fields. Eliminates hand-coding errors. IDEs can
+                        also generate these, but AutoValue auto-updates when fields change.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 45;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

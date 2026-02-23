@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 42</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 10: equals — Liskov İkame Prensibi &amp; Bileşim
+                Çözümü</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="42" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 42 / Page 42</div>
+        <div class="chapter-badge">Chapter 3 — Item 10: equals — Liskov &amp; Composition</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 10: getClass yaklaşımının sorunu ve Liskov İkame
+                Prensibi</em></div>
+
+        <div class="tr-text">
+            <p><code>getClass</code> yaklaşımı, nesneleri yalnızca aynı uygulama sınıfına (implementation class) sahip
+                olduklarında eşit sayma etkisine sahiptir. Bu o kadar da kötü görünmeyebilir, ancak sonuçları kabul
+                edilemezdir: <code>Point</code>'in bir alt sınıfının bir örneği hâlâ bir <code>Point</code>'tir ve bir
+                <code>Point</code> olarak işlev görmesi gerekir; ama bu yaklaşımı kullanırsanız bunu yapamaz!</p>
+
+            <p>Bir noktanın birim çember (unit circle) üzerinde olup olmadığını söyleyen bir metot yazmak istediğimizi
+                varsayalım:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>The <code>getClass</code> approach has the effect of equating objects only if they have the same
+                implementation class. This may not seem so bad, but the consequences are unacceptable: An instance of a
+                subclass of <code>Point</code> is still a <code>Point</code>, and it still needs to function as one, but
+                it fails to do so if you take this approach!</p>
+
+            <p>Let's suppose we want to write a method to tell whether a point is on the unit circle:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// unitCircle — birim çember üzerindeki tüm noktalar</span>
+            <span class="kw">private static final</span> <span class="cl">Set</span>&lt;<span
+                class="cl">Point</span>&gt; unitCircle = <span class="cl">Set</span>.of(
+            <span class="kw">new</span> <span class="cl">Point</span>( <span class="num">1</span>, <span
+                class="num">0</span>), <span class="kw">new</span> <span class="cl">Point</span>( <span
+                class="num">0</span>, <span class="num">1</span>),
+            <span class="kw">new</span> <span class="cl">Point</span>(-<span class="num">1</span>, <span
+                class="num">0</span>), <span class="kw">new</span> <span class="cl">Point</span>( <span
+                class="num">0</span>, -<span class="num">1</span>));
+
+            <span class="kw">public static boolean</span> onUnitCircle(<span class="cl">Point</span> p) {
+            <span class="kw">return</span> unitCircle.contains(p);
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Bir değer bileşeni eklemeyen, yapıcısında (constructor) kaç örnek oluşturulduğunu izleyen basit bir
+                <code>Point</code> alt sınıfı düşünün:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Suppose you extend <code>Point</code> in some trivial way that doesn't add a value component, by having
+                its constructor keep track of how many instances have been created:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="kw">public class</span> <span class="cl">CounterPoint</span> <span class="kw">extends</span>
+            <span class="cl">Point</span> {
+            <span class="kw">private static final</span> <span class="cl">AtomicInteger</span> counter =
+            <span class="kw">new</span> <span class="cl">AtomicInteger</span>();
+
+            <span class="kw">public</span> CounterPoint(<span class="kw">int</span> x, <span class="kw">int</span> y) {
+            <span class="kw">super</span>(x, y);
+            counter.incrementAndGet();
+            }
+            <span class="kw">public static int</span> numberCreated() { <span class="kw">return</span> counter.get(); }
+            }
+        </div>
+
+        <div class="tr-text">
+            <p><b>Liskov İkame Prensibi</b> (Liskov substitution principle), bir türün herhangi bir önemli özelliğinin
+                tüm alt türlerinde de geçerli olması gerektiğini söyler; böylece tür için yazılmış herhangi bir metot,
+                alt türlerinde de eşit derecede iyi çalışmalıdır [Liskov87]. Ancak <code>Point</code> sınıfı
+                <code>getClass</code> tabanlı bir <code>equals</code> metodu kullanırsa, <code>onUnitCircle</code>
+                metodu <code>CounterPoint</code> örneğinin x ve y koordinatlarına bakılmaksızın <code>false</code>
+                döndürecektir. Çünkü <code>HashSet</code> dahil olmak üzere çoğu koleksiyon, kapsama testi (containment
+                test) için <code>equals</code> metodunu kullanır ve hiçbir <code>CounterPoint</code> örneği herhangi bir
+                <code>Point</code>'e eşit olmaz. Ancak <code>Point</code> üzerinde düzgün bir <code>instanceof</code>
+                tabanlı <code>equals</code> metodu kullanırsanız, aynı <code>onUnitCircle</code> metodu
+                <code>CounterPoint</code> örneğiyle sunulduğunda sorunsuz çalışır.</p>
+
+            <p>Örneklendirilebilen bir sınıfı genişletip değer bileşeni eklemenin tatmin edici bir yolu olmasa da, güzel
+                bir geçici çözüm (workaround) vardır: Madde 18'in tavsiyesine uyun — <b>"Kalıtım yerine bileşimi tercih
+                    edin" (Favor composition over inheritance).</b> <code>ColorPoint</code>'in <code>Point</code>'i
+                genişletmesi yerine, <code>ColorPoint</code>'e özel (private) bir <code>Point</code> alanı ve bu renkli
+                noktayla aynı konumdaki noktayı döndüren genel (public) bir görünüm metodu (view method) verin:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>The <b>Liskov substitution principle</b> says that any important property of a type should also hold for
+                all its subtypes. But if <code>Point</code> uses a <code>getClass</code>-based <code>equals</code>, the
+                <code>onUnitCircle</code> method will return <code>false</code> regardless of the
+                <code>CounterPoint</code>'s coordinates. Because most collections use <code>equals</code> for
+                containment, no <code>CounterPoint</code> will ever equal any <code>Point</code>. If you use a proper
+                <code>instanceof</code>-based <code>equals</code> on <code>Point</code>, the same
+                <code>onUnitCircle</code> works fine with a <code>CounterPoint</code>.</p>
+
+            <p>While there is no satisfactory way to extend an instantiable class and add a value component, there is a
+                fine workaround: Follow Item 18's advice — <b>"Favor composition over inheritance."</b> Instead of
+                having <code>ColorPoint</code> extend <code>Point</code>, give <code>ColorPoint</code> a private
+                <code>Point</code> field and a public view method:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// equals sözleşmesini ihlal etmeden değer bileşeni ekler</span>
+            <span class="cm">// Adds a value component without violating the equals contract</span>
+            <span class="kw">public class</span> <span class="cl">ColorPoint</span> {
+            <span class="kw">private final</span> <span class="cl">Point</span> point;
+            <span class="kw">private final</span> <span class="cl">Color</span> color;
+
+            <span class="kw">public</span> ColorPoint(<span class="kw">int</span> x, <span class="kw">int</span> y,
+            <span class="cl">Color</span> color) {
+            point = <span class="kw">new</span> <span class="cl">Point</span>(x, y);
+            <span class="kw">this</span>.color = <span class="cl">Objects</span>.requireNonNull(color);
+            }
+
+            <span class="cm">// Bu ColorPoint'in Point görünümünü döndürür</span>
+            <span class="kw">public</span> <span class="cl">Point</span> asPoint() {
+            <span class="kw">return</span> point;
+            }
+
+            <span class="an">@Override</span> <span class="kw">public boolean</span> equals(<span
+                class="cl">Object</span> o) {
+            <span class="kw">if</span> (!(o <span class="kw">instanceof</span> <span class="cl">ColorPoint</span>))
+            <span class="kw">return false</span>;
+            <span class="cl">ColorPoint</span> cp = (<span class="cl">ColorPoint</span>) o;
+            <span class="kw">return</span> cp.point.equals(point) && cp.color.equals(color);
+            }
+            ... <span class="cm">// Kalan kısım çıkarıldı</span>
+            }
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 10 devamı: Tutarlılık (Consistency), null-olmama
+            (non-nullity) ve equals tarifi sonraki sayfada.</div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('liskov')">Liskov İkame Prensibi</button>
+            <button class="concept-btn" onclick="openModal('composition')">Bileşim Çözümü (Composition)</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-41.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 41 — Geçişlilik ihlali, StackOverflow</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-43.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 43 — Tutarlılık, null-olmama</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Liskov Substitution Principle -->
+    <div class="modal-overlay" id="modal-liskov">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Liskov İkame Prensibi (LSP)</h3>
+                <button class="modal-close" onclick="closeModal('liskov')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Barbara Liskov tarafından formüle edilen bu prensip: <i>"Bir üst türün (supertype) herhangi bir
+                            önemli özelliği, tüm alt türlerinde (subtypes) de geçerli olmalıdır."</i> [Liskov87]</p>
+                    <p>Pratik sonuç: Bir <code>Point</code> alt sınıfı (<code>CounterPoint</code>) hâlâ bir
+                        <code>Point</code>'tir ve bir <code>Point</code>'in çalıştığı her yerde çalışmalıdır.
+                        <code>getClass</code> tabanlı <code>equals</code> bu prensibi ihlal eder çünkü alt sınıf
+                        örneklerini "eşit olmayan" ilan eder.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Formulated by Barbara Liskov: <i>"Any important property of a supertype should also hold for all
+                            its subtypes."</i> [Liskov87]</p>
+                    <p>Practical: A <code>Point</code> subclass (<code>CounterPoint</code>) is still a
+                        <code>Point</code> and must work everywhere a <code>Point</code> does.
+                        <code>getClass</code>-based <code>equals</code> violates this by declaring subclass instances
+                        "not equal".</p>
+                </div>
+                <div class="tip-box tr-text">💡 <code>instanceof</code> kullanın, <code>getClass</code> değil.
+                    <code>instanceof</code>, alt sınıfların üst sınıf olarak düzgünce çalışmasını (polimorfizm) garanti
+                    eder.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Composition -->
+    <div class="modal-overlay" id="modal-composition">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Bileşim Çözümü (Composition over Inheritance)</h3>
+                <button class="modal-close" onclick="closeModal('composition')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Kalıtım yerine bileşim kullanarak <code>equals</code> sözleşmesini korumak mümkündür:</p>
+                    <p>• <code>ColorPoint extends Point</code> yerine → <code>ColorPoint</code> içinde özel bir
+                        <code>Point</code> alanı tutun.</p>
+                    <p>• <code>asPoint()</code> görünüm metodu ile <code>Point</code> bağlamında kullanım imkanı
+                        sağlayın.</p>
+                    <p>• <code>equals</code> yalnızca <code>ColorPoint</code> örneklerini karşılaştırır — simetri,
+                        geçişlilik, tutarlılık korunur.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Using composition instead of inheritance preserves the <code>equals</code> contract:</p>
+                    <p>• Instead of <code>ColorPoint extends Point</code> → keep a private <code>Point</code> field
+                        inside <code>ColorPoint</code>.</p>
+                    <p>• Provide an <code>asPoint()</code> view method for use in <code>Point</code> contexts.</p>
+                    <p>• <code>equals</code> only compares <code>ColorPoint</code> instances — symmetry, transitivity,
+                        consistency preserved.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 42;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

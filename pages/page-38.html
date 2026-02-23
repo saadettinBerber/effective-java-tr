@@ -395,20 +395,24 @@
 
         <div class="tr-text">
             <p>...<code>x.equals(y)</code>, yalnızca ve yalnızca (if and only if) <code>y.equals(x)</code>
-                <code>true</code> döndürdüğünde <code>true</code> döndürmelidir.</p>
+                <code>true</code> döndürdüğünde <code>true</code> döndürmelidir.
+            </p>
 
             <p>• <strong>Geçişli (Transitive):</strong> Herhangi bir null olmayan referans değerleri <code>x</code>,
                 <code>y</code>, <code>z</code> için, eğer <code>x.equals(y)</code> <code>true</code> döndürüyorsa ve
                 <code>y.equals(z)</code> <code>true</code> döndürüyorsa, o zaman <code>x.equals(z)</code> de
-                <code>true</code> döndürmelidir.</p>
+                <code>true</code> döndürmelidir.
+            </p>
 
             <p>• <strong>Tutarlı (Consistent):</strong> Herhangi bir null olmayan referans değerleri <code>x</code> ve
                 <code>y</code> için, <code>equals</code> karşılaştırmalarında kullanılan hiçbir bilgi değiştirilmediği
                 sürece, <code>x.equals(y)</code>'nin birden fazla çağrılması sürekli olarak <code>true</code> veya
-                sürekli olarak <code>false</code> döndürmelidir.</p>
+                sürekli olarak <code>false</code> döndürmelidir.
+            </p>
 
             <p>• Herhangi bir null olmayan referans değeri <code>x</code> için, <code>x.equals(null)</code>
-                <code>false</code> döndürmelidir.</p>
+                <code>false</code> döndürmelidir.
+            </p>
 
             <p>Matematiğe eğilimli (mathematically inclined) değilseniz, bu biraz korkutucu görünebilir; ama onu
                 görmezden gelmeyin! İhlal ederseniz, programınızın düzensiz davrandığını (behaves erratically) veya
@@ -441,11 +445,13 @@
 
         <div class="en-text" style="display:none">
             <p>...<code>x.equals(y)</code> must return <code>true</code> if and only if <code>y.equals(x)</code> returns
-                <code>true</code>.</p>
+                <code>true</code>.
+            </p>
 
             <p>• <strong>Transitive:</strong> For any non-null reference values <code>x</code>, <code>y</code>,
                 <code>z</code>, if <code>x.equals(y)</code> returns <code>true</code> and <code>y.equals(z)</code>
-                returns <code>true</code>, then <code>x.equals(z)</code> must return <code>true</code>.</p>
+                returns <code>true</code>, then <code>x.equals(z)</code> must return <code>true</code>.
+            </p>
 
             <p>• <strong>Consistent:</strong> For any non-null reference values <code>x</code> and <code>y</code>,
                 multiple invocations of <code>x.equals(y)</code> must consistently return <code>true</code> or
@@ -453,7 +459,8 @@
                 is modified.</p>
 
             <p>• For any non-null reference value <code>x</code>, <code>x.equals(null)</code> must return
-                <code>false</code>.</p>
+                <code>false</code>.
+            </p>
 
             <p>Unless you are mathematically inclined, this might look a bit scary, but do not ignore it! If you violate
                 it, you may well find that your program behaves erratically or crashes, and it can be very difficult to
@@ -500,9 +507,9 @@
                 <span class="nav-direction">← Önceki Sayfa</span>
                 <span class="nav-info">Sayfa 37 — Değer sınıfları, equals koşulları</span>
             </button>
-            <button class="nav-btn" style="opacity:0.5;cursor:default;">
+            <button class="nav-btn" onclick="window.location.href='page-39.html'">
                 <span class="nav-direction">Sonraki Sayfa →</span>
-                <span class="nav-info">Henüz çevrilmedi</span>
+                <span class="nav-info">Sayfa 39 — CaseInsensitiveString simetri</span>
             </button>
         </div>
     </div>
@@ -523,7 +530,8 @@
                 <div class="en-text" style="display:none">
                     <p>An object must equal itself: <code>x.equals(x) == true</code>. This is the most basic requirement
                         and usually holds naturally unless intentionally violated. If violated, a collection's
-                        <code>contains()</code> won't find an object you just added!</p>
+                        <code>contains()</code> won't find an object you just added!
+                    </p>
                 </div>
             </div>
         </div>
@@ -542,13 +550,15 @@
                         genellikle kendi sınıfınızın <code>equals</code>'ında başka bir türle karşılaştırma yapmaya
                         çalıştığınızda ortaya çıkar. Örneğin, <code>CaseInsensitiveString</code> sınıfı
                         <code>String</code> ile eşitlik karşılaştırabileceğini düşünür, ancak <code>String</code> ise
-                        <code>CaseInsensitiveString</code>'i tanımaz.</p>
+                        <code>CaseInsensitiveString</code>'i tanımaz.
+                    </p>
                 </div>
                 <div class="en-text" style="display:none">
                     <p>If <code>x.equals(y) == true</code> then <code>y.equals(x) == true</code>. Symmetry violations
                         typically arise when your class's <code>equals</code> tries to interoperate with a different
                         type. E.g., <code>CaseInsensitiveString</code> thinks it equals a <code>String</code>, but
-                        <code>String</code> doesn't know about <code>CaseInsensitiveString</code>.</p>
+                        <code>String</code> doesn't know about <code>CaseInsensitiveString</code>.
+                    </p>
                 </div>
                 <div class="tip-box tr-text">💡 Altın kural: <code>equals</code> metodu yalnızca kendi türünün
                     nesneleriyle karşılaştırmalıdır. Farklı türlerle (cross-type) eşitlik sağlamaya çalışmak neredeyse
@@ -569,7 +579,8 @@
                     <p>Denklik sınıfı, bir denklik ilişkisi tarafından "eşit" sayılan elemanların oluşturduğu alt
                         kümedir. Örneğin, <code>Integer</code> sınıfının <code>equals</code> metodu ile,
                         <code>new Integer(42)</code> ve <code>Integer.valueOf(42)</code> aynı denklik sınıfına aittir
-                        çünkü aynı değeri temsil ederler.</p>
+                        çünkü aynı değeri temsil ederler.
+                    </p>
                     <p>Bir <code>equals</code> metodunun yararlı olabilmesi için, aynı denklik sınıfındaki tüm nesneler
                         kullanıcı açısından birbirleriyle değiştirilebilir (interchangeable) olmalıdır.</p>
                 </div>
@@ -577,7 +588,8 @@
                     <p>An equivalence class is a subset of elements deemed "equal" by an equivalence relation. For
                         example, with <code>Integer</code>'s <code>equals</code>, <code>new Integer(42)</code> and
                         <code>Integer.valueOf(42)</code> belong to the same equivalence class because they represent the
-                        same value.</p>
+                        same value.
+                    </p>
                     <p>For an <code>equals</code> method to be useful, all objects in the same equivalence class must be
                         interchangeable from the user's perspective.</p>
                 </div>
