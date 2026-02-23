@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 55</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .summary-box {
+            background: #e8f4e8;
+            border-left: 4px solid #27ae60;
+            padding: 1rem 1.2rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+            font-size: .93rem;
+            color: #1a5c1a
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 13: clone — Kalıtım &amp; Kopya Yapıcı
+                Alternatifi</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="55" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 55 / Page 55</div>
+        <div class="chapter-badge">Chapter 3 — Item 13: clone — Kalıtım &amp; Alternatifler</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 13: Kalıtım için clone tasarımı ve
+                alternatifler</em></div>
+
+        <div class="tr-text">
+            <p>Kalıtım için tasarlanmış bir sınıf (Madde 19), <code>Cloneable</code> uygulamamalıdır.
+                <code>Object</code>'in davranışını taklit ederek düzgün çalışan korumalı (protected) bir
+                <code>clone</code> metodu uygulayabilirsiniz. Ya da <code>clone</code>'u aşağıdaki gibi dejenere bir
+                formda uygulayarak alt sınıfların onu uygulamasını önleyebilirsiniz:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>A class designed for inheritance (Item 19) should not implement <code>Cloneable</code>. You can either
+                implement a protected <code>clone</code> mimicking <code>Object</code>, or prevent subclasses from
+                implementing it:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Alt sınıfların Cloneable uygulamasını önleyen clone metodu</span>
+            <span class="an">@Override</span>
+            <span class="kw">protected final</span> <span class="cl">Object</span> clone() <span
+                class="kw">throws</span> <span class="cl">CloneNotSupportedException</span> {
+            <span class="kw">throw new</span> <span class="cl">CloneNotSupportedException</span>();
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>İş parçacığı güvenli (thread-safe) bir sınıf yazıyorsanız <code>Cloneable</code>'ı uygulamanız
+                gerekiyorsa, <code>clone</code> metodunuzun düzgün senkronize edildiğinden emin olun — tıpkı diğer
+                metotlar gibi (Madde 78). <code>Object</code>'in <code>clone</code> metodu senkronize değildir; bu
+                nedenle <code>super.clone()</code> iyi çalışsa bile, <code>clone</code> metodunu senkronize etmeniz
+                gerekebilir.</p>
+
+            <p><b>Özetlemek gerekirse</b>, <code>Cloneable</code>'ı uygulayan tüm sınıflar, dönüş türü sınıfın kendisi
+                olan bir genel (public) <code>clone</code> metodu sağlamalıdır. Bu metot önce <code>super.clone(code> çağırmalı, ardından düzeltilmesi gereken tüm alanları düzeltmelidir — yani nesnenin iç "derin yapısını" (deep structure) oluşturan tüm değişebilir nesneleri kopyalamak ve bu kopyalara yapılan referansları düzeltmek.</p>
+
+            <p>Tüm bu karmaşıklık gerçekten gerekli midir? Nadiren. Bir sınıf zaten <code>Cloneable</code>'ı
+                uyguluyorsa, düzgün çalışan bir <code>clone</code> metodu sağlamanın başka yolu yoktur. Aksi halde,
+                <b>nesneleri kopyalamak için alternatif yollar sağlamanız veya sadece kopyalama yeteneği sağlamamanız
+                    daha iyidir</b>. Değişmez (immutable) sınıflar asla klonlamayı desteklememelidir — çünkü kopyalar
+                orijinallerinden ayırt edilemez olacağından sadece boşuna çaba olur.</p>
+
+            <p>Nesne kopyalamanın daha iyi bir yaklaşımı, bir <b>kopya yapıcı (copy constructor)</b> veya <b>kopya
+                    fabrikası (copy factory)</b> sağlamaktır:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Thread-safe classes implementing <code>Cloneable</code> must synchronize <code>clone</code>. In summary,
+                all classes implementing <code>Cloneable</code> should provide a public <code>clone</code> that calls
+                <code>super.clone</code> and fixes all mutable fields. But is this complexity necessary? Rarely. Better
+                to provide copy constructors or copy factories, or not support copying at all. Immutable classes should
+                never support cloning.</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Kopya yapıcı (Copy constructor)</span>
+            <span class="kw">public</span> Yum(<span class="cl">Yum</span> yum) { ... }
+
+            <span class="cm">// Kopya fabrikası (Copy factory)</span>
+            <span class="kw">public static</span> <span class="cl">Yum</span> newInstance(<span class="cl">Yum</span>
+            yum) { ... }
+        </div>
+
+        <div class="tr-text">
+            <p>Kopya yapıcı / kopya fabrika yaklaşımının <code>Cloneable/clone</code>'a göre pek çok avantajı vardır:
+            </p>
+
+            <p>• Riskli, dil-dışı nesne oluşturma mekanizmasına dayanmazlar<br>
+                • Yetersiz belgelenmiş sözleşmelere zorunlu bağlılık gerektirmezler<br>
+                • <code>final</code> alanların doğru kullanımıyla çelişmezler<br>
+                • Gereksiz kontrollü istisna fırlatmazlar<br>
+                • Tür dönüştürme (cast) gerektirmezler<br>
+                • Bir arayüz türü kabul edebilirler — <b>dönüştürme yapıcıları (conversion constructors)</b> olarak da
+                bilinirler</p>
+
+            <p>Örneğin, <code>HashSet</code> nesnesinin <code>TreeSet</code> kopyasını oluşturmak:
+                <code>new TreeSet&lt;&gt;(hashSet)</code>. <code>clone</code> ile bunu yapamazsınız!</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Copy constructors/factories don't rely on extralinguistic mechanisms, don't conflict with
+                <code>final</code> fields, don't throw checked exceptions, don't require casts, and can accept interface
+                types (conversion constructors). Example: <code>new TreeSet&lt;&gt;(hashSet)</code>.</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 13 son özet ve Madde 14 (Comparable) başlangıcı sonraki
+            sayfada.</div>
+
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('copy-constructor')">Kopya Yapıcı vs clone</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-54.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 54 — HashTable derin kopya</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-56.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 56 — Madde 13 özet, Madde 14 giriş</span></button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-copy-constructor">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Kopya Yapıcı vs clone</h3><button class="modal-close"
+                    onclick="closeModal('copy-constructor')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><b>Klon:</b> Dil-dışı, kırılgan, <code>final</code> ile uyumsuz,
+                        <code>CloneNotSupportedException</code> fırlatır, tür dönüştürme gerektirir.</p>
+                    <p><b>Kopya yapıcı:</b> Normal Java yapıcısıdır, güvenlidir, <code>final</code> alanlarla çalışır,
+                        istisna gerektirmez, arayüz parametresi kabul edebilir.</p>
+                    <p><b>Örnek:</b> <code>new TreeSet&lt;&gt;(hashSet)</code> — <code>HashSet</code>'ten
+                        <code>TreeSet</code>'e dönüştürme. <code>clone</code> ile bu imkansızdır.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><b>Clone:</b> Extralinguistic, fragile, incompatible with <code>final</code>.<br><b>Copy
+                            constructor:</b> Normal Java constructor, safe, works with <code>final</code>, can accept
+                        interface types like <code>new TreeSet<>(hashSet)</code>.</p>
+                </div>
+                <div class="tip-box tr-text">💡 <b>Kural:</b> Yeni sınıflar için <code>Cloneable</code> yerine kopya
+                    yapıcı veya kopya fabrikası kullanın. Yalnızca <b>diziler</b> için <code>clone()</code> kullanmak
+                    mantıklıdır.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 55;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

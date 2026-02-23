@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 51</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .summary-box {
+            background: #e8f4e8;
+            border-left: 4px solid #27ae60;
+            padding: 1rem 1.2rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+            font-size: .93rem;
+            color: #1a5c1a
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        h2.item-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0d2137;
+            margin: 2rem 0 .3rem;
+            border-bottom: 2px solid #f5a623;
+            padding-bottom: .3rem;
+            display: inline-block
+        }
+
+        p.item-title-en {
+            font-size: .85rem;
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 1rem
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 12 Sonu &amp; Item 13 Başlangıcı</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="51" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 51 / Page 51</div>
+        <div class="chapter-badge">Chapter 3 — Item 12 sonu &amp; Item 13 başlangıcı</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 12: Programatik erişim ve son notlar</em></div>
+
+        <div class="tr-text">
+            <p><b>Biçimi belirtseniz de belirtmeseniz, <code>toString</code> tarafından döndürülen değerdeki bilgilere
+                    programatik erişim sağlayın.</b> Örneğin, <code>PhoneNumber</code> sınıfı alan kodu, önek ve hat
+                numarası için erişimci metotlar (accessors) içermelidir. Bunu yapmazsanız, bu bilgiye ihtiyaç duyan
+                programcıları stringi ayrıştırmaya (parse) zorlarsınız. Performansı düşürmenin ve programcılar için
+                gereksiz iş yaratmanın yanı sıra, bu süreç hata eğilimlidir ve biçimi değiştirirseniz kırılan kırılgan
+                sistemlere yol açar. Erişimciler sağlayarak, aksi belirtseniz bile, string biçimini fiili (de facto) bir
+                API'ye dönüştürmekten kaçınırsınız.</p>
+
+            <p>Statik araç sınıflarında (Madde 4) <code>toString</code> yazmanın anlamı yoktur. Çoğu enum türünde de
+                yazmamalısınız (Madde 34); çünkü Java sizin için mükemmel bir tane sağlar. Ancak, alt sınıfları ortak
+                bir string temsilini paylaşan herhangi bir <b>soyut (abstract) sınıfta</b> bir <code>toString</code>
+                metodu yazmalısınız.</p>
+
+            <div class="summary-box">
+                <strong>Madde 12 — Özet:</strong> Bir üst sınıf zaten yapmadıysa, yazdığınız her örneklendirilebilir
+                sınıfta <code>Object</code>'in <code>toString</code> uygulamasını ezin. Sınıfları kullanmayı çok daha
+                keyifli hale getirir ve hata ayıklamaya yardımcı olur. <code>toString</code> metodu, nesnenin kısa,
+                yararlı bir açıklamasını estetik açıdan hoş bir biçimde döndürmelidir.
+            </div>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p><b>Provide programmatic access to the information in <code>toString</code>.</b> Otherwise programmers
+                must parse the string. Don't write <code>toString</code> in static utility classes or most enum types.
+                Do write it in abstract classes whose subclasses share a common string representation.</p>
+
+            <div class="summary-box">
+                <strong>Item 12 — Summary:</strong> Override <code>toString</code> in every instantiable class. It makes
+                classes more pleasant to use and aids debugging. Return a concise, useful description in an
+                aesthetically pleasing format.
+            </div>
+        </div>
+
+        <!-- Item 13 -->
+        <h2 class="item-title">Madde 13: clone'u Dikkatli Bir Şekilde Ezin</h2>
+        <p class="item-title-en">Item 13: Override clone judiciously</p>
+
+        <div class="tr-text">
+            <p><code>Cloneable</code> arayüzü, sınıfların klonlanmaya (cloning) izin verdiklerini ilan etmeleri için bir
+                <b>mixin arayüzü</b> (Madde 20) olarak tasarlanmıştı. Ne yazık ki, bu amaca hizmet etmekte başarısız
+                olur. Birincil kusuru, bir <code>clone</code> metodundan yoksun olması ve <code>Object</code>'in
+                <code>clone</code> metodunun <code>protected</code> olmasıdır. Bir nesne <code>Cloneable</code>'ı
+                uyguladığı için yansıma (reflection, Madde 65) kullanmadan <code>clone</code>'u çağıramazsınız. Bu
+                kusura ve diğer pek çoğuna rağmen, mekanizma makul ölçüde yaygın kullanımdadır; bu nedenle onu anlamaya
+                değer.</p>
+
+            <p>Peki hiçbir metot içermeyen <code>Cloneable</code> ne yapar? <code>Object</code>'in korumalı (protected)
+                <code>clone</code> uygulamasının davranışını belirler: Bir sınıf <code>Cloneable</code>'ı uyguluyorsa,
+                <code>Object</code>'in <code>clone</code> metodu nesnenin alan-alan (field-by-field) bir kopyasını
+                döndürür; aksi halde <code>CloneNotSupportedException</code> fırlatır. Bu, arayüzlerin son derece atipik
+                bir kullanımıdır — taklit edilmemelidir.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>The <code>Cloneable</code> interface was intended as a mixin interface for cloning. It fails: it lacks a
+                <code>clone</code> method, and <code>Object</code>'s <code>clone</code> is <code>protected</code>.
+                Despite flaws, it's widely used.</p>
+
+            <p>What does <code>Cloneable</code> do? It determines the behavior of <code>Object</code>'s
+                <code>clone</code>: if implemented, returns a field-by-field copy; otherwise throws
+                <code>CloneNotSupportedException</code>. This is a highly atypical use of interfaces.</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 13 devamı: clone sözleşmesi, derin kopya sorunları ve
+            Stack clone örneği sonraki sayfada.</div>
+
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('cloneable-flaw')">Cloneable'ın Tasarım Kusuru</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-50.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 50 — toString biçim kararı</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-52.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 52 — clone sözleşmesi</span></button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-cloneable-flaw">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Cloneable'ın Tasarım Kusuru</h3><button class="modal-close"
+                    onclick="closeModal('cloneable-flaw')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>Cloneable</code> normalde "bu sınıf X yapabilir" diyen bir arayüz olmalıydı. Bunun yerine,
+                        üst sınıfın (<code>Object</code>) korumalı bir metodunun davranışını değiştirir — son derece
+                        atipik ve kafa karıştırıcı bir tasarım.</p>
+                    <p>Normalde bir arayüzü uygulamak, sınıfın istemcilerine neler yapabileceğini söyler.
+                        <code>Cloneable</code> ise bir üst sınıfın davranışını <b>içerden</b> değiştirir — bu
+                        alışılmadık ve tehlikeli bir modeldir.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><code>Cloneable</code> should have been a normal "capability" interface. Instead, it modifies
+                        behavior of a superclass's protected method — atypical and confusing design.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 51;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

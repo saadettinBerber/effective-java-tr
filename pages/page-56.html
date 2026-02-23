@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 56</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .summary-box {
+            background: #e8f4e8;
+            border-left: 4px solid #27ae60;
+            padding: 1rem 1.2rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+            font-size: .93rem;
+            color: #1a5c1a
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        h2.item-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0d2137;
+            margin: 2rem 0 .3rem;
+            border-bottom: 2px solid #f5a623;
+            padding-bottom: .3rem;
+            display: inline-block
+        }
+
+        p.item-title-en {
+            font-size: .85rem;
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 13 Özet &amp; Item 14 Başlangıcı</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="56" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 56 / Page 56</div>
+        <div class="chapter-badge">Chapter 3 — Item 13 sonu &amp; Item 14 başlangıcı</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 13: Son sözler</em></div>
+
+        <div class="tr-text">
+            <div class="summary-box">
+                <strong>Madde 13 — Özet:</strong> Yeni bir arayüz oluşturuyorsanız <code>Cloneable</code>'dan
+                <b>genişletmeyin</b>, yeni bir sınıf oluşturuyorsanız <b>uygulamayın</b>. <code>final</code> sınıflar
+                <code>clone</code>'u uygulamaktan zararsız bir şekilde kurtulabilir; ancak performans optimizasyonu
+                haklı kılmadığı sürece dikkatli olunmalıdır (Madde 67). Kural olarak, kopyalama işlevselliği
+                <b>yapıcılar veya fabrikalar</b> tarafından en iyi şekilde sağlanır. Bu kuralın önemli istisnası
+                <b>dizilerdir</b> — <code>clone</code> mekanizmasıyla en iyi şekilde kopyalanan tek yapılardır.
+            </div>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <div class="summary-box">
+                <strong>Item 13 — Summary:</strong> Don't extend <code>Cloneable</code> for new interfaces or implement
+                it for new classes. Copy functionality is best provided by constructors or factories. The notable
+                exception is <b>arrays</b>, which are best copied with the <code>clone</code> facility.
+            </div>
+        </div>
+
+        <!-- Item 14 -->
+        <h2 class="item-title">Madde 14: Comparable Uygulamayı Düşünün</h2>
+        <p class="item-title-en">Item 14: Consider implementing Comparable</p>
+
+        <div class="tr-text">
+            <p>Bu bölümde tartışılan diğer metotların aksine, <code>compareTo</code> metodu <code>Object</code>'te
+                bildirilmemiştir. Bunun yerine, <code>Comparable</code> arayüzündeki tek metottur. Karakteri bakımından
+                <code>Object</code>'in <code>equals</code> metoduna benzer; ancak basit eşitlik karşılaştırmalarına ek
+                olarak <b>sıralama karşılaştırmalarına</b> (order comparisons) izin verir ve <b>jeneriktir</b>
+                (generic). Bir sınıf <code>Comparable</code>'ı uygulayarak, örneklerinin <b>doğal bir sıralamaya</b>
+                (natural ordering) sahip olduğunu belirtir.</p>
+
+            <p><code>Comparable</code>'ı uygulayan nesnelerden oluşan bir diziyi sıralamak şu kadar basittir:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Unlike other methods in this chapter, <code>compareTo</code> is not declared in <code>Object</code>. It
+                is the sole method in <code>Comparable</code>. Similar to <code>equals</code> but permits order
+                comparisons and is generic. A class implementing <code>Comparable</code> indicates its instances have a
+                natural ordering.</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cl">Arrays</span>.sort(a);
+        </div>
+
+        <div class="tr-text">
+            <p><code>Comparable</code>'ı uygulayarak, sınıfınızı bu arayüze dayanan pek çok jenerik algoritma ve
+                koleksiyon uygulamasıyla birlikte çalışabilir hale getirirsiniz. Çok az çabayla büyük güç kazanırsınız.
+                Java platform kütüphanelerindeki tüm değer sınıfları ve tüm enum türleri (Madde 34)
+                <code>Comparable</code>'ı uygular. Doğal bir sıralaması olan (alfabetik, sayısal veya kronolojik sıra
+                gibi) bir değer sınıfı yazıyorsanız, <code>Comparable</code> arayüzünü uygulamalısınız.</p>
+
+            <p><code>compareTo</code> metodunun genel sözleşmesi — bu nesneyi belirtilen nesneyle sıralama amacıyla
+                karşılaştırır. Bu nesne belirtilen nesneden küçükse negatif tamsayı, eşitse sıfır, büyükse pozitif
+                tamsayı döndürür. Belirtilen nesnenin türü karşılaştırmaya izin vermiyorsa
+                <code>ClassCastException</code> fırlatır.</p>
+
+            <p>Sözleşmenin koşulları (<code>sgn</code>, signum fonksiyonunu ifade eder):</p>
+
+            <p><b>1.</b> Tüm <code>x</code> ve <code>y</code> için
+                <code>sgn(x.compareTo(y)) == -sgn(y.compareTo(x))</code> olmalıdır. (Ayrıca, <code>x.compareTo(y)</code>
+                istisna fırlatırsa <code>y.compareTo(x)</code> de fırlatmalıdır.)</p>
+
+            <p><b>2.</b> Geçişli: <code>x.compareTo(y) > 0</code> ve <code>y.compareTo(z) > 0</code> ise →
+                <code>x.compareTo(z) > 0</code>.</p>
+
+            <p><b>3.</b> <code>x.compareTo(y) == 0</code> ise, tüm <code>z</code> için
+                <code>sgn(x.compareTo(z)) == sgn(y.compareTo(z))</code>.</p>
+
+            <p><b>4.</b> Kesinlikle gerekli değil ama şiddetle önerilir:
+                <code>(x.compareTo(y) == 0) == x.equals(y)</code>. İhlal ediliyorsa belirtilmelidir: <i>"Not: Bu sınıfın
+                    doğal sıralaması equals ile tutarsızdır."</i></p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Implementing <code>Comparable</code> lets your class interoperate with many generic algorithms and
+                collections. All Java platform value classes and enum types implement it. The contract says
+                <code>compareTo</code> returns negative/zero/positive integer.</p>
+            <p>Provisions: 1) <code>sgn(x.compareTo(y)) == -sgn(y.compareTo(x))</code>. 2) Transitive. 3) If
+                <code>x.compareTo(y) == 0</code>, then <code>sgn(x.compareTo(z)) == sgn(y.compareTo(z))</code>. 4)
+                Strongly recommended: <code>(x.compareTo(y) == 0) == x.equals(y)</code>.</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 14 devamı: Sözleşme detayları, compareTo uygulamaları
+            sonraki sayfada.</div>
+
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('comparable')">Comparable Arayüzü</button>
+            <button class="concept-btn" onclick="openModal('natural-ordering')">Doğal Sıralama</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-55.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 55 — Kalıtım, kopya yapıcı/fabrika</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-57.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 57 — compareTo sözleşme detayları</span></button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-comparable">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Comparable Arayüzü</h3><button class="modal-close" onclick="closeModal('comparable')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>Comparable&lt;T&gt;</code> arayüzü yalnızca bir metot içerir:
+                        <code>int compareTo(T o)</code>. Bu metot sıralama ilişkisi tanımlar. Sınıfınız bunu
+                        uyguluyorsa, <code>Arrays.sort()</code>, <code>Collections.sort()</code>, <code>TreeSet</code>,
+                        <code>TreeMap</code> gibi sıralama tabanlı tüm araçlarla çalışabilir.</p>
+                    <p><code>equals</code> gibi, <code>compareTo</code> da denklik sözleşmelerine sahiptir: simetri
+                        (ters işaret), geçişlilik ve tutarlılık.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><code>Comparable&lt;T&gt;</code> has one method: <code>compareTo(T o)</code>. Enables use with
+                        sorted collections, <code>Arrays.sort()</code>, etc. Has symmetry, transitivity, and consistency
+                        rules like <code>equals</code>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-natural-ordering">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Doğal Sıralama ve equals Tutarlılığı</h3><button class="modal-close"
+                    onclick="closeModal('natural-ordering')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>compareTo</code> sonucu <code>equals</code> ile tutarlı olmalıdır:
+                        <code>x.compareTo(y) == 0</code> ise <code>x.equals(y)</code> de <code>true</code> olmalıdır.
+                        Aksi halde <code>TreeSet</code> ve <code>HashSet</code> farklı davranır!</p>
+                    <p><b>Örnek:</b> <code>BigDecimal</code>'de <code>new BigDecimal("1.0")</code> ve
+                        <code>new BigDecimal("1.00")</code> eşit değildir (<code>equals</code>) ama
+                        <code>compareTo</code> sonucu 0'dır. <code>HashSet</code> ikisini de ekler; <code>TreeSet</code>
+                        yalnızca birini tutar.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><code>compareTo</code> should be consistent with <code>equals</code>. <code>BigDecimal</code>
+                        violates this: <code>"1.0"</code> and <code>"1.00"</code> are unequal per <code>equals</code>
+                        but same per <code>compareTo</code>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 56;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

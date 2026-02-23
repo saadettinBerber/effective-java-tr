@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 49</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .summary-box {
+            background: #e8f4e8;
+            border-left: 4px solid #27ae60;
+            padding: 1rem 1.2rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+            font-size: .93rem;
+            color: #1a5c1a
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        h2.item-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0d2137;
+            margin: 2rem 0 .3rem;
+            border-bottom: 2px solid #f5a623;
+            padding-bottom: .3rem;
+            display: inline-block
+        }
+
+        p.item-title-en {
+            font-size: .85rem;
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 11 Sonuç &amp; Item 12 Başlangıcı</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="49" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 49 / Page 49</div>
+        <div class="chapter-badge">Chapter 3 — Item 11 sonu &amp; Item 12 başlangıcı</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 11: hashCode son uyarılar</em></div>
+
+        <div class="tr-text">
+            <div class="summary-box">
+                <strong>Madde 11 — Özet:</strong> <code>equals</code>'ı her ezdiğinizde <code>hashCode</code>'u da
+                ezmelisiniz; aksi halde programınız düzgün çalışmaz. <code>hashCode</code> metodunuz
+                <code>Object</code>'te belirtilen genel sözleşmeye uymalı ve eşit olmayan örneklere eşit olmayan hash
+                kodları atama konusunda makul bir iş çıkarmalıdır. Bu, sayfa 51'deki tarif kullanılarak (sıkıcı olsa da)
+                kolayca başarılır. Madde 10'da bahsedildiği gibi, AutoValue framework'ü <code>equals</code> ve
+                <code>hashCode</code> metotlarını otomatik olarak oluşturabilir; çoğu IDE de bunu yapabilir.
+            </div>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <div class="summary-box">
+                <strong>Item 11 — Summary:</strong> You must override <code>hashCode</code> every time you override
+                <code>equals</code>. Your method must obey the general contract in <code>Object</code> and do a
+                reasonable job assigning unequal hash codes to unequal instances. AutoValue or IDEs can generate these
+                for you.
+            </div>
+        </div>
+
+        <!-- Item 12 -->
+        <h2 class="item-title">Madde 12: toString'i Her Zaman Ezin</h2>
+        <p class="item-title-en">Item 12: Always override toString</p>
+
+        <div class="tr-text">
+            <p><code>Object</code> sınıfı bir <code>toString</code> metodu sağlasa da, döndürdüğü string genellikle
+                sınıfınızın kullanıcılarının görmek istediği şey değildir. <code>PhoneNumber@163b91</code> gibi, sınıf
+                adı, ardından <code>@</code> işareti ve hash kodunun onaltılık (hexadecimal) gösteriminden oluşur.
+                <code>toString</code> için genel sözleşme, döndürülen stringin <b>"kısa ama bilgilendirici ve insanın
+                    okuması kolay bir temsil"</b> olması gerektiğini söyler. <code>PhoneNumber@163b91</code>'in kısa
+                olduğu savunulabilir; ancak <code>707-867-5309</code> ile karşılaştırıldığında pek de bilgilendirici
+                değildir.</p>
+
+            <p><code>toString</code> sözleşmesi devamla <b>"Tüm alt sınıfların bu metodu ezmesi önerilir"</b> der.
+                Gerçekten de iyi bir tavsiyedir!</p>
+
+            <p><code>equals</code> ve <code>hashCode</code> sözleşmelerini (Madde 10, 11) ihlal etmek kadar kritik
+                olmasa da, <b>iyi bir <code>toString</code> uygulaması sağlamak sınıfınızı kullanmayı çok daha keyifli
+                    hale getirir ve sınıfı kullanan sistemlerin hata ayıklamasını kolaylaştırır</b>.
+                <code>toString</code> metodu bir nesne <code>println</code>, <code>printf</code>, string birleştirme
+                operatörü veya <code>assert</code>'e aktarıldığında ya da debugger tarafından yazdırıldığında otomatik
+                olarak çağrılır.</p>
+
+            <p>İyi bir <code>toString</code> metodu sağladıysanız, yararlı bir tanılama mesajı (diagnostic message)
+                üretmek şu kadar kolaydır:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p><code>Object</code>'s <code>toString</code> returns <code>PhoneNumber@163b91</code> — not very
+                informative compared to <code>707-867-5309</code>. The contract says "a concise but informative
+                representation" and that "all subclasses should override this method."</p>
+
+            <p>A good <code>toString</code> makes your class more pleasant to use and aids debugging. It's called
+                automatically by <code>println</code>, string concatenation, <code>assert</code>, and debuggers.</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cl">System</span>.out.println(<span class="st">"Failed to connect to "</span> + phoneNumber);
+        </div>
+
+        <div class="tr-text">
+            <p>İyi bir <code>toString</code> metodu sağlamanın faydaları, sınıfın örneklerinin ötesine, bu örneklere
+                referans içeren nesnelere (özellikle koleksiyonlara) uzanır. Bir haritayı yazdırırken hangisini görmeyi
+                tercih edersiniz: <code>{Jenny=PhoneNumber@163b91}</code> mi yoksa <code>{Jenny=707-867-5309}</code> mı?
+            </p>
+
+            <p>Pratik olduğunda, <code>toString</code> metodu <b>nesnedeki tüm ilginç bilgileri döndürmelidir</b>. Nesne
+                çok büyükse veya durumu string temsiline uygun değilse,
+                <code>"Manhattan konut telefon rehberi (1487536 kayıt)"</code> gibi bir özet döndürmelidir.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Benefits extend to collections. Would you rather see <code>{Jenny=PhoneNumber@163b91}</code> or
+                <code>{Jenny=707-867-5309}</code>?</p>
+            <p>When practical, <code>toString</code> should return all interesting information. For large objects,
+                return a summary.</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 12 devamı: Biçim belirtme kararı, Javadoc örnekleri ve
+            programatik erişim sonraki sayfada.</div>
+
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('tostring-importance')">toString'in Önemi</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-48.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 48 — hashCode, Objects.hash(), tembel başlatma</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-50.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 50 — toString biçim kararı</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-tostring-importance">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>toString'in Önemi</h3>
+                <button class="modal-close" onclick="closeModal('tostring-importance')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>toString</code> metodu şu durumlarda otomatik olarak çağrılır:</p>
+                    <p>• <code>System.out.println(obj)</code><br>• <code>"text" + obj</code> (string birleştirme)<br>•
+                        <code>assert</code> ifadeleri<br>• Debugger çıktıları<br>• Log mesajları</p>
+                    <p>Ezmezseniz <code>ClassName@hexHashCode</code> gibi yararsız bir çıktı alırsınız — hata ayıklamada
+                        kabus!</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><code>toString</code> is called automatically by println, string concatenation, assert,
+                        debuggers, and loggers. Without overriding, you get useless <code>ClassName@hexHashCode</code>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 49;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

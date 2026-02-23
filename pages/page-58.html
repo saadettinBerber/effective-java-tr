@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 58</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .summary-box {
+            background: #e8f4e8;
+            border-left: 4px solid #27ae60;
+            padding: 1rem 1.2rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+            font-size: .93rem;
+            color: #1a5c1a
+        }
+
+        .chapter-end-box {
+            background: #e3f2fd;
+            border: 2px solid #1976d2;
+            padding: 1.2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            text-align: center;
+            color: #0d2137
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 14: Comparable — Tuzaklar &amp; Özet / Bölüm 3
+                Sonu</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="58" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 58 / Page 58</div>
+        <div class="chapter-badge">Chapter 3 — Item 14 sonu / Bölüm 3 Sonu</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 14: Fark tabanlı karşılaştırma tuzağı ve son
+                sözler</em></div>
+
+        <div class="tr-text">
+            <p>Zaman zaman birinci değer ikinciden küçükse negatif, eşitse sıfır, büyükse pozitif olan <b>fark
+                    (difference)</b> kullanan <code>compareTo</code> veya <code>compare</code> metotları görebilirsiniz:
+            </p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Occasionally you may see <code>compareTo</code> or <code>compare</code> methods that rely on the
+                difference between two values:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// BOZUK — fark tabanlı karşılaştırıcı — geçişliliği ihlal eder!</span>
+            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
+            hashCodeOrder = <span class="kw">new</span> <span class="cl">Comparator</span>&lt;&gt;() {
+            <span class="kw">public int</span> compare(<span class="cl">Object</span> o1, <span class="cl">Object</span>
+            o2) {
+            <span class="kw">return</span> o1.hashCode() - o2.hashCode(); <span class="cm">// TEHLİKE!</span>
+            }
+            };
+        </div>
+
+        <div class="tr-text">
+            <p><b>Bu tekniği kullanmayın.</b> Tamsayı taşması (integer overflow) ve IEEE 754 kayan nokta aritmetik
+                artefaktları nedeniyle tehlikelerle doludur. Bunun yerine şu iki yaklaşımdan birini kullanın:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p><b>Do not use this technique.</b> It is fraught with danger from integer overflow and IEEE 754 floating
+                point artifacts. Use one of these instead:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Statik compare metodu kullanan karşılaştırıcı</span>
+            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
+            hashCodeOrder = <span class="kw">new</span> <span class="cl">Comparator</span>&lt;&gt;() {
+            <span class="kw">public int</span> compare(<span class="cl">Object</span> o1, <span class="cl">Object</span>
+            o2) {
+            <span class="kw">return</span> <span class="cl">Integer</span>.compare(o1.hashCode(), o2.hashCode());
+            }
+            };
+
+            <span class="cm">// Comparator construction method kullanan karşılaştırıcı</span>
+            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
+            hashCodeOrder =
+            <span class="cl">Comparator</span>.comparingInt(o -> o.hashCode());
+        </div>
+
+        <div class="tr-text">
+            <div class="summary-box">
+                <strong>Madde 14 — Özet:</strong> Anlamlı bir sıralamaya sahip bir değer sınıfı uyguladığınızda, sınıfın
+                <code>Comparable</code> arayüzünü uygulamasını sağlayın. Böylece örnekleri kolayca sıralanabilir,
+                aranabilir ve karşılaştırma tabanlı koleksiyonlarda kullanılabilir. <code>compareTo</code>
+                metotlarındaki alan değerlerini karşılaştırırken <code>&lt;</code> ve <code>&gt;</code> operatörlerini
+                kullanmaktan kaçının. Bunun yerine, sarmalayıcı ilkel sınıflardaki statik <code>compare</code>
+                metotlarını veya <code>Comparator</code> arayüzündeki karşılaştırıcı oluşturma metotlarını kullanın.
+            </div>
+
+            <div class="chapter-end-box">
+                <strong>🎉 Bölüm 3 Tamamlandı!</strong><br>
+                <em>Chapter 3: Methods Common to All Objects</em><br>
+                <span style="font-size:.88rem;color:#555;">Madde 10 (equals) • Madde 11 (hashCode) • Madde 12 (toString)
+                    • Madde 13 (clone) • Madde 14 (Comparable)</span>
+            </div>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <div class="summary-box">
+                <strong>Item 14 — Summary:</strong> Implement <code>Comparable</code> for value classes with sensible
+                ordering. Use static <code>compare</code> methods or comparator construction methods instead of
+                <code>&lt;</code> and <code>&gt;</code> operators.
+            </div>
+
+            <div class="chapter-end-box">
+                <strong>🎉 Chapter 3 Complete!</strong><br>
+                <em>Chapter 3: Methods Common to All Objects</em><br>
+                <span style="font-size:.88rem;color:#555;">Item 10 (equals) • Item 11 (hashCode) • Item 12 (toString) •
+                    Item 13 (clone) • Item 14 (Comparable)</span>
+            </div>
+        </div>
+
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('diff-trap')">Fark Tabanlı Karşılaştırma Tuzağı</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-57.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 57 — PhoneNumber compareTo</span></button>
+            <button class="nav-btn" style="opacity:0.5;cursor:default;">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Henüz çevrilmedi</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-diff-trap">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Fark Tabanlı Karşılaştırma Tuzağı</h3><button class="modal-close"
+                    onclick="closeModal('diff-trap')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>return a - b;</code> yaklaşımı ilk bakışta doğru gibi görünür, ancak iki sorun barındırır:
+                    </p>
+                    <p><b>1. Tamsayı taşması:</b> <code>a = Integer.MAX_VALUE</code> ve <code>b = -1</code> olduğunda,
+                        <code>a - b</code> taşar ve negatif bir değer döndürür — yanlış sonuç!</p>
+                    <p><b>2. Kayan nokta artefaktları:</b> <code>float</code> ve <code>double</code> için IEEE 754
+                        kuralları nedeniyle beklenmeyen sonuçlar oluşabilir.</p>
+                    <p><b>Çözüm:</b> Her zaman <code>Integer.compare(a, b)</code>, <code>Double.compare(a, b)</code>
+                        veya <code>Comparator.comparingInt()</code> kullanın.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><code>return a - b</code> can overflow for integers and has IEEE 754 artifacts for floats. Always
+                        use <code>Integer.compare(a, b)</code> or comparator construction methods.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 58;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

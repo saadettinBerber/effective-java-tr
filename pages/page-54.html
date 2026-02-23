@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 54</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 13: clone — Derin Kopya &amp; İteratif Çözüm</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="54" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 54 / Page 54</div>
+        <div class="chapter-badge">Chapter 3 — Item 13: clone — Derin Kopya</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 13: HashTable derin kopya çözümleri</em></div>
+
+        <div class="tr-text">
+            <p>Sorunu çözmek için, her kovayı oluşturan bağlantılı listeyi kopyalamanız gerekir. İşte yaygın bir
+                yaklaşım — özyinelemeli derin kopya:</p>
+        </div>
+        <div class="en-text" style="display:none">
+            <p>To fix this, copy the linked list in each bucket. Here's the recursive deep copy approach:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Özyinelemeli derin kopya</span>
+            <span class="cl">Entry</span> deepCopy() {
+            <span class="kw">return new</span> <span class="cl">Entry</span>(key, value,
+            next == <span class="kw">null</span> ? <span class="kw">null</span> : next.deepCopy());
+            }
+
+            <span class="an">@Override</span> <span class="kw">public</span> <span class="cl">HashTable</span> clone() {
+            <span class="kw">try</span> {
+            <span class="cl">HashTable</span> result = (<span class="cl">HashTable</span>) <span
+                class="kw">super</span>.clone();
+            result.buckets = <span class="kw">new</span> <span class="cl">Entry</span>[buckets.length];
+            <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i < buckets.length;
+                i++) <span class="kw">if</span> (buckets[i] != <span class="kw">null</span>)
+                result.buckets[i] = buckets[i].deepCopy();
+                <span class="kw">return</span> result;
+                } <span class="kw">catch</span> (<span class="cl">CloneNotSupportedException</span> e) {
+                <span class="kw">throw new</span> <span class="cl">AssertionError</span>();
+                }
+                }
+        </div>
+
+        <div class="tr-text">
+            <p>Bu teknik sevimli olsa da ve kovalar çok uzun olmadığı sürece iyi çalışsa da, bağlantılı bir listeyi
+                klonlamak için iyi bir yol <b>değildir</b> — çünkü listedeki her eleman için bir yığın çerçevesi (stack
+                frame) tüketir. Liste uzunsa, bu kolayca <b>yığın taşmasına (stack overflow)</b> neden olabilir. Bunu
+                önlemek için <code>deepCopy</code>'deki özyinelemeyi iterasyon ile değiştirebilirsiniz:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>This works but consumes one stack frame per element — can cause stack overflow for long lists. Replace
+                recursion with iteration:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// İteratif derin kopya — yığın taşması riski yok</span>
+            <span class="cl">Entry</span> deepCopy() {
+            <span class="cl">Entry</span> result = <span class="kw">new</span> <span class="cl">Entry</span>(key, value,
+            next);
+            <span class="kw">for</span> (<span class="cl">Entry</span> p = result; p.next != <span
+                class="kw">null</span>; p = p.next)
+            p.next = <span class="kw">new</span> <span class="cl">Entry</span>(p.next.key, p.next.value, p.next.next);
+            <span class="kw">return</span> result;
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Karmaşık değişebilir nesneleri klonlamak için son bir yaklaşım da, <code>super.clone()</code> çağırdıktan
+                sonra sonuç nesnesindeki tüm alanları başlangıç durumuna ayarlamak, ardından orijinal nesnenin durumunu
+                yeniden oluşturmak için üst düzey metotları çağırmaktır. <code>HashTable</code> örneğinde,
+                <code>buckets</code> alanı yeni boş bir kova dizisi olarak başlatılır ve klonlanan hash tablosundaki her
+                anahtar-değer eşlemesi için <code>put(key, value)</code> çağrılır. Bu yaklaşım basit ve zarif bir
+                <code>clone</code> metodu verir; ancak klonun iç yapısını doğrudan işleyen bir yaklaşım kadar hızlı
+                çalışmaz.</p>
+
+            <p>Bir yapıcı (constructor) gibi, <b><code>clone</code> metodu, yapım aşamasındaki klon üzerinde asla
+                    ezilecek (overridable) bir metot çağırmamalıdır</b> (Madde 19). Eğer <code>clone</code> bir alt
+                sınıfta ezilmiş bir metodu çağırırsa, bu metot alt sınıf klondaki durumunu düzeltme şansı bulamadan
+                çalışacaktır — bu da muhtemelen hem klonun hem de orijinalin bozulmasına yol açacaktır.</p>
+
+            <p><code>Object</code>'in <code>clone</code> metodu <code>CloneNotSupportedException</code> fırlattığını
+                bildirse de, ezen metotların bunu bildirmesi gerekmez. Genel (public) <code>clone</code> metotları
+                <code>throws</code> cümlesini <b>çıkarmalıdır</b>; çünkü istisna fırlatmayan metotları kullanmak daha
+                kolaydır (Madde 71).</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>An alternative: call <code>super.clone</code>, reset all fields, then use high-level methods like
+                <code>put(key, value)</code> to regenerate state. Simple but slower.</p>
+            <p>Like a constructor, <code>clone</code> should never invoke overridable methods (Item 19). Public
+                <code>clone</code> methods should omit <code>throws CloneNotSupportedException</code>.</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 13 devamı: Kalıtım için clone, kopya yapıcı/fabrika
+            alternatifleri ve Madde 13 özet sonraki sayfada.</div>
+
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('deep-copy-approaches')">Derin Kopya Yaklaşımları</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-53.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 53 — Stack clone, dizi, HashTable</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-55.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 55 — Kalıtım, kopya yapıcı</span></button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-deep-copy-approaches">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Derin Kopya Yaklaşımları</h3><button class="modal-close"
+                    onclick="closeModal('deep-copy-approaches')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><b>1. Özyinelemeli deepCopy:</b> Basit ve zarif, ancak uzun listeler için
+                        <code>StackOverflowError</code> riski taşır.</p>
+                    <p><b>2. İteratif deepCopy:</b> Yığın taşması riski olmadan bağlantılı listeyi kopyalar — tercih
+                        edilen yöntem.</p>
+                    <p><b>3. Üst düzey yeniden oluşturma:</b> <code>super.clone()</code> → alanları sıfırla →
+                        <code>put()</code> ile doldurun. Basit ama yavaş ve <code>Cloneable</code> mimarisinin ruhuyla
+                        çelişir.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><b>1. Recursive deepCopy:</b> Simple but stack overflow risk.<br><b>2. Iterative deepCopy:</b>
+                        Preferred, no overflow.<br><b>3. High-level regeneration:</b> Simple but slow.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 54;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

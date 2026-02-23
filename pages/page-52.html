@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 52</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 13: clone — Sözleşme &amp; PhoneNumber</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="52" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 52 / Page 52</div>
+        <div class="chapter-badge">Chapter 3 — Item 13: clone Sözleşmesi</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 13: clone sözleşmesi ve PhoneNumber clone
+                uygulaması</em></div>
+
+        <div class="tr-text">
+            <p>Spesifikasyon söylemese de, pratikte <code>Cloneable</code>'ı uygulayan bir sınıfın düzgün çalışan bir
+                genel (public) <code>clone</code> metodu sağlaması beklenir. Bunu başarmak için, sınıf ve tüm üst
+                sınıfları <b>karmaşık, uygulanamaz, yetersiz belgelenmiş bir protokole</b> uymalıdır. Ortaya çıkan
+                mekanizma kırılgan, tehlikeli ve dil-dışıdır (extralinguistic): yapıcı (constructor) çağırmadan nesneler
+                oluşturur.</p>
+
+            <p>Yalnızca ilkel alanlar veya değişmez nesnelere referanslar içeren bir sınıfı düşünün.
+                <code>PhoneNumber</code> sınıfı için <code>clone</code> metodu şöyle görünür:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>In practice, a class implementing <code>Cloneable</code> is expected to provide a working public
+                <code>clone</code> method. The resulting mechanism is fragile, dangerous, and creates objects without
+                calling a constructor.</p>
+
+            <p>For a class with only primitives or immutable references, the <code>clone</code> for
+                <code>PhoneNumber</code> looks like:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="an">@Override</span> <span class="kw">public</span> <span class="cl">PhoneNumber</span> clone()
+            {
+            <span class="kw">try</span> {
+            <span class="kw">return</span> (<span class="cl">PhoneNumber</span>) <span class="kw">super</span>.clone();
+            } <span class="kw">catch</span> (<span class="cl">CloneNotSupportedException</span> e) {
+            <span class="kw">throw new</span> <span class="cl">AssertionError</span>(); <span class="cm">// Asla
+                gerçekleşmez</span>
+            }
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Bu yöntemin çalışması için <code>PhoneNumber</code>'ın sınıf bildiriminin
+                <code>implements Cloneable</code> içermesi gerekir. <code>Object</code>'in <code>clone</code> metodu
+                <code>Object</code> döndürse de, bu <code>clone</code> metodu <code>PhoneNumber</code> döndürür.
+                <b>Kovaryant dönüş türleri</b> (covariant return types) sayesinde, ezilen bir metodun alt türünü
+                döndürmesi hem yasal hem de arzu edilir.</p>
+
+            <p><code>super.clone()</code> çağrısı bir <code>try-catch</code> bloğu içindedir çünkü <code>Object</code>,
+                <code>clone</code> metodunu <code>CloneNotSupportedException</code> fırlatmak üzere bildirir — kontrollü
+                (checked) bir istisna. <code>PhoneNumber</code> <code>Cloneable</code>'ı uyguladığı için çağrının
+                başarılı olacağını biliyoruz. Bu gereksiz şablon kodu (boilerplate),
+                <code>CloneNotSupportedException</code>'ın kontrollü değil kontrolsüz (unchecked) olması gerektiğini
+                gösterir (Madde 71).</p>
+
+            <p>Peki nesne <b>değişebilir (mutable) nesnelere referans</b> içeren alanlar taşıyorsa? Daha önce gösterilen
+                basit <code>clone</code> uygulaması felaket olabilir. Madde 7'deki <code>Stack</code> sınıfını düşünün:
+            </p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>This works because of covariant return types. The <code>try-catch</code> is needed because
+                <code>Object.clone()</code> throws <code>CloneNotSupportedException</code> (a checked exception). But if
+                the object contains mutable references, the simple clone can be disastrous. Consider the
+                <code>Stack</code> class from Item 7:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="kw">public class</span> <span class="cl">Stack</span> {
+            <span class="kw">private</span> <span class="cl">Object</span>[] elements;
+            <span class="kw">private int</span> size = <span class="num">0</span>;
+            <span class="kw">private static final int</span> DEFAULT_INITIAL_CAPACITY = <span class="num">16</span>;
+
+            <span class="kw">public</span> Stack() {
+            <span class="kw">this</span>.elements = <span class="kw">new</span> <span
+                class="cl">Object</span>[DEFAULT_INITIAL_CAPACITY];
+            }
+            <span class="kw">public void</span> push(<span class="cl">Object</span> e) { ensureCapacity();
+            elements[size++] = e; }
+            <span class="kw">public</span> <span class="cl">Object</span> pop() {
+            <span class="kw">if</span> (size == <span class="num">0</span>) <span class="kw">throw new</span> <span
+                class="cl">EmptyStackException</span>();
+            <span class="cl">Object</span> result = elements[--size];
+            elements[size] = <span class="kw">null</span>; <span class="cm">// Eskimiş referansı temizle</span>
+            <span class="kw">return</span> result;
+            }
+            ...
+            }
+        </div>
+
+        <div class="tr-text">
+            <p><code>super.clone()</code> çağrısıyla elde edilen <code>Stack</code> örneğinin <code>size</code> alanı
+                doğru olacak; ancak <code>elements</code> alanı <b>orijinal <code>Stack</code> ile aynı diziyi</b>
+                referans alacaktır. Orijinali değiştirmek klondaki değişmezleri bozar ve tersi de geçerlidir.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>The cloned <code>Stack</code>'s <code>elements</code> field will reference the same array as the
+                original. Modifying one destroys invariants in the other.</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 13 devamı: Stack clone çözümü, dizi klonlama, final alan
+            uyumsuzluğu sonraki sayfada.</div>
+
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('shallow-copy')">Sığ Kopya Sorunu (Shallow Copy)</button>
+            <button class="concept-btn" onclick="openModal('covariant-return')">Kovaryant Dönüş Türü</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-51.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 51 — Madde 12 özet, Madde 13 giriş</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-53.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 53 — Stack clone, dizi, final sorun</span></button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-shallow-copy">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Sığ Kopya Sorunu (Shallow Copy)</h3><button class="modal-close"
+                    onclick="closeModal('shallow-copy')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>super.clone()</code> yalnızca "sığ kopya" (shallow copy) yapar — ilkel alanları kopyalar,
+                        nesne referanslarını ise <b>paylaşır</b>. Değişebilir nesnelere referans alanları olan
+                        sınıflarda bu felaket demektir: klon ve orijinal aynı iç durumu (state) paylaşır.</p>
+                    <p><b>Çözüm:</b> Değişebilir her alanı ayrıca klonlayın — "derin kopya" (deep copy).</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><code>super.clone()</code> is a shallow copy — primitives are copied, object references are
+                        shared. For mutable fields, clone each one separately for a deep copy.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-covariant-return">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Kovaryant Dönüş Türü</h3><button class="modal-close"
+                    onclick="closeModal('covariant-return')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Java 5'ten beri, ezilen bir metot üst sınıfın dönüş türünün <b>alt türünü</b> döndürebilir. Bu
+                        nedenle <code>PhoneNumber.clone()</code> metodunun <code>Object</code> yerine
+                        <code>PhoneNumber</code> döndürmesi mümkün ve tercih edilir — istemcinin tür dönüştürme (cast)
+                        yapmasına gerek kalmaz.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Since Java 5, overriding methods can return a subtype of the superclass's return type.
+                        <code>PhoneNumber.clone()</code> can return <code>PhoneNumber</code> instead of
+                        <code>Object</code>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 52;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>
