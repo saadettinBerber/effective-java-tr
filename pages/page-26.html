@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 26</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7;
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623;
+        }
+
+        .topbar-sub {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+            margin-top: 0.1rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all .2s;
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700;
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            position: relative;
+        }
+
+        .page-nav-input-wrap label {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: 0.22rem 0.4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s;
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1;
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        .item-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0d2137;
+            margin: 2rem 0 0.5rem;
+            line-height: 1.3;
+        }
+
+        .item-title-en {
+            font-size: 1.1rem;
+            color: #6c757d;
+            font-weight: 400;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+
+        .page-label {
+            font-size: 0.78rem;
+            color: #6c757d;
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem;
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: 0.88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66;
+        }
+
+        .kw {
+            color: #79b8ff;
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic;
+        }
+
+        .cl {
+            color: #b392f0;
+        }
+
+        .st {
+            color: #9ecbff;
+        }
+
+        .an {
+            color: #85e89d;
+        }
+
+        .num {
+            color: #f8c555;
+        }
+
+        .info-box {
+            background: #e8f4fd;
+            border-left: 4px solid #0d6efd;
+            padding: 0.9rem 1.2rem;
+            border-radius: 0 6px 6px 0;
+            margin: 1.2rem 0;
+            font-size: 0.93rem;
+            color: #0a3d6b;
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0.3rem 0.3rem 0.3rem 0;
+            transition: background .2s, transform .1s;
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px);
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 1.4rem;
+        }
+
+        .modal-body p {
+            font-size: 0.93rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .example-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin: 1rem 0 0.3rem;
+        }
+
+        .bad {
+            color: #c0392b;
+        }
+
+        .good {
+            color: #27ae60;
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: 0.6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.88rem;
+            margin-top: 1rem;
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px;
+        }
+
+        .nav-btn:hover {
+            background: #163a5f;
+        }
+
+        .nav-btn .nav-direction {
+            font-size: 0.7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem 1rem 3rem;
+            }
+
+            .topbar {
+                padding: 0.6rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 2: Creating and Destroying Objects &nbsp;›&nbsp; Item 7: Eliminate obsolete
+                object references</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="26" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 26 / Page 26</div>
+        <div class="chapter-badge">Chapter 2 — Item 7: Artık zamanını doldurmuş eski(ölü) nesne referanslarını tamamen
+            silkeleyip temizleyin / Eliminate obsolete object references</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 7 Memory Leak detayı</em></div>
+
+        <div class="tr-text">
+            <p>...Bu yığından (stack) <code>pop</code> ile dışarı atılıp (popped off) çıkarılmış gibi görünen öğeler
+                aslında Çöp Toplayıcısı (garbage collected) tarafından <b>asla</b> toplanamayacaktır, hattâ yığını
+                bizzat kullanan asıl programın o atılmış yığın öğelerine ilişkin hayatta kalan hiçbir aktif referansı
+                (göstericisi) kalmamış olsa bile böyledir! Bunun sebebi oldukça basittir; yığının bizim silindiğini
+                sandığımız kısımdaki kapasitesi aslen bu nesnelere ilişkin <em>"tarihi geçmiş, ölü (obsolete)"
+                    referansları</em> dizinin kendi içinde inatla muhafaza ediyor (maintains) olmasıdır. Tarihi geçmiş
+                bir referans; programın bir daha <b>hiçbir zaman asla işaret etmeyeceği (dereferenced)</b> ölümlü bir
+                referans demektir. Burada <code>elements</code> dizisinin içerisinde yalnızca programın şu an baktığı
+                "aktif kısım (active portion)" boyutu içindeki objeler asıl hayatını sürdürenlerdir, fakat dizinin
+                kapasitesinin geri kalan (ve artık görünmez olan) alanlarındaki tüm indeksler bütünüyle çöptür
+                (obsolete). Aktif olan kısım, yalnızca indeksi <code>size</code> değerinden küçük olan öğeleri kapsar.
+            </p>
+
+            <p>Hafıza yönetiminin Çöp Toplayıcılar'a bırakıldığı (garbage-collected) modern dillerdeki bellek
+                sızıntıları (daha doğru bir deyişle, <i>kasıtsız nesne alıkoyma — unintentional object retentions</i>
+                durumu) son derece sinsi ve tehlikelidir (insidious). Eğer tek bir nesne referansı bile yanlışlıkla
+                (unintentionally) bellekte bu şekilde asılı kalık konursa (retained), yalnızca o asıl söz konusu
+                nesnenin bizzat kendisinin Çöp Toplayıcısı tarafından yok edilmesini imkansızlaştırmakla kalmazzınız;
+                silsile halinde o ilk nesnenin bellekte kendi kendine göstererek <b>barındırdığı tüm diğer alt/yan
+                    nesneler (any objects referenced by that object) de, onların da barındırdıkları da ve ilh. (and so
+                    on) hepsi birden adeta "silinmez/dokunulmaz" bir zırha bürünürler</b>. Uygulamanızda gayet masum
+                gözüken sadece irili ufaklı birkaç adet ufacık nesne referansı bu şekilde kazara tutulmuş dahi olsa,
+                arka planda birbirine zincirlenen (linked) yüz binlerce, hatta milyonlarca nesnenin zincirleme bir
+                reaksiyonla (many, many objects) toplanılması (silinmesi) engellenmiş olabilir ki bu durum doğrudan
+                performans üzerinde dehşet verici derecede feci sarsıcı etkilere yol açma potansiyeli taşır (potentially
+                large effects).</p>
+
+            <p>Neyse ki bu tarz bir problemin çözümü de oldukça (is simple) basittir: Referanslar ne vakit kendi
+                "ömürlerini doldurup (obsolete/geçersiz)" hurdaya çıkarsalar, onları elinizdeki dizide tutmak yerine
+                <b>doğrudan <code>null</code> değerine (null out) eşitleyerek ezin/silin</b>. Bizim bu başbelası
+                problemli <code>Stack</code> sınıfımızın özelindeki durumda, bir elemanın üzerine atanan yığın eleman
+                referansı yığından çıkarıldığı (popped off) sanise boyunca tarihi geçmiş sayılarak silinmesi (obsolete)
+                gereken bir hedeftir. Dolayısıyla <code>pop()</code> metodumuzun sağlığını geri kazanıp düzeltilmiş (The
+                corrected version) yepyeni sızıntısız sürümü tam olarak şuna benzemelidir:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>...that were popped off the stack will not be garbage collected, even if the program using the stack has
+                no more references to them. This is because the stack maintains obsolete references to these objects. An
+                obsolete reference is simply a reference that will never be dereferenced again. In this case, any
+                references outside of the “active portion” of the element array are obsolete. The active portion
+                consists of the elements whose index is less than <code>size</code>.</p>
+
+            <p>Memory leaks in garbage-collected languages (more properly known as unintentional object retentions) are
+                insidious. If an object reference is unintentionally retained, not only is that object excluded from
+                garbage collection, but so too are any objects referenced by that object, and so on. Even if only a few
+                object references are unintentionally retained, many, many objects may be prevented from being garbage
+                collected, with potentially large effects on performance.</p>
+
+            <p>The fix for this sort of problem is simple: null out references once they become obsolete. In the case of
+                our <code>Stack</code> class, the reference to an item becomes obsolete as soon as it’s popped off the
+                stack. The corrected version of the <code>pop</code> method looks like this:</p>
+        </div>
+
+        <!-- Code Block for Corrected Stack Push -->
+        <div class="code-block">
+            <span class="kw">public</span> <span class="cl">Object</span> pop() {
+            <span class="kw">if</span> (size == <span class="num">0</span>)
+            <span class="kw">throw new</span> <span class="cl">EmptyStackException</span>();
+            <span class="cl">Object</span> result = elements[--size];
+            elements[size] = <span class="kw">null</span>; <span class="cm">// Eski ölmek üzere olan referansı ezerek
+                temizle (Eliminate obsolete reference)</span>
+            <span class="kw">return</span> result;
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Eski ve iptal edilmiş referansları elle tek tek <code>null</code>'a atayarak yok etmenin, sızıntıyı
+                çözmek haricinde koda kattığı ekstra bir muazzam fayda da (added benefit); şayet o silinen eleman
+                sonradan dışarılardan bir şekilde çağrılıp talep edilirse programın sahte verilerle (quietly doing the
+                wrong thing) sessiz sessiz yoluna devam edip yanlış işleri körüklemesi yerine hiç vakit kaybetmeden pimi
+                çekilmişçesine ani bir <code>NullPointerException</code> patlatarak hata vermesini (fail) sağlamasıdır.
+                Bir programcının programındaki arızaları ne kadar tez bir şekilde bulursa çözmesinin de o kadar
+                elverişli (beneficial) kalacağını sakın ama sakın unutmayın.</p>
+
+            <p>Geliştiriciler (bilhassa acemiler), başlarına ilk kez böylesi bir "memory leak (hafıza kaçağı)" belası
+                musallat olup da şok olduklarında, korkudan aşırıya kaçma (overcompensate) huyu geliştirerek her
+                kullandıkları nesneyi işi biter bitmez takıntılı gibi anında zorla <code>null</code> lamaya koyulurlar.
+                Oysaki diller böyle yönetilsin diye kurgulanmamıştır; böylesi her nesnede agresif ve aşırı bir bellek
+                sildirme çabası katiyen ne gereklidir ne de olması dahi istenir (desirable); zira yazılan kaynak kodu
+                baştan sona anlamsız karmaşık kod satırlarına boğup (clutters up) kirli bırakır. Nesne referanslarını
+                "elle, kendi kaba kuvvetinizle (nulling out)" null yapmak, kural/norm değil <b>salt istisna
+                    (exception)</b> düzeyinde sadece sınırlı anlarda uygulanacak özel müdahaleler olmalıdır.</p>
+
+            <p>Eskimiş (obsolete) nesne referanslarından kurtulabilmek (eliminate) ve yok olmalarını garantilemek için
+                en güzel (garantili/best) yöntem, halihazırda o nesneye işaret eden ana değişkenin kapsamından (veya
+                metodun küme parantezlerinden) çıkıp erişilemez alana kaymasını (fall out of scope) kendi haline sakin
+                bir süreçte bırakmaktır. Eğer ki her bir yarattığınız değişkeni (variable) oluştururken mümkün
+                olabilecek en az izin verilen menzil (kapsam - narrowest possible scope) çapında tanımlarsanız (Madde
+                57'de tartışacağız), kodunuz zaten doğal olarak bunu kendi kendine mükemmelen (naturally) çözecektir.
+            </p>
+
+            <p>Pekâlâ, öyleyse bir referansı hakikaten de ne zaman acımasızca kendi el yordamımızla
+                <code>null</code>'lamak zorunda hissetmeliyiz? Bu soruya cevap vermek adına az önceki <code>Stack</code>
+                sınıfını tekrar düşünün; tam olarak bu sınıfı hafıza sızıntılarına (memory leaks) (susceptible) bu denli
+                açık ve kırılgan yapan sinsi detay neydi? Gayet açık (Simply put): Bu sınıf; <strong>kendi hafızasını
+                    resmen kendi başına yönetmeye (manages its own memory)</strong> kalkışıyor! Bizim
+                <code>elements</code> adını verdiğimiz o ucu bucağı meçhul uzun referans dizisi (array)... (Devamı
+                sonraki sayfada)</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>An added benefit of nulling out obsolete references is that if they are subsequently dereferenced by
+                mistake, the program will immediately fail with a <code>NullPointerException</code>, rather than quietly
+                doing the wrong thing. It is always beneficial to detect programming errors as quickly as possible.</p>
+
+            <p>When programmers are first stung by this problem, they may overcompensate by nulling out every object
+                reference as soon as the program is finished using it. This is neither necessary nor desirable; it
+                clutters up the program unnecessarily. Nulling out object references should be the exception rather than
+                the norm.</p>
+
+            <p>The best way to eliminate an obsolete reference is to let the variable that contained the reference fall
+                out of scope. This occurs naturally if you define each variable in the narrowest possible scope (Item
+                57).</p>
+
+            <p>So when should you null out a reference? What aspect of the <code>Stack</code> class makes it susceptible
+                to memory leaks? Simply put, it manages its own memory. The storage pool consists of the elements of the
+                <code>elements</code> array (the object...</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 7 Memory Leak devamı (kendi belleğini yöneten nesneler)
+            sonraki sayfada devam ediyor.</div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('object-retention')">Unintentional Object Retention</button>
+            <button class="concept-btn" onclick="openModal('fall-out')">Fall out of Scope (Kapsamdan Düşmek)</button>
+            <button class="concept-btn" onclick="openModal('fast-fail')">Fail Fast (Hızlı Çökme İlkesi)</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-25.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 25 — Stack array pointer memory leak</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-27.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 27 — Kendi belleğini yönetenler ve Cache tuzakları</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Unintentional Retention -->
+    <div class="modal-overlay" id="modal-object-retention">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Unintentional Object Retention (Kasıtsız Nesne Alıkoyma)</h3>
+                <button class="modal-close" onclick="closeModal('object-retention')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Büyük bir nesne yarattığınızda ve onu bir listeye / array'e fırlattığınızda; diyelim ki mantıksal
+                        olarak o dizideki boyutu "Kestiniz" (örn <code>size--</code> yaptınız) ve iş bitti sandınız.
+                        Gerçekte dizi indeksi hâlâ o kocaman eski objeyi bellek referansıyla haritaya mıhlanmış şekilde
+                        (pinned down) tutmaktadır. Çöp toplayıcı GC, mantık bilmez; o sadece o dizi hücresinin objeye
+                        bir bağlı oktan kilit ucu çıkardığını görür ve bu obje hâlâ lazımmış gibi onu silmekten çekinir.
+                    </p>
+                    <p>Bir referans zinciri (Object Graph) varsa, atıl kalmış tek bir tepe nesnesi yüzünden ona bağlı
+                        diğer binlerce dev gibi nesne bellekten sökülemez.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Memory leaks in Java are usually "Unintentional Object Retention". Since Java uses references
+                        instead of direct memory addresses if a forgotten object is held within an array somewhere (even
+                        if the programmatic <code>size</code> ignores it), the GC is clueless about your logic and
+                        respects the fact that a pointer exists. This holds up not just that object, but its entire
+                        object subgraph as well.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Fall out of Scope -->
+    <div class="modal-overlay" id="modal-fall-out">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Fall out of Scope (Kapsamdan Düşmek) ve Null'lama Fetişi</h3>
+                <button class="modal-close" onclick="closeModal('fall-out')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Deneyimsiz programcılar Java'daki bir objeyi kullanmayı bitirince hemen manuel
+                        <code>obj = null;</code> yazma takıntısına saplanır. Halbuki Java'da değişkenlerin çok spesifik
+                        "yaşam döngüleri (scopes)" vardır (örn: metot veya if/for bloğu içerisi gibi). Kapsam
+                        <code>}</code> parantezi ile bittiği anda zaten arka planda o referanslar yokedilir / GC'nin
+                        insafına bırakılır. Ekstra her metoda <code>null</code> satırlarıyla çorba karıştırmaya tevessül
+                        etmek çirkin ve antipattern'dir (kötü koddur).</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Overzealous nulling means setting <code>myVar = null;</code> forcefully on the last line. This is
+                        a bad practice. The JVM's Garbage Collector relies on variable scope
+                        (<code>{ /* ... */ }</code>). The moment execution leaps out of the scope, local references
+                        naturally die. You only forcefully <code>null</code> objects when you are managing an underlying
+                        array/data block manually.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Fail Fast -->
+    <div class="modal-overlay" id="modal-fast-fail">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Fail Fast (Hemen Patlama / Hızlı Çökme Kuralı)</h3>
+                <button class="modal-close" onclick="closeModal('fast-fail')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Kod yazarken eğer dışarıdan bir girdi sakatsa, mantık dışıysa veya tehlikeliyse veriyi hasıraltı
+                        (suppress) etmek, gizlice sahte data ile kandırmak çok büyük sistem facialarına gebedir. Kural
+                        basittir: Sistem hata mi gördü? O An, o milisaniyede (Quietly doing wrong thing)
+                        patlamalı/çökmeli ve bir Exception (İstisna) fırlatmalıdır. Biz buna yazılımda "Fail-fast
+                        (Anında Çöküş)" prensibi deriz. Hatayı daha oluştuğu an o satırda yakalamak, 2 saat sonra
+                        veritabanında patladığında izini aratmaktan evladır.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Fail Fast revolves around making your code fail as soon as possible with a fatal Exception when
+                        it encounters an invalid state or logically incorrect inputs. It's infinitely better for a
+                        system to crash right away with a stacktrace pinpointing the defective line than to silently use
+                        corrupt data (Obsolete Reference) only to ruin a database transaction an hour later.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 26;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

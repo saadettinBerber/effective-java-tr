@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 34</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .example-label {
+            font-size: .75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin: 1rem 0 .3rem
+        }
+
+        .bad {
+            color: #c0392b
+        }
+
+        .good {
+            color: #27ae60
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 2: Creating and Destroying Objects &nbsp;›&nbsp; Item 9: Prefer
+                try-with-resources to try-finally</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="34" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 34 / Page 34</div>
+        <div class="chapter-badge">Chapter 2 — Item 9: try-finally Yerine try-with-resources'ı Tercih Edin / Prefer
+            try-with-resources to try-finally</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 9: try-with-resources ile yeniden yazılmış
+                örnekler</em></div>
+
+        <div class="tr-text">
+            <p>İlk örneğimiz <code>try-with-resources</code> kullanılarak şöyle görünür:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Here's how our first example looks using try-with-resources:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// try-with-resources — kaynakları kapatmanın en iyi yolu!</span>
+            <span class="cm">// try-with-resources - the best way to close resources!</span>
+            <span class="kw">static</span> <span class="cl">String</span> firstLineOfFile(<span class="cl">String</span>
+            path) <span class="kw">throws</span> <span class="cl">IOException</span> {
+            <span class="kw">try</span> (<span class="cl">BufferedReader</span> br = <span class="kw">new</span> <span
+                class="cl">BufferedReader</span>(
+            <span class="kw">new</span> <span class="cl">FileReader</span>(path))) {
+            <span class="kw">return</span> br.readLine();
+            }
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Ve ikinci örneğimiz <code>try-with-resources</code> ile şöyle görünür:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>And here's how our second example looks using try-with-resources:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Birden fazla kaynakla try-with-resources — kısa ve tatlı</span>
+            <span class="cm">// try-with-resources on multiple resources - short and sweet</span>
+            <span class="kw">static void</span> copy(<span class="cl">String</span> src, <span class="cl">String</span>
+            dst) <span class="kw">throws</span> <span class="cl">IOException</span> {
+            <span class="kw">try</span> (<span class="cl">InputStream</span> in = <span class="kw">new</span> <span
+                class="cl">FileInputStream</span>(src);
+            <span class="cl">OutputStream</span> out = <span class="kw">new</span> <span
+                class="cl">FileOutputStream</span>(dst)) {
+            <span class="kw">byte</span>[] buf = <span class="kw">new byte</span>[BUFFER_SIZE];
+            <span class="kw">int</span> n;
+            <span class="kw">while</span> ((n = in.read(buf)) &gt;= <span class="num">0</span>)
+            out.write(buf, <span class="num">0</span>, n);
+            }
+            }
+        </div>
+
+        <div class="tr-text">
+            <p><code>try-with-resources</code> sürümleri yalnızca orijinallerinden daha kısa ve daha okunaklı olmakla
+                kalmaz, aynı zamanda <b>çok daha iyi tanılama (diagnostics)</b> sağlar. <code>firstLineOfFile</code>
+                metodunu düşünün. Eğer hem <code>readLine</code> çağrısı hem de (görünmez) <code>close</code> tarafından
+                istisnalar fırlatılırsa, ikinci istisna birincisi lehine <b>bastırılır (suppressed)</b>. Aslında,
+                gerçekten görmek istediğiniz istisnayı korumak için birden fazla istisna bastırılabilir. Bu bastırılmış
+                istisnalar (suppressed exceptions) sadece atılıp unutulmaz; yığın izinde (stack trace) bastırıldıklarını
+                belirten bir notla birlikte basılırlar. Ayrıca Java 7'de <code>Throwable</code>'a eklenen
+                <code>getSuppressed</code> metodu ile bunlara programatik olarak erişebilirsiniz.</p>
+
+            <p><code>try-with-resources</code> ifadelerine, tıpkı normal <code>try-finally</code> ifadelerinde olduğu
+                gibi <code>catch</code> cümleleri (catch clauses) koyabilirsiniz. Bu, kodunuzu başka bir iç içe geçme
+                (nesting) katmanıyla kirletmeden istisnaları ele almanıza olanak tanır. Biraz yapmacık (contrived) bir
+                örnek olarak, dosyayı açamazsa veya okuyamazsa istisna fırlatmak yerine döndürülecek bir varsayılan
+                değer (default value) alan <code>firstLineOfFile</code> metodumuzun bir versiyonu:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Not only are the <code>try-with-resources</code> versions shorter and more readable than the originals,
+                but they provide far better diagnostics. Consider the <code>firstLineOfFile</code> method. If exceptions
+                are thrown by both the <code>readLine</code> call and the (invisible) <code>close</code>, the latter
+                exception is suppressed in favor of the former. In fact, multiple exceptions may be suppressed in order
+                to preserve the exception that you actually want to see. These suppressed exceptions are not merely
+                discarded; they are printed in the stack trace with a notation saying that they were suppressed. You can
+                also access them programmatically with the <code>getSuppressed</code> method, which was added to
+                <code>Throwable</code> in Java 7.</p>
+
+            <p>You can put <code>catch</code> clauses on <code>try-with-resources</code> statements, just as you can on
+                regular <code>try-finally</code> statements. This allows you to handle exceptions without sullying your
+                code with another layer of nesting. As a slightly contrived example, here's a version our
+                <code>firstLineOfFile</code> method that does not throw exceptions, but takes a default value to return
+                if it can't open the file or read from it:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// catch cümleli try-with-resources</span>
+            <span class="cm">// try-with-resources with a catch clause</span>
+            <span class="kw">static</span> <span class="cl">String</span> firstLineOfFile(<span class="cl">String</span>
+            path, <span class="cl">String</span> defaultVal) {
+            <span class="kw">try</span> (<span class="cl">BufferedReader</span> br = <span class="kw">new</span> <span
+                class="cl">BufferedReader</span>(
+            <span class="kw">new</span> <span class="cl">FileReader</span>(path))) {
+            <span class="kw">return</span> br.readLine();
+            } <span class="kw">catch</span> (<span class="cl">IOException</span> e) {
+            <span class="kw">return</span> defaultVal;
+            }
+            }
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 9 sonuç kısmı sonraki sayfada.</div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('suppressed-exceptions')">Bastırılmış İstisnalar (Suppressed
+                Exceptions)</button>
+            <button class="concept-btn" onclick="openModal('try-with-catch')">try-with-resources + catch</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-33.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 33 — İki kaynaklı try-finally sorunu</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-35.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 35 — Madde 9 sonu, Chapter 3 başlangıcı</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Suppressed Exceptions -->
+    <div class="modal-overlay" id="modal-suppressed-exceptions">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Bastırılmış İstisnalar (Suppressed Exceptions)</h3>
+                <button class="modal-close" onclick="closeModal('suppressed-exceptions')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Java 7'de <code>Throwable</code>'a eklenen <code>getSuppressed()</code> metodu,
+                        <code>try-with-resources</code> bloğunda <code>close()</code> sırasında fırlatılan istisnaları
+                        erişilebilir kılar. Ana istisna korunur; kapatma istisnaları "suppressed" olarak işaretlenir ve
+                        yığın izinde ayrıca gösterilir.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>The <code>getSuppressed()</code> method added to <code>Throwable</code> in Java 7 makes
+                        exceptions thrown during <code>close()</code> in <code>try-with-resources</code> accessible. The
+                        primary exception is preserved; close exceptions are marked "suppressed" and shown separately in
+                        stack traces.</p>
+                </div>
+                <p class="example-label good">✅ Programatik erişim</p>
+                <div class="code-block">
+                    <span class="kw">try</span> {
+                    <span class="cm">// try-with-resources çalıştır</span>
+                    } <span class="kw">catch</span> (<span class="cl">IOException</span> e) {
+                    <span class="cl">System</span>.out.println(<span class="st">"Ana hata: "</span> + e.getMessage());
+                    <span class="kw">for</span> (<span class="cl">Throwable</span> suppressed : e.getSuppressed()) {
+                    <span class="cl">System</span>.out.println(<span class="st">" Bastırılmış: "</span> +
+                    suppressed.getMessage());
+                    }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: try-with-catch -->
+    <div class="modal-overlay" id="modal-try-with-catch">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>try-with-resources + catch Birleşimi</h3>
+                <button class="modal-close" onclick="closeModal('try-with-catch')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>try-with-resources</code> ifadesi, normal <code>try</code> blokları gibi <code>catch</code>
+                        ve hatta <code>finally</code> cümleleri alabilir. <code>catch</code> cümlesi, kaynaklar otomatik
+                        kapatıldıktan sonra çalışır. Bu sayede kaynak yönetimi ve hata işleme tek bir temiz yapıda
+                        birleşir.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><code>try-with-resources</code> supports <code>catch</code> and even <code>finally</code>
+                        clauses, just like regular <code>try</code>. The <code>catch</code> runs after resources are
+                        auto-closed, combining resource management and error handling in one clean construct.</p>
+                </div>
+                <div class="tip-box tr-text">💡 <code>catch</code> ekleyerek varsayılan değer döndürme, loglama veya
+                    özel istisna fırlatma gibi geri dönüş stratejileri (fallback) zarif bir şekilde uygulanabilir.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 34;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

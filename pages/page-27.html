@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 27</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7;
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623;
+        }
+
+        .topbar-sub {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+            margin-top: 0.1rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all .2s;
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700;
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            position: relative;
+        }
+
+        .page-nav-input-wrap label {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: 0.22rem 0.4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s;
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1;
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        .item-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0d2137;
+            margin: 2rem 0 0.5rem;
+            line-height: 1.3;
+        }
+
+        .item-title-en {
+            font-size: 1.1rem;
+            color: #6c757d;
+            font-weight: 400;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+
+        .page-label {
+            font-size: 0.78rem;
+            color: #6c757d;
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem;
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: 0.88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66;
+        }
+
+        .kw {
+            color: #79b8ff;
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic;
+        }
+
+        .cl {
+            color: #b392f0;
+        }
+
+        .st {
+            color: #9ecbff;
+        }
+
+        .an {
+            color: #85e89d;
+        }
+
+        .num {
+            color: #f8c555;
+        }
+
+        .info-box {
+            background: #e8f4fd;
+            border-left: 4px solid #0d6efd;
+            padding: 0.9rem 1.2rem;
+            border-radius: 0 6px 6px 0;
+            margin: 1.2rem 0;
+            font-size: 0.93rem;
+            color: #0a3d6b;
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0.3rem 0.3rem 0.3rem 0;
+            transition: background .2s, transform .1s;
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px);
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 1.4rem;
+        }
+
+        .modal-body p {
+            font-size: 0.93rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .example-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin: 1rem 0 0.3rem;
+        }
+
+        .bad {
+            color: #c0392b;
+        }
+
+        .good {
+            color: #27ae60;
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: 0.6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.88rem;
+            margin-top: 1rem;
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px;
+        }
+
+        .nav-btn:hover {
+            background: #163a5f;
+        }
+
+        .nav-btn .nav-direction {
+            font-size: 0.7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem 1rem 3rem;
+            }
+
+            .topbar {
+                padding: 0.6rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 2: Creating and Destroying Objects &nbsp;›&nbsp; Item 7: Eliminate obsolete
+                object references</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="27" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 27 / Page 27</div>
+        <div class="chapter-badge">Chapter 2 — Item 7: Eskimiş nesne referanslarını temizleyin / Eliminate obsolete
+            object references</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 7: Kendi belleğini yöneten sınıflar, önbellek ve
+                dinleyici tuzakları</em></div>
+
+        <div class="tr-text">
+            <p>...referans hücreleri (reference cells), nesnelerin bizzat kendileri değildir). Dizinin aktif kısmındaki
+                (daha önce tanımladığımız biçimiyle) elemanlar <b>tahsis edilmiş (allocated)</b> durumdadır ve geri
+                kalan kısımdakiler ise <b>boş (free)</b> sayılır. Çöp Toplayıcı'nın (Garbage Collector) bunu bilmesinin
+                hiçbir yolu yoktur; Çöp Toplayıcı'nın gözünden bakıldığında, <code>elements</code> dizisindeki tüm nesne
+                referansları eşit derecede geçerlidir (equally valid). Yalnızca <b>programcı</b>, dizinin aktif olmayan
+                kısmının artık önemsiz olduğunu bilir. Programcı bu gerçeği, dizi elemanlarını aktif olmayan kısmın
+                parçası haline gelir gelmez elle <code>null</code> değerine eşitleyerek Çöp Toplayıcı'ya etkin bir
+                biçimde iletir (effectively communicates).</p>
+
+            <p>Genel bir kural olarak söylemek gerekirse, <strong>bir sınıf ne zaman kendi belleğini bizzat kendisi
+                    yönetiyorsa (manages its own memory), programcının bellek sızıntıları konusunda uyanık olması
+                    şarttır</strong>. Bir eleman her serbest bırakıldığında (freed), o elemanın içerdiği tüm nesne
+                referansları <code>null</code> değerine eşitlenmelidir.</p>
+
+            <p><strong>Bellek sızıntılarının (memory leaks) bir diğer yaygın kaynağı ise önbelleklerdir
+                    (caches).</strong> Bir nesne referansını bir önbelleğe (cache) koyduğunuzda, onun orada köklenip yer
+                kaplayarak durduğunu unutmanız ve onun artık çoktan alakasız hale gelmesinden çok sonra bile önbellekte
+                asılı bırakmanız işten bile değildir. Bu problemin birkaç çözüm yolu vardır. Eğer şanslıysanız ve
+                uyguladığınız önbellek yapısında bir girdinin (entry) geçerliliği, yalnızca ve yalnızca o girdinin
+                anahtarına (key) önbelleğin dışından hâlâ aktif referanslar bulunduğu sürece anlamlıysa, önbelleği bir
+                <code>WeakHashMap</code> olarak temsil edin; girdiler eskidiklerinde (obsolete) otomatik olarak
+                silineceklerdir. Unutmayın ki <code>WeakHashMap</code> yalnızca, önbellek girdilerinin arzulanan yaşam
+                süresinin (desired lifetime) <i>değere (value)</i> değil, <b>anahtara (key) yapılan dış referanslarca
+                    (external references)</b> belirlendiği durumlarda işe yarar.</p>
+
+            <p>Daha yaygın olan senaryoda ise, bir önbellek girdisinin kullanışlı ömrü o kadar net tanımlanmış değildir;
+                girdiler zamanla giderek daha az değerli hale gelir. Bu gibi koşullarda, önbellek zaman zaman artık
+                kullanılmayan (fallen into disuse) girdilerden arındırılmalıdır. Bu işlem bir arka plan iş parçacığı
+                (background thread) tarafından (belki bir <code>ScheduledThreadPoolExecutor</code> ile) ya da önbelleğe
+                yeni girdiler eklenirken bir yan etki (side effect) olarak yapılabilir. <code>LinkedHashMap</code>
+                sınıfı, <code>removeEldestEntry</code> metoduyla ikinci yaklaşımı kolaylaştırarak bize sunar. Daha
+                sofistike önbellekler için ise doğrudan <code>java.lang.ref</code> paketini kullanmanız gerekebilir.</p>
+
+            <p><strong>Bellek sızıntılarının üçüncü yaygın kaynağı ise dinleyiciler (listeners) ve diğer geri
+                    çağırmalardır (callbacks).</strong> İstemcilerin (clients) geri çağırmaları kaydettiği (register)
+                ancak bunları açıkça iptal/silme kaydı (deregister) yapmadığı bir API uyguluyorsanız, siz bir önlem
+                almadığınız sürece bu geri çağırmalar birikecek ve birikecektir (accumulate). Geri çağırmaların derhal
+                Çöp Toplayıcı tarafından toplanmasını garanti altına almanın bir yolu, onlara yalnızca zayıf referanslar
+                (weak references) saklamaktır; örneğin, bunları yalnızca bir <code>WeakHashMap</code> içinde anahtar
+                (key) olarak depolayarak bu amaca ulaşabilirsiniz.</p>
+
+            <p>Bellek sızıntıları genellikle kendilerini apaçık, gözle görülür hatalar olarak belli etmezler (manifest);
+                bu yüzden bir sistemde yıllarca fark edilmeden varlıklarını sürdürebilirler. Bunlar tipik olarak
+                yalnızca dikkatli bir kod incelemesi (careful code inspection) sonucunda veya <b>yığın profil oluşturucu
+                    (heap profiler)</b> olarak bilinen bir hata ayıklama aracının (debugging tool) yardımıyla
+                keşfedilirler. Bu nedenle, bu tarz problemleri daha oluşmadan öncesinde sezinlemeyi (anticipate) ve
+                önlemeyi öğrenmek son derece arzu edilen ve değerli bir yetenektir.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>...reference cells, not the objects themselves). The elements in the active portion of the array (as
+                defined earlier) are allocated, and those in the remainder of the array are free. The garbage collector
+                has no way of knowing this; to the garbage collector, all of the object references in the elements array
+                are equally valid. Only the programmer knows that the inactive portion of the array is unimportant. The
+                programmer effectively communicates this fact to the garbage collector by manually nulling out array
+                elements as soon as they become part of the inactive portion.</p>
+
+            <p>Generally speaking, whenever a class manages its own memory, the programmer should be alert for memory
+                leaks. Whenever an element is freed, any object references contained in the element should be nulled
+                out.</p>
+
+            <p>Another common source of memory leaks is <strong>caches</strong>. Once you put an object reference into a
+                cache, it's easy to forget that it's there and leave it in the cache long after it becomes irrelevant.
+                There are several solutions to this problem. If you're lucky enough to implement a cache for which an
+                entry is relevant exactly so long as there are references to its key outside of the cache, represent the
+                cache as a <code>WeakHashMap</code>; entries will be removed automatically after they become obsolete.
+                Remember that <code>WeakHashMap</code> is useful only if the desired lifetime of cache entries is
+                determined by external references to the key, not the value.</p>
+
+            <p>More commonly, the useful lifetime of a cache entry is less well defined, with entries becoming less
+                valuable over time. Under these circumstances, the cache should occasionally be cleansed of entries that
+                have fallen into disuse. This can be done by a background thread (perhaps a
+                <code>ScheduledThreadPoolExecutor</code>) or as a side effect of adding new entries to the cache. The
+                <code>LinkedHashMap</code> class facilitates the latter approach with its <code>removeEldestEntry</code>
+                method. For more sophisticated caches, you may need to use <code>java.lang.ref</code> directly.</p>
+
+            <p>A third common source of memory leaks is <strong>listeners and other callbacks</strong>. If you implement
+                an API where clients register callbacks but don't deregister them explicitly, they will accumulate
+                unless you take some action. One way to ensure that callbacks are garbage collected promptly is to store
+                only weak references to them, for instance, by storing them only as keys in a <code>WeakHashMap</code>.
+            </p>
+
+            <p>Because memory leaks typically do not manifest themselves as obvious failures, they may remain present in
+                a system for years. They are typically discovered only as a result of careful code inspection or with
+                the aid of a debugging tool known as a heap profiler. Therefore, it is very desirable to learn to
+                anticipate problems like this before they occur and prevent them from happening.</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 7 sonu. Sonraki sayfada Madde 8: Sonlandırıcı ve
+            Temizleyicilerden Kaçının (Avoid finalizers and cleaners) başlıyor.</div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('weakhashmap')">WeakHashMap &amp; Zayıf Referans</button>
+            <button class="concept-btn" onclick="openModal('cache-leak')">Önbellek Sızıntısı (Cache Leak)</button>
+            <button class="concept-btn" onclick="openModal('listener-leak')">Dinleyici/Callback Sızıntısı</button>
+            <button class="concept-btn" onclick="openModal('heap-profiler')">Heap Profiler</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-26.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 26 — Null'lama ve kapsamdan düşme</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-28.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 28 — Madde 8: Finalizer ve Cleaner'lardan kaçının</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: WeakHashMap -->
+    <div class="modal-overlay" id="modal-weakhashmap">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>WeakHashMap &amp; Zayıf Referans (Weak Reference)</h3>
+                <button class="modal-close" onclick="closeModal('weakhashmap')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Java'da normal bir referans (strong reference), bir nesneyi bellekte <b>mutlaka canlı tutar</b>;
+                        Çöp Toplayıcı ona asla dokunamaz. <code>WeakReference</code> ise nesneye "zayıf" bir şekilde
+                        tutunur: eğer o nesneye başka hiçbir güçlü (strong) referans kalmamışsa, GC onu gönül
+                        rahatlığıyla toplayabilir.</p>
+                    <p><code>WeakHashMap</code> bu prensibi bir <code>Map</code> yapısına uygular. Anahtarlara (keys)
+                        zayıf referanslar tutar; bir anahtar dışarıdan artık kullanılmıyorsa, o girdi haritadan otomatik
+                        silinir. Tipik kullanımı: önbellekler ve meta-veri haritaları.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>In Java, a normal (strong) reference keeps an object alive in memory — GC cannot touch it. A
+                        <code>WeakReference</code> holds on "weakly": if no strong references remain, GC can freely
+                        collect it.</p>
+                    <p><code>WeakHashMap</code> applies this principle to a <code>Map</code>. It holds keys via weak
+                        references; when a key is no longer referenced externally, the entry is automatically removed.
+                        Typical use: caches and metadata maps.</p>
+                </div>
+                <p class="example-label bad">❌ KÖTÜ ÖRNEK (Before)</p>
+                <div class="code-block">
+                    <span class="cm">// Önbellek hiçbir zaman temizlenmiyor — sınırsız büyüme (unbounded growth)</span>
+                    <span class="kw">private static final</span> <span class="cl">Map</span>&lt;<span
+                        class="cl">String</span>, <span class="cl">HeavyResource</span>&gt; cache =
+                    <span class="kw">new</span> <span class="cl">HashMap</span>&lt;&gt;();
+
+                    <span class="kw">public static void</span> loadResource(<span class="cl">String</span> key) {
+                    cache.put(key, <span class="kw">new</span> <span class="cl">HeavyResource</span>(key));
+                    <span class="cm">// key dışarıda kullanılmasa bile cache sonsuza dek tutar!</span>
+                    }
+                </div>
+                <p class="example-label good">✅ İYİ ÖRNEK (After)</p>
+                <div class="code-block">
+                    <span class="cm">// Anahtar dış referansını kaybedince girdi otomatik silinir</span>
+                    <span class="kw">private static final</span> <span class="cl">Map</span>&lt;<span
+                        class="cl">String</span>, <span class="cl">HeavyResource</span>&gt; cache =
+                    <span class="kw">new</span> <span class="cl">WeakHashMap</span>&lt;&gt;();
+
+                    <span class="kw">public static void</span> loadResource(<span class="cl">String</span> key) {
+                    cache.put(key, <span class="kw">new</span> <span class="cl">HeavyResource</span>(key));
+                    <span class="cm">// key'e dış referans kalmadığında GC tarafından otomatik temizlenir</span>
+                    }
+                </div>
+                <div class="tip-box tr-text">💡 <code>WeakHashMap</code> yalnızca <b>anahtarlara</b> zayıf referans
+                    tutar, değerlere değil. Eğer değer doğrudan veya dolaylı olarak kendi anahtarına referans veriyorsa,
+                    anahtar hiçbir zaman GC tarafından toplanamaz — bu, gizli bir döngüsel referans tuzağıdır.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Cache Leak -->
+    <div class="modal-overlay" id="modal-cache-leak">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Önbellek Sızıntısı (Cache Memory Leak)</h3>
+                <button class="modal-close" onclick="closeModal('cache-leak')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Önbellek (cache), sık erişilen verileri hızla sunmak için bellekte saklayan bir mekanizmadır.
+                        Ancak önbelleğe bir nesne koyduğunuzda ve onu bir daha temizlemeyi unuttuğunuzda, bu nesne
+                        sonsuza dek bellekte kalır — klasik bir bellek sızıntısı.</p>
+                    <p>Çözüm stratejileri: (1) <code>WeakHashMap</code> ile otomatik temizleme, (2)
+                        <code>LinkedHashMap.removeEldestEntry</code> ile boyut sınırlama, (3)
+                        <code>ScheduledThreadPoolExecutor</code> ile periyodik temizlik.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>A cache stores frequently accessed data in memory for fast retrieval. But if you put an object
+                        into a cache and never clean it up, that object stays forever — a classic memory leak.</p>
+                    <p>Solution strategies: (1) <code>WeakHashMap</code> for auto-cleanup, (2)
+                        <code>LinkedHashMap.removeEldestEntry</code> for size-bounded caches, (3)
+                        <code>ScheduledThreadPoolExecutor</code> for periodic cleanup.</p>
+                </div>
+                <p class="example-label bad">❌ KÖTÜ ÖRNEK (Before)</p>
+                <div class="code-block">
+                    <span class="cm">// Hiçbir boyut limiti yok; cache sürekli büyüyor</span>
+                    <span class="kw">private final</span> <span class="cl">Map</span>&lt;<span class="cl">Long</span>,
+                    <span class="cl">UserProfile</span>&gt; profileCache = <span class="kw">new</span> <span
+                        class="cl">HashMap</span>&lt;&gt;();
+
+                    <span class="kw">public</span> <span class="cl">UserProfile</span> getProfile(<span
+                        class="kw">long</span> userId) {
+                    <span class="kw">return</span> profileCache.computeIfAbsent(userId, <span
+                        class="kw">this</span>::loadFromDb);
+                    <span class="cm">// Girdiler asla silinmiyor → OOM kaçınılmaz!</span>
+                    }
+                </div>
+                <p class="example-label good">✅ İYİ ÖRNEK (After)</p>
+                <div class="code-block">
+                    <span class="cm">// Maksimum 500 girdi; en eski girdi otomatik atılır</span>
+                    <span class="kw">private final</span> <span class="cl">Map</span>&lt;<span class="cl">Long</span>,
+                    <span class="cl">UserProfile</span>&gt; profileCache =
+                    <span class="kw">new</span> <span class="cl">LinkedHashMap</span>&lt;&gt;(<span
+                        class="num">16</span>, <span class="num">0.75f</span>, <span class="kw">true</span>) {
+                    <span class="an">@Override</span>
+                    <span class="kw">protected boolean</span> removeEldestEntry(<span class="cl">Map.Entry</span>
+                    eldest) {
+                    <span class="kw">return</span> size() &gt; <span class="num">500</span>;
+                    }
+                    };
+                </div>
+                <div class="tip-box tr-text">💡 Gerçek dünya projelerinde Guava'nın <code>CacheBuilder</code> veya
+                    Caffeine gibi kütüphaneler zaman bazlı eviction, boyut sınırı ve istatistik toplama gibi gelişmiş
+                    özellikler sunar.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Listener Leak -->
+    <div class="modal-overlay" id="modal-listener-leak">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Dinleyici/Callback Sızıntısı (Listener &amp; Callback Leak)</h3>
+                <button class="modal-close" onclick="closeModal('listener-leak')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Bir API'de istemciler (clients) olay dinleyicileri (event listeners) veya geri çağırmalar
+                        (callbacks) kaydeder ama bunları açıkça iptal etmez (deregister). Sonuç: kayıtlı dinleyiciler
+                        birikir, her olay tetiklendiğinde tümü çağrılır, bellekte kilometrelerce uzun zincirleme
+                        referans grafikleri oluşur.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>In an API, clients register event listeners or callbacks but never explicitly deregister them.
+                        The result: registered listeners pile up, all of them are invoked on every event, and long
+                        chains of reference graphs accumulate in memory.</p>
+                </div>
+                <p class="example-label bad">❌ KÖTÜ ÖRNEK (Before)</p>
+                <div class="code-block">
+                    <span class="kw">public class</span> <span class="cl">EventBus</span> {
+                    <span class="kw">private final</span> <span class="cl">List</span>&lt;<span
+                        class="cl">EventListener</span>&gt; listeners = <span class="kw">new</span> <span
+                        class="cl">ArrayList</span>&lt;&gt;();
+
+                    <span class="kw">public void</span> register(<span class="cl">EventListener</span> listener) {
+                    listeners.add(listener);
+                    <span class="cm">// İstemciler kayıt olur ama hiç deregister çağırmaz!</span>
+                    }
+
+                    <span class="kw">public void</span> fireEvent(<span class="cl">Event</span> e) {
+                    <span class="kw">for</span> (<span class="cl">EventListener</span> l : listeners) l.onEvent(e);
+                    <span class="cm">// Her tetiklemede kalabalık artıyor...</span>
+                    }
+                    }
+                </div>
+                <p class="example-label good">✅ İYİ ÖRNEK (After)</p>
+                <div class="code-block">
+                    <span class="kw">public class</span> <span class="cl">EventBus</span> {
+                    <span class="cm">// Zayıf referanslar: dinleyici dışarıda artık kullanılmıyorsa GC toplar</span>
+                    <span class="kw">private final</span> <span class="cl">Set</span>&lt;<span
+                        class="cl">EventListener</span>&gt; listeners =
+                    <span class="cl">Collections</span>.newSetFromMap(<span class="kw">new</span> <span
+                        class="cl">WeakHashMap</span>&lt;&gt;());
+
+                    <span class="kw">public void</span> register(<span class="cl">EventListener</span> listener) {
+                    listeners.add(listener);
+                    }
+
+                    <span class="kw">public void</span> fireEvent(<span class="cl">Event</span> e) {
+                    <span class="kw">for</span> (<span class="cl">EventListener</span> l : listeners) l.onEvent(e);
+                    }
+                    }
+                </div>
+                <div class="tip-box tr-text">💡 Android'de en meşhur sızıntı senaryolarından biri de budur: bir
+                    Activity, bir servise listener olarak kayıt olur ama <code>onDestroy()</code>'da kaydını silmez;
+                    Activity bellekten silinmez ve bütün View hiyerarşisi hafızada asılı kalır.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Heap Profiler -->
+    <div class="modal-overlay" id="modal-heap-profiler">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Heap Profiler (Yığın Profil Oluşturucu)</h3>
+                <button class="modal-close" onclick="closeModal('heap-profiler')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Heap profiler, JVM'in yığın (heap) belleğindeki nesnelerin anlık fotoğrafını (snapshot) çekmenize
+                        ve hangi nesnelerin ne kadar alan kapladığını, hangi referansların onları canlı tuttuğunu analiz
+                        etmenize olanak tanıyan bir hata ayıklama aracıdır (debugging tool). Bellek sızıntılarını tespit
+                        etmenin en güvenilir yöntemidir.</p>
+                    <p>Popüler araçlar: <b>VisualVM</b> (ücretsiz, JDK ile gelir), <b>Eclipse MAT</b> (Memory Analyzer
+                        Tool), <b>YourKit</b> ve <b>JProfiler</b> (ticari).</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>A heap profiler is a debugging tool that lets you take a snapshot of JVM heap memory and analyze
+                        which objects consume how much space and which references keep them alive. It's the most
+                        reliable way to detect memory leaks.</p>
+                    <p>Popular tools: <b>VisualVM</b> (free, bundled with JDK), <b>Eclipse MAT</b> (Memory Analyzer
+                        Tool), <b>YourKit</b> and <b>JProfiler</b> (commercial).</p>
+                </div>
+                <div class="tip-box tr-text">💡 Bellek sızıntısından şüphelendiğinizde ilk adım:
+                    <code>jmap -dump:format=b,file=heap.hprof &lt;pid&gt;</code> komutunu çalıştırarak heap dump alın,
+                    sonra Eclipse MAT ile açıp "Leak Suspects" raporunu inceleyin.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 27;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

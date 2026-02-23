@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Effective Java — Sayfa 16</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #f8f9fa; color: #212529; line-height: 1.7; }
+  .topbar { background: #0d2137; color: #fff; padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; position: sticky; top: 0; z-index: 100; }
+  .topbar-left { display: flex; flex-direction: column; }
+  .topbar-title { font-size: 1rem; font-weight: 700; color: #f5a623; }
+  .topbar-sub { font-size: 0.78rem; color: #a0b4c8; margin-top: 0.1rem; }
+  .topbar-right { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+  .lang-btn { background: transparent; border: 1px solid #a0b4c8; color: #a0b4c8; padding: 0.25rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; transition: all .2s; }
+  .lang-btn.active { background: #f5a623; border-color: #f5a623; color: #0d2137; font-weight: 700; }
+  .page-nav-input-wrap { display: flex; align-items: center; gap: 0.4rem; position: relative; }
+  .page-nav-input-wrap label { font-size: 0.78rem; color: #a0b4c8; }
+  #pageNumInput { width: 3.2rem; padding: 0.22rem 0.4rem; border-radius: 4px; border: 1px solid #a0b4c8; background: #162d45; color: #fff; font-size: 0.9rem; text-align: center; }
+  #pageNumInput.error { border-color: #e74c3c; animation: shake .3s; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+  #pageNavTooltip { position: absolute; top: 110%; right: 0; background: #e74c3c; color: #fff; font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 4px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  #pageNavTooltip.visible { opacity: 1; }
+  .container { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .page-label { font-size: 0.78rem; color: #6c757d; margin-bottom: 0.3rem; }
+  .chapter-badge { display: inline-block; background: #e8f0fe; color: #0d2137; font-size: 0.78rem; font-weight: 600; padding: 0.2rem 0.7rem; border-radius: 20px; border: 1px solid #b8d0f0; margin-bottom: 1.2rem; }
+  .continued-box { background: #fff8e1; border-left: 4px solid #f5a623; padding: 0.7rem 1rem; border-radius: 0 6px 6px 0; margin-bottom: 1.5rem; font-size: 0.9rem; color: #7a5c00; }
+  .cuts-box { background: #fff8e1; border-left: 4px solid #f5a623; padding: 0.7rem 1rem; border-radius: 0 6px 6px 0; margin-top: 1.5rem; font-size: 0.9rem; color: #7a5c00; }
+  p { margin-bottom: 1rem; font-size: 1rem; }
+  .code-block { background: #1e2d3d; color: #cdd9e5; font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace; font-size: 0.88rem; padding: 1.2rem 1.4rem; border-radius: 8px; overflow-x: auto; margin: 1.2rem 0; line-height: 1.6; border: 1px solid #2d4a66; }
+  .kw { color: #79b8ff; } .cm { color: #6a737d; font-style: italic; } .cl { color: #b392f0; } .st { color: #9ecbff; } .an { color: #85e89d; } .num { color: #f8c555; }
+  .info-box { background: #e8f4fd; border-left: 4px solid #0d6efd; padding: 0.9rem 1.2rem; border-radius: 0 6px 6px 0; margin: 1.2rem 0; font-size: 0.93rem; color: #0a3d6b; }
+  .concept-btn { display: inline-block; background: #f5a623; color: #0d2137; border: none; padding: 0.4rem 0.9rem; border-radius: 20px; font-size: 0.82rem; font-weight: 600; cursor: pointer; margin: 0.3rem 0.3rem 0.3rem 0; transition: background .2s, transform .1s; }
+  .concept-btn:hover { background: #e09510; transform: translateY(-1px); }
+  .concepts-row { margin: 1.5rem 0; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1000; align-items: center; justify-content: center; padding: 1rem; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: #fff; border-radius: 10px; max-width: 680px; width: 100%; max-height: 88vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .modal-header { background: #0d2137; color: #fff; padding: 1rem 1.4rem; border-radius: 10px 10px 0 0; display: flex; justify-content: space-between; align-items: center; }
+  .modal-header h3 { font-size: 1rem; }
+  .modal-close { background: none; border: none; color: #fff; font-size: 1.4rem; cursor: pointer; line-height: 1; }
+  .modal-body { padding: 1.4rem; }
+  .modal-body p { font-size: 0.93rem; margin-bottom: 0.8rem; }
+  .example-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin: 1rem 0 0.3rem; }
+  .bad { color: #c0392b; } .good { color: #27ae60; }
+  .tip-box { background: #f0faf0; border-left: 3px solid #27ae60; padding: 0.6rem 1rem; border-radius: 0 4px 4px 0; font-size: 0.88rem; margin-top: 1rem; }
+  .page-footer { display: flex; justify-content: space-between; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #dee2e6; gap: 1rem; flex-wrap: wrap; }
+  .nav-btn { background: #0d2137; color: #fff; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: background .2s; text-align: left; min-width: 160px; }
+  .nav-btn:hover { background: #163a5f; }
+  .nav-btn .nav-direction { font-size: 0.7rem; color: #a0b4c8; display: block; margin-bottom: 0.2rem; }
+  .nav-btn .nav-info { font-weight: 600; }
+  @media (max-width: 600px) { .container { padding: 1rem 1rem 3rem; } .topbar { padding: 0.6rem 1rem; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-title">Effective Java — Joshua Bloch</span>
+    <span class="topbar-sub">Chapter 2: Creating and Destroying Objects &nbsp;›&nbsp; Item 2: Consider a builder</span>
+  </div>
+  <div class="topbar-right">
+    <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+    <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+    <div class="page-nav-input-wrap">
+      <label for="pageNumInput">Sayfa</label>
+      <input type="text" id="pageNumInput" value="16" inputmode="numeric"
+             onkeydown="if(event.key==='Enter')goToPageNum()"
+             onblur="resetPageInput()" />
+      <div id="pageNavTooltip"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="page-label">Sayfa 16 / Page 16</div>
+  <div class="chapter-badge">Chapter 2 — Item 2: Çok Sayıda Parametreyle Karşılaşıldığında Builder'ı Düşünün / Consider a builder when faced with many constructor parameters</div>
+
+  <div class="continued-box">↩ Önceki sayfadan devam — <em>NyPizza</em> ve <em>Calzone</em> hiyerarşik builder sınıfları tamamlanıyor.</div>
+
+  <!-- NyPizza private constructor + Calzone -->
+  <div class="code-block">
+<span class="cm">// NyPizza kurucusu (önceki sayfadan devam)</span>
+    <span class="kw">private</span> <span class="cl">NyPizza</span>(<span class="cl">Builder</span> builder) {
+        <span class="kw">super</span>(builder);
+        size = builder.size;
+    }
+}
+
+<span class="kw">public class</span> <span class="cl">Calzone</span> <span class="kw">extends</span> <span class="cl">Pizza</span> {
+    <span class="kw">private final boolean</span> sauceInside;
+
+    <span class="kw">public static class</span> <span class="cl">Builder</span> <span class="kw">extends</span> <span class="cl">Pizza</span>.<span class="cl">Builder</span>&lt;<span class="cl">Builder</span>&gt; {
+        <span class="kw">private boolean</span> sauceInside = <span class="kw">false</span>; <span class="cm">// Varsayılan</span>
+
+        <span class="kw">public</span> <span class="cl">Builder</span> sauceInside() {
+            sauceInside = <span class="kw">true</span>;
+            <span class="kw">return this</span>;
+        }
+
+        <span class="an">@Override</span> <span class="kw">public</span> <span class="cl">Calzone</span> build() {
+            <span class="kw">return new</span> <span class="cl">Calzone</span>(<span class="kw">this</span>);
+        }
+
+        <span class="an">@Override</span> <span class="kw">protected</span> <span class="cl">Builder</span> self() { <span class="kw">return this</span>; }
+    }
+
+    <span class="kw">private</span> <span class="cl">Calzone</span>(<span class="cl">Builder</span> builder) {
+        <span class="kw">super</span>(builder);
+        sauceInside = builder.sauceInside;
+    }
+}</div>
+
+  <!-- Covariant return typing note -->
+  <div class="tr-text">
+    <p>Her alt sınıfın builder'ındaki <code>build()</code> metodu, doğru alt sınıfı döndürecek şekilde bildirilmiştir: <code>NyPizza.Builder</code>'ın <code>build()</code> metodu <code>NyPizza</code> döndürürken <code>Calzone.Builder</code>'ınki <code>Calzone</code> döndürür. Bir alt sınıf metodunun üst sınıfta bildirilen dönüş tipinin alt tipini döndürecek şekilde tanımlanması tekniğine <strong>kovaryant dönüş tipi belirleme (covariant return typing)</strong> adı verilir. Bu teknik sayesinde istemciler tip dönüşümüne (cast) gerek kalmadan bu builder'ları kullanabilir.</p>
+
+    <p>Bu "hiyerarşik builder'lar" için istemci kodu, basit <code>NutritionFacts</code> builder'ı için yazılan kodla neredeyse aynıdır. Aşağıdaki örnek kısalık olsun diye enum sabitlerinde statik import kullandığını varsaymaktadır:</p>
+  </div>
+  <div class="en-text" style="display:none">
+    <p>Note that the <code>build</code> method in each subclass's builder is declared to return the correct subclass: the build method of <code>NyPizza.Builder</code> returns <code>NyPizza</code>, while the one in <code>Calzone.Builder</code> returns <code>Calzone</code>. This technique, wherein a subclass method is declared to return a subtype of the return type declared in the super-class, is known as <strong>covariant return typing</strong>. It allows clients to use these builders without the need for casting.</p>
+
+    <p>The client code for these "hierarchical builders" is essentially identical to the code for the simple <code>NutritionFacts</code> builder. The example client code shown next assumes static imports on enum constants for brevity:</p>
+  </div>
+
+  <!-- Client code -->
+  <div class="code-block">
+<span class="cm">// Hiyerarşik builder'lar için istemci kodu</span>
+<span class="cl">NyPizza</span> pizza = <span class="kw">new</span> <span class="cl">NyPizza</span>.<span class="cl">Builder</span>(<span class="cl">SMALL</span>)
+        .addTopping(<span class="cl">SAUSAGE</span>).addTopping(<span class="cl">ONION</span>).build();
+
+<span class="cl">Calzone</span> calzone = <span class="kw">new</span> <span class="cl">Calzone</span>.<span class="cl">Builder</span>()
+        .addTopping(<span class="cl">HAM</span>).sauceInside().build();</div>
+
+  <div class="info-box">
+    <div class="tr-text">
+      <strong>Kovaryant dönüş tipi belirleme neden önemlidir?</strong><br>
+      <code>NyPizza.Builder.build()</code>'ın dönüş tipi <code>NyPizza</code>'dır; üst sınıftaki <code>Pizza</code> değil. Bu sayede istemci sonucu cast etmeden doğrudan <code>NyPizza</code> değişkenine atayabilir. Hem daha güvenli hem de daha okunabilir bir koddur.
+    </div>
+    <div class="en-text" style="display:none">
+      <strong>Why does covariant return typing matter?</strong><br>
+      <code>NyPizza.Builder.build()</code> returns <code>NyPizza</code>, not the supertype <code>Pizza</code>. This lets clients assign the result directly to a <code>NyPizza</code> variable without an explicit cast — making the code both safer and more readable.
+    </div>
+  </div>
+
+  <!-- Varargs advantage -->
+  <div class="tr-text">
+    <p>Builder'ların yapıcı metotlara karşı küçük bir avantajı, builder'ların birden fazla değişken argümanlı (varargs) parametreye sahip olabilmesidir; çünkü her parametre kendi ayrı metodunda belirtilir. Bunun yanı sıra builder'lar, bir metoda yapılan birden fazla çağrıda iletilen parametreleri tek bir alanda toplayabilir — daha önce gösterilen <code>addTopping</code> metodunda olduğu gibi.</p>
+  </div>
+  <div class="en-text" style="display:none">
+    <p>A minor advantage of builders over constructors is that builders can have multiple varargs parameters because each parameter is specified in its own method. Alternatively, builders can aggregate the parameters passed into multiple calls to a method into a single field, as demonstrated in the <code>addTopping</code> method earlier.</p>
+  </div>
+
+  <!-- Concept buttons -->
+  <div class="concepts-row">
+    <strong class="tr-text">🔍 Kavramlar:</strong>
+    <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+    <button class="concept-btn" onclick="openModal('covariant')">Kovaryant Dönüş Tipi</button>
+    <button class="concept-btn" onclick="openModal('hierarchy')">Hiyerarşik Builder</button>
+    <button class="concept-btn" onclick="openModal('varargs')">Builder &amp; Çoklu Parametreler</button>
+  </div>
+
+  <div class="cuts-box">⚠ Sayfa burada kesiliyor — Builder avantajları/dezavantajları ve Item 3 (Singleton) sonraki sayfada devam ediyor.</div>
+
+  <div class="page-footer">
+    <button class="nav-btn" onclick="window.location.href='page-15.html'">
+      <span class="nav-direction">← Önceki Sayfa</span>
+      <span class="nav-info">Sayfa 15 — Builder hiyerarşisi (Pizza)</span>
+    </button>
+    <button class="nav-btn" onclick="window.location.href='page-17.html'">
+      <span class="nav-direction">Sonraki Sayfa →</span>
+      <span class="nav-info">Sayfa 17 — Item 2 özeti, Item 3</span>
+    </button>
+  </div>
+</div>
+
+<!-- Modal: Covariant Return Typing -->
+<div class="modal-overlay" id="modal-covariant">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Kovaryant Dönüş Tipi / Covariant Return Typing</h3>
+      <button class="modal-close" onclick="closeModal('covariant')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tr-text">
+        <p>Kovaryant dönüş tipi belirleme, bir alt sınıf metodunun üst sınıftaki metoddan daha spesifik bir dönüş tipi bildirmesine olanak tanır. Builder hiyerarşilerinde her alt sınıfın <code>build()</code> metodu kendi somut tipini döndürür; istemci cast gerekmez.</p>
+      </div>
+      <div class="en-text" style="display:none">
+        <p>Covariant return typing lets a subclass method declare a more specific return type than the superclass method. In builder hierarchies, each subclass's <code>build()</code> returns its own concrete type, so clients need no casts.</p>
+      </div>
+      <div class="example-label bad">✗ KÖTÜ — Cast gerekli</div>
+      <div class="code-block" style="font-size:0.83rem">
+<span class="kw">abstract class</span> <span class="cl">VehicleBuilder</span> {
+    <span class="kw">abstract</span> <span class="cl">Vehicle</span> build(); <span class="cm">// Genel tip döndürüyor</span>
+}
+<span class="kw">class</span> <span class="cl">TruckBuilder</span> <span class="kw">extends</span> <span class="cl">VehicleBuilder</span> {
+    <span class="an">@Override</span> <span class="kw">public</span> <span class="cl">Vehicle</span> build() { <span class="kw">return new</span> <span class="cl">Truck</span>(<span class="kw">this</span>); }
+}
+<span class="cl">Truck</span> t = (<span class="cl">Truck</span>) <span class="kw">new</span> <span class="cl">TruckBuilder</span>().build(); <span class="cm">// Cast!</span>
+      </div>
+      <div class="example-label good">✓ İYİ — Kovaryant dönüş, cast yok</div>
+      <div class="code-block" style="font-size:0.83rem">
+<span class="kw">class</span> <span class="cl">TruckBuilder</span> <span class="kw">extends</span> <span class="cl">VehicleBuilder</span> {
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="cl">Truck</span> build() { <span class="cm">// Truck döndürüyor — kovaryant!</span>
+        <span class="kw">return new</span> <span class="cl">Truck</span>(<span class="kw">this</span>);
+    }
+}
+<span class="cl">Truck</span> t = <span class="kw">new</span> <span class="cl">TruckBuilder</span>().load(<span class="num">5000</span>).build(); <span class="cm">// Temiz</span>
+      </div>
+      <div class="tip-box tr-text">💡 Her alt sınıf builder'ında <code>@Override build()</code> metodunu kendi somut tipini döndürecek şekilde tanımlayın. Bu, Java'nın tip sistemiyle uyumlu, güvenli ve okunabilir bir API sağlar.</div>
+      <div class="tip-box en-text" style="display:none">💡 Always override <code>build()</code> in each concrete subclass builder to return the concrete type. This yields a type-safe, readable API that leverages Java's type system.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Hiyerarşik Builder -->
+<div class="modal-overlay" id="modal-hierarchy">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Hiyerarşik Builder / Hierarchical Builder</h3>
+      <button class="modal-close" onclick="closeModal('hierarchy')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tr-text">
+        <p>Hiyerarşik builder'lar, sınıf hiyerarşisini birebir yansıtan builder hiyerarşileri oluşturur. Her alt sınıf builder'ı, üst sınıf builder'ını genişletir. Ortak parametreler üst sınıfta, özgül parametreler alt sınıfta tanımlanır. Bu sayede kod tekrarı önlenir ve her alt sınıfa özel parametreler tip-güvenli biçimde desteklenir.</p>
+      </div>
+      <div class="en-text" style="display:none">
+        <p>Hierarchical builders mirror the class hierarchy in the builder hierarchy. Each subclass builder extends the parent builder. Common parameters live in the parent, subclass-specific ones in the child. This eliminates code duplication and supports type-safe subclass-specific parameters.</p>
+      </div>
+      <div class="example-label bad">✗ KÖTÜ — Tekrarlı, bağımsız builder'lar</div>
+      <div class="code-block" style="font-size:0.83rem">
+<span class="kw">class</span> <span class="cl">CarBuilder</span> {
+    <span class="kw">private</span> <span class="cl">String</span> color; <span class="kw">private int</span> seats;
+    <span class="kw">public</span> <span class="cl">CarBuilder</span> color(<span class="cl">String</span> c) { color = c; <span class="kw">return this</span>; }
+    <span class="kw">public</span> <span class="cl">Car</span> build() { <span class="kw">return new</span> <span class="cl">Car</span>(color, seats); }
+}
+<span class="kw">class</span> <span class="cl">ElectricCarBuilder</span> { <span class="cm">// color mantığı kopyalandı!</span>
+    <span class="kw">private</span> <span class="cl">String</span> color; <span class="kw">private int</span> batteryKwh;
+    <span class="kw">public</span> <span class="cl">ElectricCarBuilder</span> color(<span class="cl">String</span> c) { color = c; <span class="kw">return this</span>; }
+    <span class="kw">public</span> <span class="cl">ElectricCar</span> build() { <span class="kw">return new</span> <span class="cl">ElectricCar</span>(color, batteryKwh); }
+}
+      </div>
+      <div class="example-label good">✓ İYİ — Hiyerarşik builder</div>
+      <div class="code-block" style="font-size:0.83rem">
+<span class="kw">abstract class</span> <span class="cl">VehicleBuilder</span>&lt;<span class="cl">T</span> <span class="kw">extends</span> <span class="cl">VehicleBuilder</span>&lt;<span class="cl">T</span>&gt;&gt; {
+    <span class="kw">private</span> <span class="cl">String</span> color;
+    <span class="kw">public</span> <span class="cl">T</span> color(<span class="cl">String</span> c) { color = c; <span class="kw">return</span> self(); }
+    <span class="kw">abstract</span> <span class="cl">Vehicle</span> build();
+    <span class="kw">protected abstract</span> <span class="cl">T</span> self();
+}
+<span class="kw">class</span> <span class="cl">ElectricCarBuilder</span> <span class="kw">extends</span> <span class="cl">VehicleBuilder</span>&lt;<span class="cl">ElectricCarBuilder</span>&gt; {
+    <span class="kw">private int</span> batteryKwh;
+    <span class="kw">public</span> <span class="cl">ElectricCarBuilder</span> batteryKwh(<span class="kw">int</span> b) { batteryKwh = b; <span class="kw">return this</span>; }
+    <span class="an">@Override</span> <span class="kw">public</span> <span class="cl">ElectricCar</span> build() { <span class="kw">return new</span> <span class="cl">ElectricCar</span>(<span class="kw">this</span>); }
+    <span class="an">@Override</span> <span class="kw">protected</span> <span class="cl">ElectricCarBuilder</span> self() { <span class="kw">return this</span>; }
+}
+<span class="cl">ElectricCar</span> car = <span class="kw">new</span> <span class="cl">ElectricCarBuilder</span>().color(<span class="st">"blue"</span>).batteryKwh(<span class="num">75</span>).build();
+      </div>
+      <div class="tip-box tr-text">💡 Sınıf hiyerarşiniz büyüdükçe hiyerarşik builder, ortak alanları üst sınıfta toplar ve her alt sınıf yalnızca kendine özgü parametreleri ekler.</div>
+      <div class="tip-box en-text" style="display:none">💡 As your class hierarchy grows, hierarchical builders centralize common fields in the parent builder while each subclass adds only its own specific parameters.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Varargs / Multiple Params -->
+<div class="modal-overlay" id="modal-varargs">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Builder &amp; Çoklu Parametreler / Builder with Multiple Parameters</h3>
+      <button class="modal-close" onclick="closeModal('varargs')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tr-text">
+        <p>Yapıcı metotlarda yalnızca son parametre varargs olabilir. Birden fazla liste-türü parametre gerektiğinde yapıcılar yetersiz kalır. Builder'lar her parametreyi ayrı metodda tanımladığı için bu kısıtlamadan kurtulur ve aynı metot birden fazla kez çağrılarak değerler biriktirilir.</p>
+      </div>
+      <div class="en-text" style="display:none">
+        <p>Constructors allow at most one varargs parameter, always at the end. When you need multiple list-type parameters, constructors fall short. Builders solve this by defining each parameter in its own method, allowing the same method to be called multiple times to accumulate values.</p>
+      </div>
+      <div class="example-label bad">✗ KÖTÜ — Yapıcıda birden fazla varargs olamaz</div>
+      <div class="code-block" style="font-size:0.83rem">
+<span class="cm">// Derleme hatası: iki varargs parametresi olamaz</span>
+<span class="kw">public</span> <span class="cl">Report</span>(<span class="cl">String</span>... sections, <span class="cl">String</span>... authors) { ... }
+
+<span class="cm">// Geçici çözüm: List kullanmak zorunda kalıyoruz — okunaksız</span>
+<span class="kw">public</span> <span class="cl">Report</span>(<span class="cl">List</span>&lt;<span class="cl">String</span>&gt; sections, <span class="cl">List</span>&lt;<span class="cl">String</span>&gt; authors) { ... }
+<span class="kw">new</span> <span class="cl">Report</span>(<span class="cl">List</span>.of(<span class="st">"Intro"</span>, <span class="st">"Body"</span>), <span class="cl">List</span>.of(<span class="st">"Alice"</span>, <span class="st">"Bob"</span>));
+      </div>
+      <div class="example-label good">✓ İYİ — Builder ile çoklu biriktirme</div>
+      <div class="code-block" style="font-size:0.83rem">
+<span class="kw">class</span> <span class="cl">Report</span> {
+    <span class="kw">static class</span> <span class="cl">Builder</span> {
+        <span class="kw">private final</span> <span class="cl">List</span>&lt;<span class="cl">String</span>&gt; sections = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;&gt;();
+        <span class="kw">private final</span> <span class="cl">List</span>&lt;<span class="cl">String</span>&gt; authors = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;&gt;();
+
+        <span class="kw">public</span> <span class="cl">Builder</span> addSection(<span class="cl">String</span> s) { sections.add(s); <span class="kw">return this</span>; }
+        <span class="kw">public</span> <span class="cl">Builder</span> addAuthor(<span class="cl">String</span> a) { authors.add(a); <span class="kw">return this</span>; }
+        <span class="kw">public</span> <span class="cl">Report</span> build() { <span class="kw">return new</span> <span class="cl">Report</span>(<span class="kw">this</span>); }
+    }
+}
+<span class="cl">Report</span> r = <span class="kw">new</span> <span class="cl">Report</span>.<span class="cl">Builder</span>()
+    .addSection(<span class="st">"Giriş"</span>).addSection(<span class="st">"Sonuç"</span>)
+    .addAuthor(<span class="st">"Alice"</span>).addAuthor(<span class="st">"Bob"</span>)
+    .build();
+      </div>
+      <div class="tip-box tr-text">💡 Aynı <code>addX()</code> metodunu birden fazla kez çağırarak değerleri biriktirme tekniği, Builder kalıbının en etkileyici özelliklerinden biridir — özellikle topping/tag/permission gibi koleksiyon parametreleri için idealdir.</div>
+      <div class="tip-box en-text" style="display:none">💡 Calling the same <code>addX()</code> method multiple times to accumulate values is one of the most powerful features of the Builder pattern — especially for collection parameters like toppings, tags, or permissions.</div>
+    </div>
+  </div>
+</div>
+
+<script>const CURRENT_PAGE = 16;</script>
+<script src="../js/common.js"></script>
+</body>
+</html>

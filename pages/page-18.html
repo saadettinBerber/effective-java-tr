@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 18</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7;
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623;
+        }
+
+        .topbar-sub {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+            margin-top: 0.1rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all .2s;
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700;
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            position: relative;
+        }
+
+        .page-nav-input-wrap label {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: 0.22rem 0.4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s;
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1;
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        .item-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0d2137;
+            margin: 2rem 0 0.5rem;
+            line-height: 1.3;
+        }
+
+        .item-title-en {
+            font-size: 1.1rem;
+            color: #6c757d;
+            font-weight: 400;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+
+        .page-label {
+            font-size: 0.78rem;
+            color: #6c757d;
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem;
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: 0.88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66;
+        }
+
+        .kw {
+            color: #79b8ff;
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic;
+        }
+
+        .cl {
+            color: #b392f0;
+        }
+
+        .st {
+            color: #9ecbff;
+        }
+
+        .an {
+            color: #85e89d;
+        }
+
+        .num {
+            color: #f8c555;
+        }
+
+        .info-box {
+            background: #e8f4fd;
+            border-left: 4px solid #0d6efd;
+            padding: 0.9rem 1.2rem;
+            border-radius: 0 6px 6px 0;
+            margin: 1.2rem 0;
+            font-size: 0.93rem;
+            color: #0a3d6b;
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0.3rem 0.3rem 0.3rem 0;
+            transition: background .2s, transform .1s;
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px);
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 1.4rem;
+        }
+
+        .modal-body p {
+            font-size: 0.93rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .example-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin: 1rem 0 0.3rem;
+        }
+
+        .bad {
+            color: #c0392b;
+        }
+
+        .good {
+            color: #27ae60;
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: 0.6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.88rem;
+            margin-top: 1rem;
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px;
+        }
+
+        .nav-btn:hover {
+            background: #163a5f;
+        }
+
+        .nav-btn .nav-direction {
+            font-size: 0.7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem 1rem 3rem;
+            }
+
+            .topbar {
+                padding: 0.6rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 2: Creating and Destroying Objects &nbsp;›&nbsp; Item 3: Singleton property
+                / Item 4: Noninstantiability</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="18" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 18 / Page 18</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 3 (Singleton) public final alan yaklaşımı.</em>
+        </div>
+
+        <!-- Code Block for Singleton with public final field -->
+        <div class="code-block">
+            <span class="cm">// Public final alana sahip Singleton (Singleton with public final field)</span>
+            <span class="kw">public class</span> <span class="cl">Elvis</span> {
+            <span class="kw">public static final</span> <span class="cl">Elvis</span> INSTANCE = <span
+                class="kw">new</span> <span class="cl">Elvis</span>();
+            <span class="kw">private</span> <span class="cl">Elvis</span>() { ... }
+            <span class="kw">public void</span> leaveTheBuilding() { ... }
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Private yapıcı metot (constructor), sadece public statik final alan olan <code>Elvis.INSTANCE</code>
+                ilklendirilirken bir kez çağrılır. Public veya protected bir yapıcı metodun olmaması, "mono-elvis" bir
+                evreni garanti eder: <code>Elvis</code> sınıfı ilklendirildiğinde geriye tam olarak tek bir
+                <code>Elvis</code> örneği (instance) var olacaktır—ne daha fazla ne daha az. Bir istemcinin (client)
+                yapacağı hiçbir şey bunu değiştiremez, ufak bir istisna dışında: ayrıcalıklı bir istemci,
+                <code>AccessibleObject.setAccessible</code> metodunun yardımıyla reflection (yansıtma) aracılığıyla
+                (Madde 65) private yapıcı metodu çalıştırabilir. Bu tür saldırılara karşı kodunuzu korumanız gerekirse,
+                yapıcı metodu değiştirip ikinci bir örnek oluşturulmak istendiğinde itiraz etmesini (exception
+                fırlatmasını) sağlayabilirsiniz.</p>
+
+            <p>Singleton uygulamanın ikinci yaklaşımında ise dışarıya açılan üye (public member), statik fabrika
+                metodudur (static factory method):</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>The private constructor is called only once, to initialize the public static final field
+                <code>Elvis.INSTANCE</code>. The lack of a public or protected constructor guarantees a "monoelvistic"
+                universe: exactly one <code>Elvis</code> instance will exist once the <code>Elvis</code> class is
+                initialized—no more, no less. Nothing that a client does can change this, with one caveat: a privileged
+                client can invoke the private constructor reflectively (Item 65) with the aid of the
+                <code>AccessibleObject.setAccessible</code> method. If you need to defend against this attack, modify
+                the constructor to make it throw an exception if it’s asked to create a second instance.</p>
+
+            <p>In the second approach to implementing singletons, the public member is a static factory method:</p>
+        </div>
+
+        <!-- Code Block for Singleton with static factory -->
+        <div class="code-block">
+            <span class="cm">// Statik fabrika (static factory) ile Singleton</span>
+            <span class="kw">public class</span> <span class="cl">Elvis</span> {
+            <span class="kw">private static final</span> <span class="cl">Elvis</span> INSTANCE = <span
+                class="kw">new</span> <span class="cl">Elvis</span>();
+            <span class="kw">private</span> <span class="cl">Elvis</span>() { ... }
+            <span class="kw">public static</span> <span class="cl">Elvis</span> getInstance() { <span
+                class="kw">return</span> INSTANCE; }
+            <span class="kw">public void</span> leaveTheBuilding() { ... }
+            }
+        </div>
+
+        <div class="tr-text">
+            <p><code>Elvis.getInstance</code> metoduna yapılan tüm çağrılar aynı nesne referansını döndürür ve (daha
+                önce bahsedilen kural dışı durum hariç) bir başka <code>Elvis</code> örneği asla yaratılmaz.</p>
+
+            <p>Public alan (public field) yaklaşımının temel avantajı, API'nin sınıfın bir singleton olduğunu çok açık
+                bir şekilde belirtmesidir: public statik alan final olduğu için, o alan daima aynı nesneye referans
+                edecektir. Bu yaklaşımın ikinci avantajı ise daha basit olmasıdır.</p>
+
+            <p>Statik fabrika (static factory) yaklaşımının bir avantajı, API'yi değiştirmeden sınıfın singleton olup
+                olmayacağı konusundaki fikrinizi değiştirme esnekliği sunmasıdır. Fabrika metodu yegane (sole) örneği
+                döndürür ancak ileride değiştirilebilir; örneğin onu çağıran her iş parcacığı (thread) için ayrı bir
+                örnek fırlatabilir. İkinci avantajı ise uygulamanız gerektiriyorsa jenerik (generic) bir singleton
+                fabrikası yazabilmenizdir (Madde 30). Statik fabrikalar kullanmanın son bir avantajı da bu metot
+                referansının (method reference) bir supplier (sağlayıcı) olarak kullanılabilmesidir, örneğin
+                <code>Elvis::instance</code> aslında bir <code>Supplier&lt;Elvis&gt;</code> dir. Eğer uygulamanız için
+                bu saydığımız avantajlar kullanılmayacaksa public alan yaklaşımı daha çok tercih edilmelidir.</p>
+
+            <p>Bu iki yaklaşımdan herhangi birini kullanan bir singleton sınıfını serileştirilebilir (Chapter 12) yapmak
+                için sınıfa basitçe <code>implements Serializable</code> eklemek yeterli değildir. Singleton garantisini
+                koruyabilmek için, örnekteki tüm alanları transient (geçici) olarak deklare edin ve (Madde 89'da
+                bahsedilen) kendi <code>readResolve</code> metodunuzu yazın. Aksi taktirde (örneğin de-serileştirme
+                esnasında) yepyeni bir örnek yaratılacaktır, bu durumda elinizde birden çok sinsi şekilde varolan
+                Elvis'ler olabilir. Bunu önlemek için, <code>Elvis</code> sınıfına şu readResolve metodunu
+                eklemelisiniz:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>All calls to <code>Elvis.getInstance</code> return the same object reference, and no other
+                <code>Elvis</code> instance will ever be created (with the same caveat mentioned earlier).</p>
+
+            <p>The main advantage of the public field approach is that the API makes it clear that the class is a
+                singleton: the public static field is final, so it will always contain the same object reference. The
+                second advantage is that it’s simpler.</p>
+
+            <p>One advantage of the static factory approach is that it gives you the flexibility to change your mind
+                about whether the class is a singleton without changing its API. The factory method returns the sole
+                instance, but it could be modified to return, say, a separate instance for each thread that invokes it.
+                A second advantage is that you can write a generic singleton factory if your application requires it
+                (Item 30). A final advantage of using a static factory is that a method reference can be used as a
+                supplier, for example <code>Elvis::instance</code> is a <code>Supplier&lt;Elvis&gt;</code>. Unless one
+                of these advantages is relevant, the public field approach is preferable.</p>
+
+            <p>To make a singleton class that uses either of these approaches serializable (Chapter 12), it is not
+                sufficient merely to add <code>implements Serializable</code> to its declaration. To maintain the
+                singleton guarantee, declare all instance fields transient and provide a <code>readResolve</code> method
+                (Item 89). Otherwise, each time a serialized instance is deserialized, a new instance will be created,
+                leading, in the case of our example, to spurious Elvis sightings. To prevent this from happening, add
+                this <code>readResolve</code> method to the <code>Elvis</code> class:</p>
+        </div>
+
+        <!-- Code Block for readResolve -->
+        <div class="code-block">
+            <span class="cm">// singleton özelliğini korumak için readResolve metodu</span>
+            <span class="kw">private</span> <span class="cl">Object</span> readResolve() {
+            <span class="cm">// Tek hakiki (true) Elvis'i döndürün ve</span>
+            <span class="cm">// çöp toplayıcısına (garbage collector) Elvis taklitçisini temizelettirin.</span>
+            <span class="kw">return</span> INSTANCE;
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Singleton uygulamanın üçüncü bir yolu, tek elemanlı bir enum (single-element enum) deklare etmektir:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>A third way to implement a singleton is to declare a single-element enum:</p>
+        </div>
+
+        <!-- Code Block for Enum singleton -->
+        <div class="code-block">
+            <span class="cm">// Enum singleton - tercih edilen yaklaşım</span>
+            <span class="kw">public enum</span> <span class="cl">Elvis</span> {
+            INSTANCE;
+            <span class="kw">public void</span> leaveTheBuilding() { ... }
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Bu yaklaşım, public final alan yaklaşımına benzer ancak daha az kod gerektirir (concise), serileştirme
+                altyapısını bedavaya sağlar ve gelişmiş serileştirme ya da reflection (yansıma) saldırıları karşısında
+                dahi birden fazla örnek oluşturulmasına karşı demir gibi sert bir garanti sağlar. Bu yaklaşım biraz
+                tuhaf hissettirse de, <strong>tek elemanlı bir enum tipi genellikle bir singleton uygulamak için en iyi
+                    yoldur</strong>. Singleton değeriniz <code>Enum</code> dışında farklı bir üst sınıftan türetilecekse
+                (extend edilecekse) bu yöntemi uygulayamazsınız, ama enum sınıfları içlerine farklı interface (arayüz)
+                tiplerinden implemente edebilirler.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>This approach is similar to the public field approach, but it is more concise, provides the serialization
+                machinery for free, and provides an ironclad guarantee against multiple instantiation, even in the face
+                of sophisticated serialization or reflection attacks. This approach may feel a bit unnatural, but
+                <strong>a single-element enum type is often the best way to implement a singleton</strong>. Note that
+                you can’t use this approach if your singleton must extend a superclass other than <code>Enum</code>
+                (though you can declare an enum to implement interfaces).</p>
+        </div>
+
+        <hr style="border:0; border-top:1px solid #dee2e6; margin: 2rem 0;">
+
+        <!-- Start of Item 4 -->
+        <div class="chapter-badge">Chapter 2 — Item 4</div>
+        <h1 class="item-title tr-text">Madde 4: private yapıcı metotlarla örneklenememeyi garanti altına alın</h1>
+        <div class="item-title-en en-text" style="display:none">Item 4: Enforce noninstantiability with a private
+            constructor</div>
+
+        <div class="tr-text">
+            <p>Zaman zaman (sadece statik metod ve statik elemanların buluduğu gruplamalar) statik yardımcı (utility)
+                sınıfları yazmak isteyebilirsiniz. Bu sınıfların ünvanı çok zedelidir ancak bazen... (Devamı sonraki
+                sayfada)</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Occasionally you’ll want to write a class that is just a grouping of static methods and static fields.
+                Such classes have acquired a bad reputation because some... (Continued on next page)</p>
+        </div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('serialization')">Serialization (Serileştirme)</button>
+            <button class="concept-btn" onclick="openModal('reflection')">Reflection (Yansıma)</button>
+            <button class="concept-btn" onclick="openModal('supplier')">Supplier</button>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 4 (Noninstantiability) sonraki sayfada devam ediyor.
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-17.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 17 — Singleton yaklaşımları giriş</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-19.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 19 — Madde 4 yardımcı sınıflar</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Serialization -->
+    <div class="modal-overlay" id="modal-serialization">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Serialization (Serileştirme) / Serialization</h3>
+                <button class="modal-close" onclick="closeModal('serialization')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Serileştirme, bellekteki bir nesneyi diskte saklayabileceğiniz veya ağ üzerinden
+                        gönderebileceğiniz bir bayt dizisine dönüştürme işlemidir. Singleton'lar serileştirilip tekrar
+                        belleğe yüklendiğinde (de-serileştirme), Java orijinal nesne yerine yepyeni bir örnek yaratır ve
+                        bu da Singleton garantisini (sadakatini) bozar. <code>Enum</code> kullanmak bunu JVM seviyesinde
+                        otomatik çözer.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Serialization is the process of translating a data structure or object state into a format that
+                        can be stored or transmitted and reconstructed later. When Singletons are deserialized, Java
+                        forces a new instance, breaking the Singleton property. Using an <code>Enum</code> solves this
+                        neatly as the JVM handles it automatically.</p>
+                </div>
+                <div class="tip-box tr-text">💡 Enum kullanmadığınız singleton sınıflarında, yeni kopya yaratılmasını
+                    önlemek için <code>readResolve()</code> metoduna ihtiyacınız vardır.</div>
+                <div class="tip-box en-text" style="display:none">💡 If you're not using an enum for your Singleton, you
+                    must provide a <code>readResolve()</code> method to prevent multiple instances upon deserialization.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Reflection -->
+    <div class="modal-overlay" id="modal-reflection">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Reflection (Yansıma) / Reflection</h3>
+                <button class="modal-close" onclick="closeModal('reflection')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Reflection (Yansıma), bir Java programının çalışma zamanında (runtime) kendini incelemesi ve
+                        değiştirmesidir. Private yapılmış bir constructor'ı bile <code>setAccessible(true)</code> ile
+                        public gibi kullanılabilir hale getirebiliriz.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Reflection is the ability of a program to examine and modify its structure and behavior at
+                        runtime. Through reflection, even a private constructor can be invoked via
+                        <code>setAccessible(true)</code>.</p>
+                </div>
+                <div class="example-label bad">✗ TEHLİKE — Yansıma ile Constructor Hack'lemek</div>
+                <div class="code-block" style="font-size:0.83rem">
+                    <span class="cl">Constructor</span>&lt;<span class="cl">Elvis</span>&gt; constructor = <span
+                        class="cl">Elvis</span>.class.getDeclaredConstructor();
+                    constructor.setAccessible(<span class="kw">true</span>); <span class="cm">// Korumaları
+                        aşıyoruz!</span>
+                    <span class="cl">Elvis</span> fakeElvis = constructor.newInstance(); <span class="cm">// Alın size
+                        2. Elvis!</span>
+                </div>
+                <div class="tip-box tr-text">💡 Kötü amaçlı bir kod bu şekilde singleton kuralınızı delebilir. Bunu
+                    engellemenin en iyi yolu ya constructor içinde static sayacı kontrol edip exception atmak ya da yine
+                    <b>Enum</b> (en ideali!) kullanmaktır, çünkü yansıma (reflection) yoluyla enum başlatmak tamamen JVM
+                    tarafından yasaklanmıştır.</div>
+                <div class="tip-box en-text" style="display:none">💡 Malicious (or buggy) code can break the singleton
+                    rule using this. The best defense is to throw an Exception from the constructor if an instance
+                    already exists, or just use an <b>Enum</b> which strictly prohibits instantiation via reflection.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Supplier -->
+    <div class="modal-overlay" id="modal-supplier">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Supplier Function (Sağlayıcı) / Supplier</h3>
+                <button class="modal-close" onclick="closeModal('supplier')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>Supplier&lt;T&gt;</code>, Java 8 ile gelen ve parametre almadan belirli bir türde değer
+                        üreten bir fonksiyonel arayüzdür. <code>Elvis.getInstance()</code> (statik fabrika) yöntemi,
+                        fonksiyon bekleyen yerlerde doğrudan <code>Elvis::getInstance</code> referansı kullanılarak
+                        <code>Supplier</code> yerine çok rahat geçirilir.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><code>Supplier&lt;T&gt;</code> is a functional interface from Java 8 that takes no arguments and
+                        returns a value. A static factory method (<code>Elvis.getInstance</code>) can be used anywhere a
+                        Supplier is needed via method reference (<code>Elvis::getInstance</code>).</p>
+                </div>
+                <div class="example-label good">✓ İYİ — Metod referansı ile kullanımı</div>
+                <div class="code-block" style="font-size:0.83rem">
+                    <span class="kw">public void</span> performTask(<span class="cl">Supplier</span>&lt;<span
+                        class="cl">Elvis</span>&gt; elvisSupplier) {
+                    <span class="cl">Elvis</span> elvis = elvisSupplier.get();
+                    elvis.leaveTheBuilding();
+                    }
+
+                    <span class="cm">// Kullanım</span>
+                    performTask(<span class="cl">Elvis</span>::getInstance);
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 18;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

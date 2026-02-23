@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 31</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .example-label {
+            font-size: .75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin: 1rem 0 .3rem
+        }
+
+        .bad {
+            color: #c0392b
+        }
+
+        .good {
+            color: #27ae60
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 2: Creating and Destroying Objects &nbsp;›&nbsp; Item 8: Avoid finalizers
+                and cleaners</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="31" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 31 / Page 31</div>
+        <div class="chapter-badge">Chapter 2 — Item 8: Sonlandırıcılardan ve Temizleyicilerden Kaçının / Avoid
+            finalizers and cleaners</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 8: Native peer ve Cleaner kullanımı</em></div>
+
+        <div class="tr-text">
+            <p>Temizleyicilerin ikinci meşru (legitimate) kullanım alanı, <strong>doğal eşdüzey nesnelerle (native
+                    peers)</strong> ilgilidir. Doğal eşdüzey nesne (native peer), normal bir nesnenin doğal metotlar
+                (native methods) aracılığıyla yetki devrettiği (delegates) doğal (Java-dışı) bir nesnedir. Doğal eşdüzey
+                nesne normal bir nesne olmadığından, Çöp Toplayıcı onun hakkında bilgi sahibi değildir ve Java eşdüzeyi
+                (Java peer) geri alındığında onu geri alamaz. Bu görev için, performans kabul edilebilir olduğu ve doğal
+                eşdüzey nesne kritik kaynaklar (critical resources) taşımadığı varsayımıyla, bir temizleyici veya
+                sonlandırıcı uygun bir araç (vehicle) olabilir. Performans kabul edilemezse veya doğal eşdüzey nesne
+                derhal geri alınması gereken kaynaklar taşıyorsa, sınıfın daha önce anlatıldığı gibi bir
+                <code>close</code> metodu olmalıdır.</p>
+
+            <p>Temizleyicilerin kullanımı biraz çetrefillidir (tricky). Aşağıda, olanağı gösteren basit bir
+                <code>Room</code> sınıfı yer almaktadır. Odaların, geri alınmadan önce temizlenmesi (cleaned)
+                gerektiğini varsayalım. <code>Room</code> sınıfı <code>AutoCloseable</code> arayüzünü uygular; otomatik
+                temizleme güvenlik ağının bir temizleyici kullanması salt bir uygulama detayıdır (implementation
+                detail). Sonlandırıcıların aksine, temizleyiciler bir sınıfın kamusal API'sini (public API) kirletmez:
+            </p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>A second legitimate use of cleaners concerns objects with <strong>native peers</strong>. A native peer is
+                a native (non-Java) object to which a normal object delegates via native methods. Because a native peer
+                is not a normal object, the garbage collector doesn't know about it and can't reclaim it when its Java
+                peer is reclaimed. A cleaner or finalizer may be an appropriate vehicle for this task, assuming the
+                performance is acceptable and the native peer holds no critical resources. If the performance is
+                unacceptable or the native peer holds resources that must be reclaimed promptly, the class should have a
+                <code>close</code> method, as described earlier.</p>
+
+            <p>Cleaners are a bit tricky to use. Below is a simple <code>Room</code> class demonstrating the facility.
+                Let's assume that rooms must be cleaned before they are reclaimed. The <code>Room</code> class
+                implements <code>AutoCloseable</code>; the fact that its automatic cleaning safety net uses a cleaner is
+                merely an implementation detail. Unlike finalizers, cleaners do not pollute a class's public API:</p>
+        </div>
+
+        <!-- Room class code -->
+        <div class="code-block">
+            <span class="cm">// Güvenlik ağı olarak cleaner kullanan AutoCloseable sınıf</span>
+            <span class="cm">// An autocloseable class using a cleaner as a safety net</span>
+            <span class="kw">public class</span> <span class="cl">Room</span> <span class="kw">implements</span> <span
+                class="cl">AutoCloseable</span> {
+            <span class="kw">private static final</span> <span class="cl">Cleaner</span> cleaner = <span
+                class="cl">Cleaner</span>.create();
+
+            <span class="cm">// Temizleme gerektiren kaynak. Room'a referans vermemeli!</span>
+            <span class="cm">// Resource that requires cleaning. Must not refer to Room!</span>
+            <span class="kw">private static class</span> <span class="cl">State</span> <span
+                class="kw">implements</span> <span class="cl">Runnable</span> {
+            <span class="kw">int</span> numJunkPiles; <span class="cm">// Bu odadaki çöp yığını sayısı</span>
+
+            <span class="cl">State</span>(<span class="kw">int</span> numJunkPiles) {
+            <span class="kw">this</span>.numJunkPiles = numJunkPiles;
+            }
+
+            <span class="cm">// close metodu veya cleaner tarafından çağrılır</span>
+            <span class="an">@Override</span> <span class="kw">public void</span> run() {
+            <span class="cl">System</span>.out.println(<span class="st">"Cleaning room"</span>);
+            numJunkPiles = <span class="num">0</span>;
+            }
+            }
+
+            <span class="cm">// Bu odanın durumu, cleanable ile paylaşılır</span>
+            <span class="kw">private final</span> <span class="cl">State</span> state;
+
+            <span class="cm">// Cleanable'ımız. Oda GC'ye uygun olduğunda odayı temizler</span>
+            <span class="kw">private final</span> <span class="cl">Cleaner.Cleanable</span> cleanable;
+
+            <span class="kw">public</span> <span class="cl">Room</span>(<span class="kw">int</span> numJunkPiles) {
+            state = <span class="kw">new</span> <span class="cl">State</span>(numJunkPiles);
+            cleanable = cleaner.register(<span class="kw">this</span>, state);
+            }
+
+            <span class="an">@Override</span> <span class="kw">public void</span> close() {
+            cleanable.clean();
+            }
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Statik iç içe sınıf (static nested class) <code>State</code>, temizleyicinin odayı temizlemesi için
+                gereken kaynakları tutar. Bu durumda, bu basitçe odadaki karmaşıklık miktarını temsil eden
+                <code>numJunkPiles</code> alanıdır. Daha gerçekçi bir senaryoda, doğal bir eşdüzey nesneye (native peer)
+                işaret eden bir <code>final long</code> olabilirdi. <code>State</code>, <code>Runnable</code> arayüzünü
+                uygular ve <code>run</code> metodu, <code>Room</code> yapıcısında <code>State</code> örneğimizi
+                temizleyicimizle kaydettiğimizde (register) elde ettiğimiz <code>Cleanable</code> tarafından en fazla
+                bir kez çağrılır. <code>run</code> metodunun çağrılması iki şeyden biri tarafından tetiklenir:
+                Genellikle <code>Room</code>'un <code>close</code> metodunun <code>Cleanable</code>'ın
+                <code>clean</code> metodunu çağırmasıyla tetiklenir. İstemci, bir <code>Room</code> örneği çöp toplamaya
+                uygun hale gelene kadar <code>close</code> metodunu çağırmazsa, temizleyici (umarız ki)
+                <code>State</code>'in <code>run</code> metodunu çağıracaktır.</p>
+
+            <p><strong>Kritik bir nokta:</strong> Bir <code>State</code> örneğinin kendi <code>Room</code> örneğine
+                referans vermemesi hayati önem taşır. Eğer verseydi, <code>Room</code> örneğinin çöp toplamaya uygun
+                hale gelmesini (ve otomatik temizlenmesini) engelleyecek bir döngüsellik (circularity) yaratırdı. Bu
+                nedenle <code>State</code>, iç içe olmayan sınıflar (nonstatic nested classes) kapsayan örneklerine
+                (enclosing instances) referans içerdiğinden (Madde 24), <b>statik bir iç içe sınıf</b> olmalıdır. Aynı
+                şekilde, kapsayan nesnelere referans yakalayabilecekleri (capture) için lambda kullanmak da tavsiye
+                edilmez.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>The static nested <code>State</code> class holds the resources required by the cleaner to clean the room.
+                In this case, it is simply the <code>numJunkPiles</code> field. More realistically, it might be a
+                <code>final long</code> containing a pointer to a native peer. <code>State</code> implements
+                <code>Runnable</code>, and its <code>run</code> method is called at most once by the
+                <code>Cleanable</code> we get when we register our <code>State</code> instance with our cleaner in the
+                <code>Room</code> constructor. The call to the <code>run</code> method will be triggered by one of two
+                things: Usually by <code>Room</code>'s <code>close</code> method calling <code>Cleanable</code>'s
+                <code>clean</code> method. If the client fails to call the <code>close</code> method by the time a
+                <code>Room</code> instance is eligible for garbage collection, the cleaner will (hopefully) call
+                <code>State</code>'s <code>run</code> method.</p>
+
+            <p>It is critical that a <code>State</code> instance does not refer to its <code>Room</code> instance. If it
+                did, it would create a circularity that would prevent the <code>Room</code> instance from becoming
+                eligible for garbage collection (and from being automatically cleaned). Therefore, <code>State</code>
+                must be a static nested class because nonstatic nested classes contain references to their enclosing
+                instances (Item 24). It is similarly inadvisable to use a lambda because they can easily capture
+                references to enclosing objects.</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 8 devamı: Adult ve Teenager sınıfları ile iyi/kötü
+            kullanım örnekleri sonraki sayfada.</div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('native-peer')">Native Peer</button>
+            <button class="concept-btn" onclick="openModal('circular-ref')">Döngüsel Referans (Circular
+                Reference)</button>
+            <button class="concept-btn" onclick="openModal('static-nested')">Statik vs Non-Statik İç Sınıf</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-30.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 30 — Finalizer Attack, AutoCloseable</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-32.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 32 — Adult/Teenager örneği, Madde 8 sonu</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Native Peer -->
+    <div class="modal-overlay" id="modal-native-peer">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Native Peer (Doğal Eşdüzey Nesne)</h3>
+                <button class="modal-close" onclick="closeModal('native-peer')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Native peer, Java nesnesinin JNI (Java Native Interface) aracılığıyla yetki devrettiği
+                        (delegates) Java-dışı (C/C++) bir nesnedir. Java'nın Çöp Toplayıcısı yalnızca Java yığınını
+                        (heap) yönetir; doğal belleği (native memory) göremez. Java nesnesi geri alındığında, bağlı
+                        native peer otomatik olarak temizlenmez.</p>
+                    <p>Örnekler: OpenGL texture handle'ları, DirectX buffer'ları, JNI ile ayrılmış C yapıları.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>A native peer is a non-Java (C/C++) object that a Java object delegates to via JNI. Java's GC
+                        only manages the Java heap; it can't see native memory. When the Java object is reclaimed, the
+                        associated native peer isn't automatically cleaned.</p>
+                    <p>Examples: OpenGL texture handles, DirectX buffers, C structs allocated via JNI.</p>
+                </div>
+                <div class="tip-box tr-text">💡 Kritik kaynaklar (dosya tanımlayıcıları, soketler) tutan native peer'lar
+                    için <code>close()</code> metodu şarttır. Cleaner yalnızca kritik olmayan (örneğin salt bellek)
+                    kaynaklar için güvenlik ağı olarak kullanılmalıdır.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Circular Reference -->
+    <div class="modal-overlay" id="modal-circular-ref">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Döngüsel Referans (Circular Reference) Tuzağı</h3>
+                <button class="modal-close" onclick="closeModal('circular-ref')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Cleaner'ın temizleme eylemi (cleaning action) olan <code>State</code> nesnesi, temizlenecek
+                        <code>Room</code> nesnesine geri referans verirse ne olur? Döngüsel referans oluşur: Room →
+                        Cleanable → State → Room. GC, Room'u erişilemez olarak işaretleyemez çünkü State hâlâ ona
+                        referans tutuyor. Sonuç: Room asla temizlenemez ve bellek sızıntısı oluşur.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>If the <code>State</code> (cleaning action) holds a back-reference to <code>Room</code>, a cycle
+                        forms: Room → Cleanable → State → Room. GC can't mark Room as unreachable because State still
+                        points to it. Result: Room never gets cleaned — memory leak.</p>
+                </div>
+                <div class="tip-box tr-text">💡 Temizleme eylemi olarak kullanılan iç sınıf mutlaka <code>static</code>
+                    olmalıdır. Lambda yerine statik iç sınıf tercih edin; lambda'lar kapsayan nesneye gizli referans
+                    yakalayabilir.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Static vs Non-Static -->
+    <div class="modal-overlay" id="modal-static-nested">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Statik vs Non-Statik İç Sınıf</h3>
+                <button class="modal-close" onclick="closeModal('static-nested')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><b>Non-statik iç sınıf</b> (inner class): Kapsayan sınıfın örneğine gizli bir referans
+                        (<code>Outer.this</code>) tutar. Bu referans, kapsayan nesneyi GC'ye karşı canlı tutar.</p>
+                    <p><b>Statik iç sınıf</b> (static nested class): Kapsayan sınıfa bağımlılığı yoktur; bağımsız bir
+                        sınıf gibi davranır. GC açısından güvenlidir.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><b>Non-static inner class</b>: Holds an implicit reference to the enclosing instance
+                        (<code>Outer.this</code>). This keeps the outer object alive for GC.</p>
+                    <p><b>Static nested class</b>: No dependency on the enclosing class; behaves like an independent
+                        class. GC-safe.</p>
+                </div>
+                <p class="example-label bad">❌ Non-statik — gizli referans tutar</p>
+                <div class="code-block">
+                    <span class="kw">public class</span> <span class="cl">Outer</span> {
+                    <span class="kw">class</span> <span class="cl">Inner</span> {
+                    <span class="cm">// Gizlice Outer.this referansı tutar!</span>
+                    }
+                    }
+                </div>
+                <p class="example-label good">✅ Statik — bağımsız</p>
+                <div class="code-block">
+                    <span class="kw">public class</span> <span class="cl">Outer</span> {
+                    <span class="kw">static class</span> <span class="cl">Nested</span> {
+                    <span class="cm">// Outer'a referans yok, GC güvenli</span>
+                    }
+                    }
+                </div>
+                <div class="tip-box tr-text">💡 Madde 24'te detaylandırılacağı gibi: Eğer bir iç sınıfın kapsayan
+                    nesneye erişmesi gerekmiyorsa, her zaman <code>static</code> yapın. Bu hem bellek sızıntılarını
+                    önler hem de performansı artırır.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 31;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

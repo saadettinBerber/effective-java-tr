@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 30</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .item-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0d2137;
+            margin: 2rem 0 .5rem;
+            line-height: 1.3
+        }
+
+        .item-title-en {
+            font-size: 1.1rem;
+            color: #6c757d;
+            font-weight: 400;
+            font-style: italic;
+            margin-bottom: 2rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .info-box {
+            background: #e8f4fd;
+            border-left: 4px solid #0d6efd;
+            padding: .9rem 1.2rem;
+            border-radius: 0 6px 6px 0;
+            margin: 1.2rem 0;
+            font-size: .93rem;
+            color: #0a3d6b
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .example-label {
+            font-size: .75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin: 1rem 0 .3rem
+        }
+
+        .bad {
+            color: #c0392b
+        }
+
+        .good {
+            color: #27ae60
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 2: Creating and Destroying Objects &nbsp;›&nbsp; Item 8: Avoid finalizers
+                and cleaners</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="30" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 30 / Page 30</div>
+        <div class="chapter-badge">Chapter 2 — Item 8: Sonlandırıcılardan ve Temizleyicilerden Kaçının / Avoid
+            finalizers and cleaners</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 8: Performans cezası devamı ve güvenlik
+                açıkları</em></div>
+
+        <div class="tr-text">
+            <p>...sınıfın tüm örneklerini temizlemek için kullanıldığında hız açısından sonlandırıcılarla
+                karşılaştırılabilir düzeydedir (makinemde örnek başına yaklaşık 500 nanosaniye); ancak temizleyiciler
+                yalnızca bir <b>güvenlik ağı (safety net)</b> olarak kullanıldığında çok daha hızlıdır (aşağıda
+                tartışılacaktır). Bu koşullar altında, makinemde bir nesneyi oluşturmak, temizlemek ve yok etmek
+                yaklaşık <b>66 nanosaniye</b> sürer; bu da güvenlik ağını kullanmadığınız durumda ödediğiniz sigorta
+                bedelinin beş kat (elli kat değil) olduğu anlamına gelir.</p>
+
+            <p><strong>Sonlandırıcıların ciddi bir güvenlik sorunu vardır: sınıfınızı sonlandırıcı saldırılarına
+                    (finalizer attacks) karşı açık hale getirirler.</strong> Bir sonlandırıcı saldırısının ardındaki
+                fikir basittir: Eğer bir yapıcı metottan (constructor) veya onun serileştirme karşılıklarından
+                (<code>readObject</code> ve <code>readResolve</code> metotları — Bölüm 12) bir istisna fırlatılırsa,
+                <b>kötü niyetli bir alt sınıfın (malicious subclass)</b> sonlandırıcısı, aslında "dal üzerinde ölmesi"
+                (died on the vine) gereken yarım kalmış (partially constructed) nesne üzerinde çalışabilir. Bu
+                sonlandırıcı, nesneye bir statik alana (static field) referans kaydedebilir ve böylece Çöp Toplayıcı
+                tarafından toplanmasını engelleyebilir. Biçimsiz (malformed) nesne bir kez kaydedildiğinde, başlangıçta
+                var olmasına asla izin verilmemesi gereken bu nesne üzerinde keyfi metotları çağırmak son derece basit
+                bir iş haline gelir. Bir yapıcı metottan istisna fırlatmak, bir nesnenin var olmasını önlemek için
+                yeterli olmalıdır; ancak sonlandırıcıların varlığında <b>bu yeterli değildir</b>. Bu tür saldırılar
+                korkunç sonuçlara yol açabilir. <code>final</code> sınıfları sonlandırıcı saldırılarına karşı
+                bağışıktır; çünkü hiç kimse <code>final</code> bir sınıfın kötü niyetli bir alt sınıfını yazamaz.
+                <code>final</code> olmayan sınıfları sonlandırıcı saldırılarından korumak için, <b>hiçbir şey yapmayan
+                    bir <code>final finalize</code> metodu</b> yazın.</p>
+
+            <p>Peki, dosyalar veya iş parçacıkları gibi sonlandırma gerektiren kaynakları kapsayan nesnelerin sınıfı
+                için bir sonlandırıcı veya temizleyici yazmak yerine ne yapmalısınız? Sınıfınızın
+                <code>AutoCloseable</code> arayüzünü uygulamasını sağlayın ve istemcilerinin (clients) her örnek artık
+                gerekli olmadığında <code>close</code> metodunu çağırmasını zorunlu kılın; tipik olarak istisna
+                durumlarında bile sonlandırmayı garanti etmek için <code>try-with-resources</code> kullanarak (Madde 9).
+                Bahsetmeye değer bir detay şudur: Örnek, kapanıp kapanmadığını takip etmelidir (keep track);
+                <code>close</code> metodu bir alanda (field) nesnenin artık geçerli olmadığını kaydetmeli ve diğer
+                metotlar bu alanı kontrol ederek nesne kapandıktan sonra çağrılırlarsa bir
+                <code>IllegalStateException</code> fırlatmalıdır.</p>
+
+            <p>Peki, temizleyicilerin ve sonlandırıcıların, eğer varsa, ne işe yaradığı? Belki iki meşru (legitimate)
+                kullanım alanları vardır. Birincisi, bir kaynağın sahibinin (owner) <code>close</code> metodunu
+                çağırmayı ihmal etmesi durumunda bir <b>güvenlik ağı (safety net)</b> olarak hizmet etmektir.
+                Temizleyicinin veya sonlandırıcının zamanında çalışacağına (hatta çalışacağına bile) dair hiçbir garanti
+                olmasa da, istemci bunu yapmazsa kaynağı geç serbest bırakmak hiçbir zaman serbest bırakmamaktan iyidir.
+                Böyle bir güvenlik ağı sonlandırıcısı yazmayı düşünüyorsanız, korumanın maliyete değip değmeyeceğini
+                uzun uzun düşünün. <code>FileInputStream</code>, <code>FileOutputStream</code>,
+                <code>ThreadPoolExecutor</code> ve <code>java.sql.Connection</code> gibi bazı Java kütüphane sınıfları,
+                güvenlik ağı işlevi gören sonlandırıcılara sahiptir.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>...class (about 500 ns per instance on my machine), but cleaners are much faster if you use them only as
+                a safety net, as discussed below. Under these circumstances, creating, cleaning, and destroying an
+                object takes about 66 ns on my machine, which means you pay a factor of five (not fifty) for the
+                insurance of a safety net if you don't use it.</p>
+
+            <p><strong>Finalizers have a serious security problem: they open your class up to finalizer
+                    attacks.</strong> The idea behind a finalizer attack is simple: If an exception is thrown from a
+                constructor or its serialization equivalents—the <code>readObject</code> and <code>readResolve</code>
+                methods (Chapter 12)—the finalizer of a malicious subclass can run on the partially constructed object
+                that should have "died on the vine." This finalizer can record a reference to the object in a static
+                field, preventing it from being garbage collected. Once the malformed object has been recorded, it is a
+                simple matter to invoke arbitrary methods on this object that should never have been allowed to exist in
+                the first place. Throwing an exception from a constructor should be sufficient to prevent an object from
+                coming into existence; in the presence of finalizers, it is not. Such attacks can have dire
+                consequences. Final classes are immune to finalizer attacks because no one can write a malicious
+                subclass of a final class. To protect nonfinal classes from finalizer attacks, write a final
+                <code>finalize</code> method that does nothing.</p>
+
+            <p>So what should you do instead of writing a finalizer or cleaner for a class whose objects encapsulate
+                resources that require termination, such as files or threads? Just have your class implement
+                <code>AutoCloseable</code>, and require its clients to invoke the <code>close</code> method on each
+                instance when it is no longer needed, typically using <code>try-with-resources</code> to ensure
+                termination even in the face of exceptions (Item 9). One detail worth mentioning is that the instance
+                must keep track of whether it has been closed: the <code>close</code> method must record in a field that
+                the object is no longer valid, and other methods must check this field and throw an
+                <code>IllegalStateException</code> if they are called after the object has been closed.</p>
+
+            <p>So what, if anything, are cleaners and finalizers good for? They have perhaps two legitimate uses. One is
+                to act as a safety net in case the owner of a resource neglects to call its <code>close</code> method.
+                While there's no guarantee that the cleaner or finalizer will run promptly (or at all), it is better to
+                free the resource late than never if the client fails to do so. If you're considering writing such a
+                safety-net finalizer, think long and hard about whether the protection is worth the cost. Some Java
+                library classes, such as <code>FileInputStream</code>, <code>FileOutputStream</code>,
+                <code>ThreadPoolExecutor</code>, and <code>java.sql.Connection</code>, have finalizers that serve as
+                safety nets.</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 8 devamı: Native peer nesneleri, Room sınıfı örneği ve
+            Cleaner kullanımı sonraki sayfada.</div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('finalizer-attack')">Finalizer Attack (Sonlandırıcı
+                Saldırısı)</button>
+            <button class="concept-btn" onclick="openModal('autocloseable')">AutoCloseable Arayüzü</button>
+            <button class="concept-btn" onclick="openModal('safety-net')">Safety Net (Güvenlik Ağı) Kalıbı</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-29.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 29 — Finalizer thread, System.gc</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-31.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 31 — Native peer, Room Cleaner örneği</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Finalizer Attack -->
+    <div class="modal-overlay" id="modal-finalizer-attack">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Finalizer Attack (Sonlandırıcı Saldırısı)</h3>
+                <button class="modal-close" onclick="closeModal('finalizer-attack')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Saldırgan, hedef sınıfı genişleten (extends) kötü niyetli bir alt sınıf yazar ve
+                        <code>finalize()</code> içinde yarısı yapılmış nesneyi bir statik alana kaydeder. Yapıcı metot
+                        istisna fırlatsa bile nesne bellekte canlı kalır ve saldırgan istediği metodu çağırabilir.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>An attacker creates a malicious subclass, overrides <code>finalize()</code> to save the
+                        half-constructed object in a static field. Even though the constructor threw, the object stays
+                        alive and the attacker can call any method on it.</p>
+                </div>
+                <p class="example-label bad">❌ KÖTÜ ÖRNEK — Saldırıya açık sınıf</p>
+                <div class="code-block">
+                    <span class="kw">public class</span> <span class="cl">SecureService</span> {
+                    <span class="kw">public</span> <span class="cl">SecureService</span>(<span class="cl">String</span>
+                    token) {
+                    <span class="kw">if</span> (!isValid(token)) <span class="kw">throw new</span> <span
+                        class="cl">SecurityException</span>(<span class="st">"Geçersiz token!"</span>);
+                    }
+                    <span class="kw">public void</span> deleteAllData() { <span class="cm">/* tehlikeli işlem */</span>
+                    }
+                    }
+
+                    <span class="cm">// Saldırgan alt sınıfı:</span>
+                    <span class="kw">public class</span> <span class="cl">EvilSubclass</span> <span
+                        class="kw">extends</span> <span class="cl">SecureService</span> {
+                    <span class="kw">static</span> <span class="cl">SecureService</span> stolen;
+                    <span class="kw">public</span> <span class="cl">EvilSubclass</span>() { <span
+                        class="kw">super</span>(<span class="st">"INVALID"</span>); }
+                    <span class="an">@Override</span> <span class="kw">protected void</span> finalize() { stolen = <span
+                        class="kw">this</span>; }
+                    }
+                    <span class="cm">// stolen.deleteAllData() → KABUTİ VEYA!!! 💀</span>
+                </div>
+                <p class="example-label good">✅ İYİ ÖRNEK — Korunmuş sınıf</p>
+                <div class="code-block">
+                    <span class="kw">public class</span> <span class="cl">SecureService</span> {
+                    <span class="cm">// Boş final finalize → alt sınıf override edemez</span>
+                    <span class="an">@Override</span> <span class="kw">protected final void</span> finalize() { }
+                    <span class="cm">// ... veya sınıfı 'final' yapın</span>
+                    }
+                </div>
+                <div class="tip-box tr-text">💡 En basit savunma: sınıfınızı <code>final</code> yapın. Eğer alt
+                    sınıflama gerekiyorsa, <code>protected final void finalize() {}</code> yazın.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: AutoCloseable -->
+    <div class="modal-overlay" id="modal-autocloseable">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>AutoCloseable Arayüzü</h3>
+                <button class="modal-close" onclick="closeModal('autocloseable')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>java.lang.AutoCloseable</code>, <code>try-with-resources</code> bloğu ile otomatik kaynak
+                        yönetimi için Java 7'de eklenen temel arayüzdür. Tek bir <code>close()</code> metodu tanımlar.
+                        Dosyalar, veritabanı bağlantıları, soketler gibi herhangi bir dış kaynağı kapsayan sınıflar bu
+                        arayüzü uygulamalıdır.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><code>java.lang.AutoCloseable</code> is the fundamental interface added in Java 7 for automatic
+                        resource management via <code>try-with-resources</code>. It defines a single
+                        <code>close()</code> method. Any class wrapping an external resource (files, connections,
+                        sockets) should implement this.</p>
+                </div>
+                <p class="example-label good">✅ İYİ ÖRNEK</p>
+                <div class="code-block">
+                    <span class="kw">public class</span> <span class="cl">ResourceWrapper</span> <span
+                        class="kw">implements</span> <span class="cl">AutoCloseable</span> {
+                    <span class="kw">private boolean</span> closed = <span class="kw">false</span>;
+                    <span class="kw">private final</span> <span class="cl">Resource</span> res;
+
+                    <span class="kw">public void</span> doWork() {
+                    <span class="kw">if</span> (closed) <span class="kw">throw new</span> <span
+                        class="cl">IllegalStateException</span>(<span class="st">"Zaten kapatıldı!"</span>);
+                    <span class="cm">// ... iş mantığı</span>
+                    }
+
+                    <span class="an">@Override</span>
+                    <span class="kw">public void</span> close() {
+                    <span class="kw">if</span> (!closed) { res.release(); closed = <span class="kw">true</span>; }
+                    }
+                    }
+                </div>
+                <div class="tip-box tr-text">💡 <code>close()</code> metodu <b>idempotent</b> olmalıdır: birden fazla
+                    kez çağrılsa bile güvenli bir şekilde çalışmalıdır. Bu nedenle <code>closed</code> bayrağı kullanmak
+                    iyi bir pratiktir.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Safety Net -->
+    <div class="modal-overlay" id="modal-safety-net">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Safety Net (Güvenlik Ağı) Kalıbı</h3>
+                <button class="modal-close" onclick="closeModal('safety-net')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Güvenlik ağı, istemcinin <code>close()</code> çağırmayı unutması durumunda kaynağın yine de – geç
+                        bile olsa – serbest bırakılmasını sağlayan son çare mekanizmasıdır. Asıl kaynak yönetimi
+                        <code>try-with-resources</code> ile yapılır; temizleyici veya sonlandırıcı yalnızca "tembel
+                        istemci sigortası" olarak kullanılır.</p>
+                    <p>JDK'daki <code>FileInputStream</code>, <code>FileOutputStream</code> ve
+                        <code>java.sql.Connection</code> bu kalıbı kullanır.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>A safety net ensures that if a client forgets to call <code>close()</code>, the resource will
+                        still be freed — albeit late. Primary resource management is done via
+                        <code>try-with-resources</code>; cleaners/finalizers serve only as "lazy client insurance."</p>
+                    <p>JDK's <code>FileInputStream</code>, <code>FileOutputStream</code>, and
+                        <code>java.sql.Connection</code> use this pattern.</p>
+                </div>
+                <div class="tip-box tr-text">💡 Güvenlik ağı modunda temizleyici kullanımı, tam temizleyici kullanımına
+                    göre çok daha hızlıdır: 66 ns vs 500 ns. Bunun nedeni, güvenlik ağı yalnızca istemci
+                    <code>close()</code> çağırmayı başaramadığında devreye girmesidir.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 30;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 29</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7;
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623;
+        }
+
+        .topbar-sub {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+            margin-top: 0.1rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all .2s;
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700;
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            position: relative;
+        }
+
+        .page-nav-input-wrap label {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: 0.22rem 0.4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s;
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1;
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        .item-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0d2137;
+            margin: 2rem 0 0.5rem;
+            line-height: 1.3;
+        }
+
+        .item-title-en {
+            font-size: 1.1rem;
+            color: #6c757d;
+            font-weight: 400;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+
+        .page-label {
+            font-size: 0.78rem;
+            color: #6c757d;
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem;
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: 0.88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66;
+        }
+
+        .kw {
+            color: #79b8ff;
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic;
+        }
+
+        .cl {
+            color: #b392f0;
+        }
+
+        .st {
+            color: #9ecbff;
+        }
+
+        .an {
+            color: #85e89d;
+        }
+
+        .num {
+            color: #f8c555;
+        }
+
+        .info-box {
+            background: #e8f4fd;
+            border-left: 4px solid #0d6efd;
+            padding: 0.9rem 1.2rem;
+            border-radius: 0 6px 6px 0;
+            margin: 1.2rem 0;
+            font-size: 0.93rem;
+            color: #0a3d6b;
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0.3rem 0.3rem 0.3rem 0;
+            transition: background .2s, transform .1s;
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px);
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 1.4rem;
+        }
+
+        .modal-body p {
+            font-size: 0.93rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .example-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin: 1rem 0 0.3rem;
+        }
+
+        .bad {
+            color: #c0392b;
+        }
+
+        .good {
+            color: #27ae60;
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: 0.6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.88rem;
+            margin-top: 1rem;
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px;
+        }
+
+        .nav-btn:hover {
+            background: #163a5f;
+        }
+
+        .nav-btn .nav-direction {
+            font-size: 0.7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem 1rem 3rem;
+            }
+
+            .topbar {
+                padding: 0.6rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 2: Creating and Destroying Objects &nbsp;›&nbsp; Item 8: Avoid finalizers
+                and cleaners</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="29" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 29 / Page 29</div>
+        <div class="chapter-badge">Chapter 2 — Item 8: Sonlandırıcılardan ve Temizleyicilerden Kaçının / Avoid
+            finalizers and cleaners</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 8: Finalizer kuyruğu sorunu devamı</em></div>
+
+        <div class="tr-text">
+            <p>...Ne yazık ki sonlandırıcı iş parçacığı (finalizer thread), diğer uygulama iş parçacıklarından
+                (application threads) daha düşük bir öncelikte (lower priority) çalışıyordu; bu nedenle nesneler,
+                sonlandırılmaya uygun hale gelme hızında (rate) sonlandırılamıyorlardı. Dil spesifikasyonu (language
+                specification), sonlandırıcıları hangi iş parçacığının çalıştıracağına dair hiçbir garanti vermez;
+                dolayısıyla sonlandırıcıları kullanmaktan kaçınmak dışında bu tür bir sorunu önlemenin taşınabilir
+                (portable) bir yolu yoktur. Temizleyiciler (cleaners), bu konuda sonlandırıcılardan biraz daha iyidir;
+                çünkü sınıf yazarları kendi temizleyici iş parçacıkları üzerinde kontrole sahiptir. Ancak temizleyiciler
+                yine de arka planda, Çöp Toplayıcı'nın (garbage collector) kontrolünde çalışır; dolayısıyla hızlı
+                temizleme (prompt cleaning) garantisi yoktur.</p>
+
+            <p>Yalnızca spesifikasyonun, sonlandırıcıların veya temizleyicilerin zamanında çalışacağına dair garanti
+                vermemekle kalmaz; <strong>çalışacaklarına dair hiçbir garanti de sunmaz</strong>. Bir programın, artık
+                erişilemeyen (no longer reachable) bazı nesneler üzerinde sonlandırıcıları veya temizleyicileri
+                çalıştırmadan sonlanması tamamen mümkün, hatta muhtemeldir (likely). Bunun bir sonucu olarak,
+                <strong>kalıcı durumu (persistent state) güncellemek için asla bir sonlandırıcıya veya temizleyiciye
+                    güvenmemelisiniz</strong>. Örneğin, bir veritabanı gibi paylaşılan bir kaynak (shared resource)
+                üzerindeki kalıcı bir kilidi (persistent lock) serbest bırakmak için bir sonlandırıcıya veya
+                temizleyiciye bel bağlamak, tüm dağıtık sisteminizi (distributed system) tamamen çalışmaz hale
+                getirmenin (grinding halt) kesin bir yoludur.</p>
+
+            <p><code>System.gc</code> ve <code>System.runFinalization</code> metotlarının cazibesine kapılmayın. Bu
+                metotlar sonlandırıcıların veya temizleyicilerin çalıştırılma olasılığını artırabilir (increase the
+                odds), ancak bunu <b>garanti etmezler</b>. Bu garantiyi verdiğini iddia eden iki metot bir zamanlar
+                vardı: <code>System.runFinalizersOnExit</code> ve onun kötü ikizi (evil twin)
+                <code>Runtime.runFinalizersOnExit</code>. Bu metotlar ölümcül derecede kusurlu (fatally flawed) olup
+                onlarca yıldır kullanımdan kaldırılmış (deprecated) durumdadır [ThreadStop].</p>
+
+            <p>Sonlandırıcıların bir diğer sorunu ise, sonlandırma (finalization) sırasında fırlatılan yakalanmamış bir
+                istisnanın (uncaught exception) <b>göz ardı edilmesi</b> ve o nesnenin sonlandırılmasının
+                sonlandırılmasıdır (terminates) [JLS, 12.6]. Yakalanmamış istisnalar, diğer nesneleri bozuk bir durumda
+                (corrupt state) bırakabilir. Başka bir iş parçacığı böyle bozulmuş bir nesneyi kullanmaya kalkışırsa,
+                keyfi belirsiz davranış (arbitrary nondeterministic behavior) ortaya çıkabilir. Normal şartlarda
+                yakalanmamış bir istisna iş parçacığını sonlandırır ve bir yığın izi (stack trace) basar; ancak bir
+                sonlandırıcı içinde meydana gelirse <b>bir uyarı bile basmaz</b>. Temizleyicilerde, temizleyici kullanan
+                kütüphane kendi iş parçacığı üzerinde kontrole sahip olduğu için bu sorun yoktur.</p>
+
+            <p><strong>Sonlandırıcıları ve temizleyicileri kullanmanın ağır bir performans cezası (severe performance
+                    penalty) vardır.</strong> Benim makinemde basit bir <code>AutoCloseable</code> nesnesi oluşturmak,
+                onu <code>try-with-resources</code> ile kapatmak ve Çöp Toplayıcı'nın onu geri almasını sağlamak
+                yaklaşık <b>12 nanosaniye</b> sürer. Bunun yerine bir sonlandırıcı kullanmak bu süreyi <b>550
+                    nanosaniyeye</b> çıkartır. Başka bir deyişle, sonlandırıcılarla nesne oluşturmak ve yok etmek
+                yaklaşık <b>50 kat daha yavaştır</b>. Bunun temel nedeni, sonlandırıcıların verimli çöp toplamayı
+                (efficient garbage collection) engellemesidir. Temizleyiciler, sınıfın tüm örneklerini temizlemek için
+                kullanıldığında hız açısından sonlandırıcılarla karşılaştırılabilir düzeydedir (comparable in speed)...
+            </p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>...to be finalized and reclaimed. Unfortunately, the finalizer thread was running at a lower priority
+                than another application thread, so objects weren't getting finalized at the rate they became eligible
+                for finalization. The language specification makes no guarantees as to which thread will execute
+                finalizers, so there is no portable way to prevent this sort of problem other than to refrain from using
+                finalizers. Cleaners are a bit better than finalizers in this regard because class authors have control
+                over their own cleaner threads, but cleaners still run in the background, under the control of the
+                garbage collector, so there can be no guarantee of prompt cleaning.</p>
+
+            <p>Not only does the specification provide no guarantee that finalizers or cleaners will run promptly; it
+                provides no guarantee that they'll run at all. It is entirely possible, even likely, that a program
+                terminates without running them on some objects that are no longer reachable. As a consequence, you
+                should <strong>never depend on a finalizer or cleaner to update persistent state</strong>. For example,
+                depending on a finalizer or cleaner to release a persistent lock on a shared resource such as a database
+                is a good way to bring your entire distributed system to a grinding halt.</p>
+
+            <p>Don't be seduced by the methods <code>System.gc</code> and <code>System.runFinalization</code>. They may
+                increase the odds of finalizers or cleaners getting executed, but they don't guarantee it. Two methods
+                once claimed to make this guarantee: <code>System.runFinalizersOnExit</code> and its evil twin,
+                <code>Runtime.runFinalizersOnExit</code>. These methods are fatally flawed and have been deprecated for
+                decades [ThreadStop].</p>
+
+            <p>Another problem with finalizers is that an uncaught exception thrown during finalization is ignored, and
+                finalization of that object terminates [JLS, 12.6]. Uncaught exceptions can leave other objects in a
+                corrupt state. If another thread attempts to use such a corrupted object, arbitrary nondeterministic
+                behavior may result. Normally, an uncaught exception will terminate the thread and print a stack trace,
+                but not if it occurs in a finalizer—it won't even print a warning. Cleaners do not have this problem
+                because a library using a cleaner has control over its thread.</p>
+
+            <p><strong>There is a severe performance penalty for using finalizers and cleaners.</strong> On my machine,
+                the time to create a simple <code>AutoCloseable</code> object, to close it using
+                <code>try-with-resources</code>, and to have the garbage collector reclaim it is about 12 ns. Using a
+                finalizer instead increases the time to 550 ns. In other words, it is about 50 times slower to create
+                and destroy objects with finalizers. This is primarily because finalizers inhibit efficient garbage
+                collection. Cleaners are comparable in speed to finalizers if you use them to clean all instances of
+                the...</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 8 devamı: Finalizer saldırıları (finalizer attacks),
+            güvenlik ağı kullanımı ve AutoCloseable ile doğru kaynak yönetimi sonraki sayfada.</div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('finalizer-thread')">Finalizer Thread Önceliği</button>
+            <button class="concept-btn" onclick="openModal('persistent-state')">Kalıcı Durum (Persistent State)</button>
+            <button class="concept-btn" onclick="openModal('system-gc')">System.gc Tuzağı</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-28.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 28 — Madde 8: Finalizer/Cleaner giriş</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-30.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 30 — Finalizer Attack ve güvenlik ağı</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Finalizer Thread -->
+    <div class="modal-overlay" id="modal-finalizer-thread">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Finalizer Thread Önceliği Sorunu</h3>
+                <button class="modal-close" onclick="closeModal('finalizer-thread')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>JVM, sonlandırılmayı bekleyen nesneleri bir <b>sonlandırıcı kuyruğuna (finalizer queue)</b>
+                        koyar. Bu kuyruğu tüketen özel bir iş parçacığı (finalizer thread) sürekli arka planda çalışır.
+                        Sorun şu ki, bu iş parçacığının önceliği (priority) genellikle uygulama iş parçacıklarından
+                        düşüktür. Yoğun CPU kullanımında sonlandırıcılar yeterince hızlı işlenemez, kuyruk şişer ve
+                        sonunda <code>OutOfMemoryError</code> patlar.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>The JVM queues objects pending finalization in a <b>finalizer queue</b>. A dedicated background
+                        thread drains this queue. By default, this thread runs at a lower priority. Under heavy CPU
+                        load, finalizers can't keep up, the queue swells, and eventually you get
+                        <code>OutOfMemoryError</code>.</p>
+                </div>
+                <p class="example-label bad">❌ KÖTÜ ÖRNEK</p>
+                <div class="code-block">
+                    <span class="cm">// GUI uygulaması: Binlerce grafik nesnesi sonlandırıcı kuyruğunda birikir</span>
+                    <span class="kw">public class</span> <span class="cl">GraphicsObject</span> {
+                    <span class="kw">private long</span> nativeHandle;
+
+                    <span class="an">@Override</span>
+                    <span class="kw">protected void</span> finalize() {
+                    releaseNativeResource(nativeHandle);
+                    <span class="cm">// Finalizer thread yetişemiyor → kuyruk şişer → OOM!</span>
+                    }
+                    }
+                </div>
+                <p class="example-label good">✅ İYİ ÖRNEK</p>
+                <div class="code-block">
+                    <span class="kw">public class</span> <span class="cl">GraphicsObject</span> <span
+                        class="kw">implements</span> <span class="cl">AutoCloseable</span> {
+                    <span class="kw">private long</span> nativeHandle;
+                    <span class="kw">private boolean</span> closed = <span class="kw">false</span>;
+
+                    <span class="an">@Override</span>
+                    <span class="kw">public void</span> close() {
+                    <span class="kw">if</span> (!closed) {
+                    releaseNativeResource(nativeHandle);
+                    closed = <span class="kw">true</span>;
+                    }
+                    }
+                    }
+                    <span class="cm">// try-with-resources ile garanti altında!</span>
+                </div>
+                <div class="tip-box tr-text">💡 Sonlandırıcı kuyruğunun boyutunu JMX ile
+                    (<code>java.lang:type=Memory</code>) izleyebilirsiniz. Kuyruk sürekli büyüyorsa muhtemelen bir
+                    <code>finalize()</code> gizlice nesnelerinizi hapiste tutuyor.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Persistent State -->
+    <div class="modal-overlay" id="modal-persistent-state">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Kalıcı Durum (Persistent State) ve Sonlandırıcılar</h3>
+                <button class="modal-close" onclick="closeModal('persistent-state')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Kalıcı durum (persistent state), uygulamanın kapanmasından sonra bile varlığını sürdüren veridir:
+                        veritabanı kayıtları, dosya kilitleri, Redis anahtarları vb. Bir sonlandırıcıya bu tür bir
+                        kilit/durum serbest bırakma görevi vermek son derece tehlikelidir; çünkü sonlandırıcı hiçbir
+                        zaman çalışmayabilir.</p>
+                    <p>Sonuç: Dağıtık sisteminizde bir veritabanı kilidi sonsuza dek açık kalır; hiçbir başka istemci o
+                        tabloya yazamaz hale gelir.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Persistent state is data that survives beyond application shutdown: database records, file locks,
+                        Redis keys, etc. Delegating lock/state release to a finalizer is extremely dangerous because it
+                        may never run.</p>
+                    <p>Result: A database lock stays open forever; no other client can write to that table.</p>
+                </div>
+                <div class="tip-box tr-text">💡 Veritabanı bağlantı kilitleri, dosya kilitleri ve paylaşılan mutex'ler
+                    gibi kaynakları <b>her zaman</b> <code>try-with-resources</code> veya açık bir <code>finally</code>
+                    bloğu ile serbest bırakın. Sonlandırıcıyı asla "belki kapanır" diye son çare olarak kullanmayın.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: System.gc -->
+    <div class="modal-overlay" id="modal-system-gc">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>System.gc() ve System.runFinalization() Tuzağı</h3>
+                <button class="modal-close" onclick="closeModal('system-gc')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>System.gc()</code> JVM'e "lütfen şimdi çöp topla" diye bir <i>öneri</i> iletir; JVM bunu
+                        görmezden gelebilir. <code>System.runFinalization()</code> ise sonlandırıcıların çalışma
+                        olasılığını artırır ama bunu garanti etmez.</p>
+                    <p>Bir zamanlar var olan <code>System.runFinalizersOnExit()</code> ve
+                        <code>Runtime.runFinalizersOnExit()</code> garanti verdiklerini iddia etti, ancak ölümcül
+                        kusurlar (fatally flawed) içerdikleri için onlarca yıl önce kullanımdan kaldırıldılar.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><code>System.gc()</code> is a <i>suggestion</i> to the JVM: "please collect garbage now." The JVM
+                        can ignore it. <code>System.runFinalization()</code> increases the odds of running finalizers
+                        but doesn't guarantee it.</p>
+                    <p>The once-existing <code>System.runFinalizersOnExit()</code> and
+                        <code>Runtime.runFinalizersOnExit()</code> claimed guarantees but were fatally flawed and
+                        deprecated decades ago.</p>
+                </div>
+                <p class="example-label bad">❌ KÖTÜ ÖRNEK</p>
+                <div class="code-block">
+                    <span class="cm">// "Eminim bu GC'yi tetikler" diye düşünüyorsunuz...</span>
+                    <span class="cl">System</span>.gc();
+                    <span class="cl">System</span>.runFinalization();
+                    <span class="cm">// Hayır, JVM şunu der: "Belki hallederim, belki de etmem."</span>
+                </div>
+                <div class="tip-box tr-text">💡 Üretim (production) kodunuzda <code>System.gc()</code> çağırmayın. JVM
+                    modelinizin GC davranışını öğrenin ve JVM bayraklarıyla (<code>-XX:+UseG1GC</code>,
+                    <code>-Xmx</code> vb.) doğru yapılandırın.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 29;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

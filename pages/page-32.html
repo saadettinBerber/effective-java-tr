@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 32</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .example-label {
+            font-size: .75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin: 1rem 0 .3rem
+        }
+
+        .bad {
+            color: #c0392b
+        }
+
+        .good {
+            color: #27ae60
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        .item-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0d2137;
+            margin: 2rem 0 .5rem;
+            line-height: 1.3
+        }
+
+        .item-title-en {
+            font-size: 1.1rem;
+            color: #6c757d;
+            font-weight: 400;
+            font-style: italic;
+            margin-bottom: 2rem
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 2: Creating and Destroying Objects &nbsp;›&nbsp; Item 8 &amp; Item 9</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="32" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 32 / Page 32</div>
+        <div class="chapter-badge">Chapter 2 — Item 8 sonu &amp; Item 9 başlangıcı</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 8: Adult ve Teenager örnekleri</em></div>
+
+        <div class="tr-text">
+            <p>Daha önce söylediğimiz gibi, <code>Room</code>'un temizleyicisi yalnızca bir güvenlik ağı olarak
+                kullanılır. İstemciler tüm <code>Room</code> oluşturmalarını <code>try-with-resources</code> bloklarına
+                sardığında, otomatik temizleme asla gerekli olmayacaktır. Bu uslu (well-behaved) istemci bu davranışı
+                sergiler:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>As we said earlier, Room's cleaner is used only as a safety net. If clients surround all Room
+                instantiations in try-with-resource blocks, automatic cleaning will never be required. This well-behaved
+                client demonstrates that behavior:</p>
+        </div>
+
+        <!-- Adult example -->
+        <div class="code-block">
+            <span class="cm">// Uslu istemci — try-with-resources kullanıyor</span>
+            <span class="kw">public class</span> <span class="cl">Adult</span> {
+            <span class="kw">public static void</span> main(<span class="cl">String</span>[] args) {
+            <span class="kw">try</span> (<span class="cl">Room</span> myRoom = <span class="kw">new</span> <span
+                class="cl">Room</span>(<span class="num">7</span>)) {
+            <span class="cl">System</span>.out.println(<span class="st">"Goodbye"</span>);
+            }
+            }
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Beklediğiniz gibi, <code>Adult</code> programını çalıştırdığınızda önce <code>Goodbye</code>, ardından
+                <code>Cleaning room</code> basılır. Peki ya odasını asla temizlemeyen (never cleans its room) bu yaramaz
+                (ill-behaved) program ne olur?</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>As you'd expect, running the Adult program prints <code>Goodbye</code>, followed by
+                <code>Cleaning room</code>. But what about this ill-behaved program, which never cleans its room?</p>
+        </div>
+
+        <!-- Teenager example -->
+        <div class="code-block">
+            <span class="cm">// Yaramaz istemci — close() çağırmıyor, try-with-resources kullanmıyor</span>
+            <span class="kw">public class</span> <span class="cl">Teenager</span> {
+            <span class="kw">public static void</span> main(<span class="cl">String</span>[] args) {
+            <span class="kw">new</span> <span class="cl">Room</span>(<span class="num">99</span>);
+            <span class="cl">System</span>.out.println(<span class="st">"Peace out"</span>);
+            }
+            }
+        </div>
+
+        <div class="tr-text">
+            <p><code>Peace out</code> yazılmasını, ardından <code>Cleaning room</code> basılmasını beklemiş
+                olabilirsiniz; ancak benim makinemde <code>Cleaning room</code> <b>asla basılmaz</b>; program doğrudan
+                çıkar. İşte daha önce bahsettiğimiz o öngörülemezlik tam da budur. Cleaner spesifikasyonu şöyle der:
+                <i>"System.exit sırasındaki temizleyici davranışı uygulamaya özgüdür (implementation specific).
+                    Temizleme eylemlerinin çağrılıp çağrılmayacağına dair hiçbir garanti verilmez."</i> Spesifikasyon
+                bunu söylemese de, aynı durum normal program çıkışı için de geçerlidir. Benim makinemde,
+                <code>Teenager</code>'ın <code>main</code> metoduna <code>System.gc()</code> satırını eklemek, çıkıştan
+                önce <code>Cleaning room</code> basılması için yeterlidir; ancak sizin makinenizde aynı davranışı
+                göreceğinizin hiçbir garantisi yoktur.</p>
+
+            <p><strong>Özetle</strong>, Java 9 öncesinde sonlandırıcıları veya temizleyicileri, bir güvenlik ağı olarak
+                ya da kritik olmayan doğal kaynakları (noncritical native resources) sonlandırmak dışında kullanmayın.
+                Ve bunu yapsanız bile, belirsizlik (indeterminacy) ve performans sonuçlarına (performance consequences)
+                dikkat edin.</p>
+
+            <h2 class="item-title">Madde 9: try-finally Yerine try-with-resources'ı Tercih Edin</h2>
+            <p class="item-title-en">Item 9: Prefer try-with-resources to try-finally</p>
+
+            <p>Java kütüphaneleri, bir <code>close</code> metodu çağrılarak elle kapatılması gereken birçok kaynak
+                (resource) içerir. Örnekler arasında <code>InputStream</code>, <code>OutputStream</code> ve
+                <code>java.sql.Connection</code> sayılabilir. Kaynakları kapatmak istemciler tarafından sık sık gözden
+                kaçırılır ve bunun tahmin edilebilir korkunç performans sonuçları olur. Bu kaynakların birçoğu güvenlik
+                ağı olarak sonlandırıcılar (finalizers) kullansa da, sonlandırıcılar pek de iyi çalışmazlar (Madde 8).
+            </p>
+
+            <p>Tarihsel olarak, bir istisna (exception) veya dönüş (return) karşısında bile bir kaynağın düzgünce
+                kapatılacağını garanti altına almanın en iyi yolu <code>try-finally</code> ifadesiydi:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>You might expect it to print <code>Peace out</code>, followed by <code>Cleaning room</code>, but on my
+                machine, it never prints <code>Cleaning room</code>; it just exits. This is the unpredictability we
+                spoke of earlier. The Cleaner spec says, "The behavior of cleaners during System.exit is implementation
+                specific. No guarantees are made relating to whether cleaning actions are invoked or not." While the
+                spec does not say it, the same holds true for normal program exit. On my machine, adding the line
+                <code>System.gc()</code> to Teenager's main method is enough to make it print <code>Cleaning room</code>
+                prior to exit, but there's no guarantee that you'll see the same behavior on your machine.</p>
+
+            <p><strong>In summary</strong>, don't use cleaners, or in releases prior to Java 9, finalizers, except as a
+                safety net or to terminate noncritical native resources. Even then, beware the indeterminacy and
+                performance consequences.</p>
+
+            <h2 class="item-title">Item 9: Prefer try-with-resources to try-finally</h2>
+
+            <p>The Java libraries include many resources that must be closed manually by invoking a <code>close</code>
+                method. Examples include <code>InputStream</code>, <code>OutputStream</code>, and
+                <code>java.sql.Connection</code>. Closing resources is often overlooked by clients, with predictably
+                dire performance consequences. While many of these resources use finalizers as a safety net, finalizers
+                don't work very well (Item 8).</p>
+
+            <p>Historically, a <code>try-finally</code> statement was the best way to guarantee that a resource would be
+                closed properly, even in the face of an exception or return:</p>
+        </div>
+
+        <!-- try-finally example -->
+        <div class="code-block">
+            <span class="cm">// try-finally — Artık kaynakları kapatmanın en iyi yolu DEĞİL!</span>
+            <span class="cm">// try-finally - No longer the best way to close resources!</span>
+            <span class="kw">static</span> <span class="cl">String</span> firstLineOfFile(<span class="cl">String</span>
+            path) <span class="kw">throws</span> <span class="cl">IOException</span> {
+            <span class="cl">BufferedReader</span> br = <span class="kw">new</span> <span
+                class="cl">BufferedReader</span>(<span class="kw">new</span> <span class="cl">FileReader</span>(path));
+            <span class="kw">try</span> {
+            <span class="kw">return</span> br.readLine();
+            } <span class="kw">finally</span> {
+            br.close();
+            }
+            }
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 9 devamı: İki kaynaklı try-finally'nin çirkinliği ve
+            try-with-resources çözümü sonraki sayfada.</div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('cleaner-unpredictability')">Cleaner Öngörülemezliği</button>
+            <button class="concept-btn" onclick="openModal('resource-management')">Kaynak Yönetimi (Resource
+                Management)</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-31.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 31 — Native peer, Room Cleaner örneği</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-33.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 33 — İki kaynaklı try-finally, try-with-resources</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Cleaner Unpredictability -->
+    <div class="modal-overlay" id="modal-cleaner-unpredictability">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Cleaner Öngörülemezliği</h3>
+                <button class="modal-close" onclick="closeModal('cleaner-unpredictability')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>Teenager</code> örneği Cleaner'ların ne kadar güvenilmez olduğunun canlı kanıtıdır.
+                        <code>System.exit()</code> çağrıldığında veya normal program çıkışında, temizleme eylemlerinin
+                        çalıştırılıp çalıştırılmayacağı tamamen JVM uygulamasına bağlıdır. Bir JVM'de çalışan kod, başka
+                        bir JVM'de farklı davranabilir.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>The <code>Teenager</code> example is living proof of Cleaner unreliability. On
+                        <code>System.exit()</code> or normal program exit, whether cleaning actions run is entirely
+                        JVM-implementation-dependent. Code that works on one JVM may behave differently on another.</p>
+                </div>
+                <div class="tip-box tr-text">💡 Güvenlik ağı olarak Cleaner kullanıyorsanız bile, asıl kaynak yönetimini
+                    her zaman <code>try-with-resources</code> ile yapın. Cleaner'a güvenmeyin, onu sadece "son çare
+                    sigortası" olarak düşünün.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Resource Management -->
+    <div class="modal-overlay" id="modal-resource-management">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Kaynak Yönetimi (Resource Management)</h3>
+                <button class="modal-close" onclick="closeModal('resource-management')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Java'da kaynak yönetimi paradigmaları tarihsel olarak evrilmiştir:</p>
+                    <p><b>1. Elle yönetim</b> (Java 1-6): <code>try-finally</code> ile <code>close()</code> çağrısı.
+                        Hatalara açık, iç içe geçmiş (nested) bloklarla çirkin kod.</p>
+                    <p><b>2. try-with-resources</b> (Java 7+): <code>AutoCloseable</code> arayüzü ile otomatik kapatma.
+                        Kısa, temiz, hata güvenli.</p>
+                    <p><b>3. Cleaner/Finalizer</b>: Yalnızca güvenlik ağı. Asla birincil kaynak yönetimi olarak
+                        kullanılmamalı.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Resource management paradigms in Java have evolved historically:</p>
+                    <p><b>1. Manual</b> (Java 1-6): <code>try-finally</code> with explicit <code>close()</code>.
+                        Error-prone, ugly with nested blocks.</p>
+                    <p><b>2. try-with-resources</b> (Java 7+): Automatic closing via <code>AutoCloseable</code>. Clean,
+                        concise, error-safe.</p>
+                    <p><b>3. Cleaner/Finalizer</b>: Safety net only. Never use as primary resource management.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 32;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

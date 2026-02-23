@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sayfa 11 — Chapter 2: Item 2 | Effective Java Türkçe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #f8f9fa; color: #212529; line-height: 1.8; font-size: 17px; min-height: 100vh; }
+        .top-bar { background: #0d2137; color: #e0e0e0; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100; }
+        .top-bar-left { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .home-link { color: #f5a623; text-decoration: none; font-size: 14px; font-weight: 600; padding: 6px 12px; border: 1px solid rgba(245,166,35,0.3); border-radius: 6px; transition: all 0.3s; white-space: nowrap; }
+        .home-link:hover { background: rgba(245,166,35,0.1); border-color: #f5a623; }
+        .top-bar-title { display: flex; flex-direction: column; }
+        .book-title { font-size: 16px; font-weight: 700; color: #f5a623; }
+        .chapter-info { font-size: 12px; color: #adb5bd; }
+        .top-bar-right { display: flex; align-items: center; gap: 12px; }
+        .lang-toggle { display: flex; border: 1px solid rgba(245,166,35,0.3); border-radius: 6px; overflow: hidden; }
+        .lang-btn { padding: 5px 12px; font-size: 13px; font-weight: 700; background: transparent; color: #adb5bd; border: none; cursor: pointer; transition: all 0.3s; }
+        .lang-btn.active { background: #f5a623; color: #0d2137; }
+        .lang-btn:hover:not(.active) { color: #f5a623; }
+        .page-number-wrapper { display: flex; align-items: center; gap: 6px; position: relative; }
+        .page-number-label { font-size: 12px; color: #adb5bd; white-space: nowrap; }
+        .page-number-input { width: 52px; padding: 4px 8px; text-align: center; border: 1px solid rgba(245,166,35,0.3); border-radius: 6px; background: rgba(255,255,255,0.08); color: #f5a623; font-size: 14px; font-weight: 700; font-family: inherit; outline: none; transition: border-color 0.3s; }
+        .page-number-input:focus { border-color: #f5a623; }
+        .page-number-input.error { border-color: #dc3545; animation: shake 0.4s ease; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+        .page-nav-tooltip { position: absolute; top: 100%; right: 0; margin-top: 6px; background: #dc3545; color: #fff; font-size: 12px; padding: 6px 12px; border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 200; }
+        .page-nav-tooltip.visible { opacity: 1; }
+        .content { max-width: 760px; margin: 0 auto; padding: 40px 24px 60px; }
+        .page-badge { display: inline-block; background: #0d2137; color: #f5a623; font-size: 13px; font-weight: 700; padding: 4px 14px; border-radius: 20px; margin-bottom: 24px; }
+        .item-title { font-size: 24px; font-weight: 800; color: #0d2137; margin: 0 0 8px; line-height: 1.3; }
+        .item-title-en { font-size: 16px; color: #6c757d; font-weight: 400; font-style: italic; margin-bottom: 24px; }
+        .divider { height: 3px; background: linear-gradient(90deg, #f5a623 0%, transparent 100%); border: none; margin-bottom: 32px; border-radius: 2px; }
+        .continuation-note { background: #eef2f7; border-left: 4px solid #0d2137; padding: 10px 16px; border-radius: 0 8px 8px 0; font-size: 14px; color: #495057; margin-bottom: 28px; font-style: italic; }
+        .text-paragraph { margin-bottom: 20px; text-align: justify; hyphens: auto; }
+        .text-paragraph em { font-style: italic; color: #555; }
+        .text-paragraph strong { font-weight: 700; color: #0d2137; }
+        .text-paragraph code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 15px; color: #0d2137; font-family: 'Fira Code', 'Consolas', 'Monaco', monospace; }
+        .code-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #adb5bd; margin-bottom: 6px; padding-left: 4px; }
+        pre { background: #1e1e2e; color: #cdd6f4; padding: 18px 20px; border-radius: 10px; overflow-x: auto; font-size: 14px; line-height: 1.6; margin-bottom: 20px; font-family: 'Fira Code', 'Consolas', 'Monaco', monospace; }
+        pre .keyword { color: #cba6f7; }
+        pre .type { color: #89b4fa; }
+        pre .string { color: #a6e3a1; }
+        pre .comment { color: #6c7086; font-style: italic; }
+        pre .number { color: #fab387; }
+        pre .method { color: #89dceb; }
+        .key-point { background: #fff; border: 2px solid #0d2137; border-radius: 12px; padding: 20px 24px; margin: 28px 0; }
+        .key-point p { font-size: 16px; color: #0d2137; line-height: 1.7; font-weight: 500; }
+        .page-cut { background: #f8f9fa; border: 1px dashed #adb5bd; border-radius: 8px; padding: 10px 16px; margin-top: 32px; font-size: 13px; color: #6c757d; font-style: italic; text-align: center; }
+        .concepts-section { margin-top: 40px; padding-top: 32px; border-top: 2px solid #eee; }
+        .concepts-title { font-size: 18px; font-weight: 700; color: #0d2137; margin-bottom: 16px; }
+        .concepts-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+        .concept-btn { padding: 10px 20px; background: #fff; border: 2px solid #0d2137; border-radius: 10px; color: #0d2137; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.3s; font-family: inherit; }
+        .concept-btn:hover { background: #0d2137; color: #f5a623; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(13,33,55,0.2); }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: flex-start; padding: 40px 16px; overflow-y: auto; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: #fff; border-radius: 16px; max-width: 720px; width: 100%; padding: 32px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalIn 0.3s ease; }
+        @keyframes modalIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-close { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 50%; border: none; background: #f0f0f0; color: #333; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+        .modal-close:hover { background: #dc3545; color: #fff; }
+        .modal-title { font-size: 22px; font-weight: 800; color: #0d2137; margin-bottom: 4px; }
+        .modal-subtitle { font-size: 14px; color: #6c757d; font-style: italic; margin-bottom: 20px; }
+        .modal-desc { margin-bottom: 24px; line-height: 1.7; color: #333; }
+        .example-label { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding: 4px 10px; border-radius: 4px; display: inline-block; }
+        .example-label.bad { background: #fce4e4; color: #dc3545; }
+        .example-label.good { background: #e3f9e5; color: #28a745; }
+        .example-explain { font-size: 14px; color: #555; margin: 8px 0 20px; padding-left: 12px; border-left: 3px solid #dee2e6; }
+        .modal-tip { background: #fdf6eb; border: 1px solid #f5a623; border-radius: 8px; padding: 14px 18px; margin-top: 20px; font-size: 14px; color: #0d2137; }
+        .modal-tip strong { color: #f5a623; }
+        .page-nav { display: flex; justify-content: space-between; gap: 16px; margin-top: 48px; padding-top: 24px; border-top: 2px solid #eee; }
+        .nav-btn { flex: 1; padding: 16px 20px; border: 2px solid #dee2e6; border-radius: 12px; text-decoration: none; color: #0d2137; background: #fff; cursor: pointer; transition: all 0.3s; text-align: center; font-family: inherit; font-size: 15px; }
+        .nav-btn:hover:not(.disabled):not(.not-translated) { border-color: #0d2137; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .nav-btn.not-translated { opacity: 0.5; cursor: not-allowed; background: #f0f0f0; border-style: dashed; }
+        .nav-btn-label { font-size: 12px; color: #6c757d; margin-bottom: 4px; }
+        .nav-btn-title { font-weight: 700; font-size: 15px; }
+        .footer { text-align: center; padding: 24px; color: #adb5bd; font-size: 13px; border-top: 1px solid #dee2e6; margin-top: 20px; }
+        @media (max-width: 700px) { .top-bar { padding: 12px 16px; } .book-title { font-size: 14px; } .content { padding: 24px 16px 40px; } .item-title { font-size: 20px; } .modal-content { padding: 24px 18px; } .page-nav { flex-direction: column; } }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div class="top-bar-left">
+        <a href="../index.html" class="home-link">Ana Sayfa</a>
+        <div class="top-bar-title">
+            <div class="book-title">Effective Java &mdash; Joshua Bloch</div>
+            <div class="chapter-info">Chapter 2: Creating and Destroying Objects &mdash; Item 2</div>
+        </div>
+    </div>
+    <div class="top-bar-right">
+        <div class="lang-toggle">
+            <button class="lang-btn" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="page-number-wrapper">
+            <span class="page-number-label">Sayfa</span>
+            <input type="text" class="page-number-input" id="pageNumInput" value="11" maxlength="4"
+                   autocomplete="off"
+                   onkeydown="if(event.key==='Enter') goToPageNum()"
+                   onblur="resetPageInput()">
+            <div class="page-nav-tooltip" id="pageNavTooltip"></div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="page-badge">Sayfa 11</div>
+
+    <h1 class="item-title">
+        <span class="tr-text">Madde 2: Çok Sayıda Yapıcı Parametresiyle Karşılaşınca Builder Kullanmayı Düşünün</span>
+        <span class="en-text">Item 2: Consider a Builder When Faced with Many Constructor Parameters</span>
+    </h1>
+    <div class="item-title-en">
+        <span class="tr-text">Item 2: Consider a builder when faced with many constructor parameters</span>
+        <span class="en-text">Madde 2: Çok Sayıda Yapıcı Parametresiyle Karşılaşınca Builder Kullanmayı Düşünün</span>
+    </div>
+    <hr class="divider">
+
+    <p class="continuation-note">
+        <span class="tr-text">← Bu sayfa, önceki sayfada başlayan NutritionFacts teleskopik yapıcı (telescoping constructor) örneğinin devamıdır.</span>
+        <span class="en-text">← This page continues the NutritionFacts telescoping constructor example from the previous page.</span>
+    </p>
+
+    <div class="code-label">
+        <span class="tr-text">Kod — NutritionFacts Teleskopik Yapıcı (devamı)</span>
+        <span class="en-text">Code — NutritionFacts Telescoping Constructor (continued)</span>
+    </div>
+<pre><span class="keyword">public class</span> <span class="type">NutritionFacts</span> {
+    <span class="keyword">private final int</span> servingSize;   <span class="comment">// (mL)              zorunlu</span>
+    <span class="keyword">private final int</span> servings;      <span class="comment">// (per container)   zorunlu</span>
+    <span class="keyword">private final int</span> calories;      <span class="comment">// (per serving)     opsiyonel</span>
+    <span class="keyword">private final int</span> fat;           <span class="comment">// (g/serving)       opsiyonel</span>
+    <span class="keyword">private final int</span> sodium;        <span class="comment">// (mg/serving)      opsiyonel</span>
+    <span class="keyword">private final int</span> carbohydrate;  <span class="comment">// (g/serving)       opsiyonel</span>
+
+    <span class="keyword">public</span> <span class="type">NutritionFacts</span>(<span class="keyword">int</span> servingSize, <span class="keyword">int</span> servings) {
+        <span class="keyword">this</span>(servingSize, servings, <span class="number">0</span>);
+    }
+    <span class="keyword">public</span> <span class="type">NutritionFacts</span>(<span class="keyword">int</span> servingSize, <span class="keyword">int</span> servings, <span class="keyword">int</span> calories) {
+        <span class="keyword">this</span>(servingSize, servings, calories, <span class="number">0</span>);
+    }
+    <span class="keyword">public</span> <span class="type">NutritionFacts</span>(<span class="keyword">int</span> servingSize, <span class="keyword">int</span> servings,
+                           <span class="keyword">int</span> calories, <span class="keyword">int</span> fat) {
+        <span class="keyword">this</span>(servingSize, servings, calories, fat, <span class="number">0</span>);
+    }
+    <span class="keyword">public</span> <span class="type">NutritionFacts</span>(<span class="keyword">int</span> servingSize, <span class="keyword">int</span> servings,
+                           <span class="keyword">int</span> calories, <span class="keyword">int</span> fat, <span class="keyword">int</span> sodium) {
+        <span class="keyword">this</span>(servingSize, servings, calories, fat, sodium, <span class="number">0</span>);
+    }
+    <span class="keyword">public</span> <span class="type">NutritionFacts</span>(<span class="keyword">int</span> servingSize, <span class="keyword">int</span> servings,
+                           <span class="keyword">int</span> calories, <span class="keyword">int</span> fat, <span class="keyword">int</span> sodium,
+                           <span class="keyword">int</span> carbohydrate) {
+        <span class="keyword">this</span>.servingSize  = servingSize;
+        <span class="keyword">this</span>.servings     = servings;
+        <span class="keyword">this</span>.calories     = calories;
+        <span class="keyword">this</span>.fat          = fat;
+        <span class="keyword">this</span>.sodium       = sodium;
+        <span class="keyword">this</span>.carbohydrate = carbohydrate;
+    }
+}</pre>
+
+    <p class="text-paragraph tr-text">
+        Bir örnek oluşturmak istediğinizde, ayarlamak istediğiniz tüm parametreleri içeren en kısa parametre listesine sahip yapıcıyı kullanırsınız:
+    </p>
+    <p class="text-paragraph en-text">
+        When you want to create an instance, you use the constructor with the shortest parameter list containing all the parameters you want to set:
+    </p>
+
+<pre><span class="type">NutritionFacts</span> cocaCola =
+    <span class="keyword">new</span> <span class="type">NutritionFacts</span>(<span class="number">240</span>, <span class="number">8</span>, <span class="number">100</span>, <span class="number">0</span>, <span class="number">35</span>, <span class="number">27</span>);</pre>
+
+    <p class="text-paragraph tr-text">
+        Genellikle bu yapıcı çağrısı, ayarlamak <em>istemediğiniz</em> ama yine de değer geçmek <em>zorunda kaldığınız</em> çok sayıda parametre içerir. Bu örnekte <code>fat</code> için <code>0</code> değerini geçtik. "Yalnızca" altı parametre olduğunda bu durum o kadar da kötü görünmeyebilir; ancak parametre sayısı arttıkça işler hızla kontrolden çıkar.
+    </p>
+    <p class="text-paragraph en-text">
+        Typically this constructor invocation will require many parameters that you don't want to set, but you're forced to pass a value for them anyway. In this case, we passed a value of <code>0</code> for fat. With "only" six parameters this may not seem so bad, but it quickly gets out of hand as the number of parameters increases.
+    </p>
+
+    <div class="key-point">
+        <p class="tr-text">
+            <strong>Kısaca ifade edilirse: teleskopik yapıcı kalıbı (telescoping constructor pattern) işe yarar; ancak çok sayıda parametre olduğunda istemci kodunu yazmak son derece güçtür ve okumak daha da zordur.</strong>
+        </p>
+        <p class="en-text">
+            <strong>In short, the telescoping constructor pattern works, but it is hard to write client code when there are many parameters, and harder still to read it.</strong>
+        </p>
+    </div>
+
+    <p class="text-paragraph tr-text">
+        Kodu okuyan kişi bu değerlerin ne anlama geldiğini merak eder ve anlamak için parametreleri dikkatlice saymak zorunda kalır…
+    </p>
+    <p class="text-paragraph en-text">
+        The reader is left wondering what all those values mean and must carefully count parameters to find out…
+    </p>
+
+    <div class="page-cut">
+        <span class="tr-text">— Sayfa burada kesilmektedir. Devamı sonraki sayfada. —</span>
+        <span class="en-text">— Page ends here. Continues on the next page. —</span>
+    </div>
+
+    <!-- Kavram Butonları -->
+    <div class="concepts-section">
+        <h2 class="concepts-title">
+            <span class="tr-text">Kavramlar</span>
+            <span class="en-text">Concepts</span>
+        </h2>
+        <div class="concepts-grid">
+            <button class="concept-btn" onclick="openModal('forced-param')">
+                <span class="tr-text">Zorla Geçilen Parametre</span>
+                <span class="en-text">Forced Parameter Problem</span>
+            </button>
+            <button class="concept-btn" onclick="openModal('scaling-problem')">
+                <span class="tr-text">Ölçeklenme Sorunu</span>
+                <span class="en-text">Scaling Problem</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigasyon -->
+    <div class="page-nav">
+        <a href="page-10.html" class="nav-btn">
+            <div class="nav-btn-label">
+                <span class="tr-text">Önceki Sayfa</span>
+                <span class="en-text">Previous Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 10 &mdash; Madde 2: Builder Avantajları</span>
+                <span class="en-text">Page 10 &mdash; Item 2: Builder Advantages</span>
+            </div>
+        </a>
+        <a href="#" class="nav-btn not-translated" onclick="return handleUntranslated(event, 12)">
+            <div class="nav-btn-label">
+                <span class="tr-text">Sonraki Sayfa</span>
+                <span class="en-text">Next Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 12 &mdash; Madde 2: JavaBeans Kalıbı</span>
+                <span class="en-text">Page 12 &mdash; Item 2: JavaBeans Pattern</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Modal: Zorla Geçilen Parametre -->
+<div class="modal-overlay" id="modal-forced-param">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('forced-param')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Zorla Geçilen Parametre Sorunu</span>
+            <span class="en-text">Forced Parameter Problem</span>
+        </div>
+        <div class="modal-subtitle">Telescoping Constructor — Unwanted Zero/Null Values</div>
+        <div class="modal-desc">
+            <span class="tr-text">Teleskopik yapıcılarda, ayarlamak istemediğiniz parametreler için bile değer geçmek zorundasınızdır. Bu genellikle anlamsız <code>0</code>, <code>false</code> veya <code>null</code> değerlerin kod içine gömülmesine yol açar; hem okunabilirliği düşürür hem de mantık hatalarına davetiye çıkarır.</span>
+            <span class="en-text">With telescoping constructors, you're forced to pass values even for parameters you don't need. This leads to meaningless <code>0</code>, <code>false</code>, or <code>null</code> values being embedded in the code, reducing readability and inviting logic errors.</span>
+        </div>
+        <div class="example-label bad"><span class="tr-text">Kötü Örnek (Before)</span><span class="en-text">Bad Example (Before)</span></div>
+<pre><span class="keyword">public class</span> <span class="type">HttpRequest</span> {
+    <span class="keyword">private final</span> <span class="type">String</span> url;        <span class="comment">// zorunlu</span>
+    <span class="keyword">private final</span> <span class="type">String</span> method;     <span class="comment">// zorunlu</span>
+    <span class="keyword">private final</span> <span class="type">String</span> body;       <span class="comment">// opsiyonel</span>
+    <span class="keyword">private final int</span>    timeout;    <span class="comment">// opsiyonel</span>
+    <span class="keyword">private final boolean</span> followRedirects; <span class="comment">// opsiyonel</span>
+
+    <span class="keyword">public</span> <span class="type">HttpRequest</span>(<span class="type">String</span> url, <span class="type">String</span> method,
+                        <span class="type">String</span> body, <span class="keyword">int</span> timeout,
+                        <span class="keyword">boolean</span> followRedirects) { ... }
+}
+
+<span class="comment">// Sadece timeout istiyorum, body ve followRedirects yok</span>
+<span class="keyword">new</span> <span class="type">HttpRequest</span>(<span class="string">"https://api.ornek.com"</span>, <span class="string">"GET"</span>,
+               <span class="keyword">null</span>, <span class="number">5000</span>, <span class="keyword">false</span>); <span class="comment">// null ve false anlamsız</span></pre>
+        <div class="example-explain">
+            <span class="tr-text">Okuyucu 4. parametrenin <code>null</code> olduğunu saymadan anlayamaz. Bu tür hatalar sürüme girme riski taşır.</span>
+            <span class="en-text">A reader can't tell the 4th parameter is <code>null</code> without counting. This kind of error can slip into production.</span>
+        </div>
+        <div class="example-label good"><span class="tr-text">İyi Örnek (After)</span><span class="en-text">Good Example (After)</span></div>
+<pre><span class="comment">// Builder ile sadece istenen parametreler</span>
+<span class="keyword">new</span> <span class="type">HttpRequest</span>.<span class="type">Builder</span>(<span class="string">"https://api.ornek.com"</span>, <span class="string">"GET"</span>)
+    .timeout(<span class="number">5000</span>)
+    .build(); <span class="comment">// body ve followRedirects varsayılan değerde</span></pre>
+        <div class="example-explain">
+            <span class="tr-text">Yalnızca istenen parametre belirtildi. Gereksiz değer yok, kod kendi kendini açıklıyor.</span>
+            <span class="en-text">Only the needed parameter is specified. No unnecessary values — the code is self-documenting.</span>
+        </div>
+        <div class="modal-tip">
+            <span class="tr-text"><strong>Pratik İpucu:</strong> Yapıcı çağrısında <code>null</code>, <code>0</code> veya <code>false</code> gibi "boş" değerlerin sayısı ikiden fazlaysa, Builder kalıbına geçme zamanı gelmiştir.</span>
+            <span class="en-text"><strong>Practical Tip:</strong> If a constructor call has more than two "empty" values like <code>null</code>, <code>0</code>, or <code>false</code>, it's time to switch to the Builder pattern.</span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Ölçeklenme Sorunu -->
+<div class="modal-overlay" id="modal-scaling-problem">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('scaling-problem')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Teleskopik Yapıcının Ölçeklenme Sorunu</span>
+            <span class="en-text">Telescoping Constructor Scaling Problem</span>
+        </div>
+        <div class="modal-subtitle">Why Telescoping Constructors Don't Scale</div>
+        <div class="modal-desc">
+            <span class="tr-text">Her yeni opsiyonel parametre, yazmanız gereken yapıcı sayısını artırır. N opsiyonel parametre için farklı kombinasyonları desteklemek adına çok sayıda yapıcıya ihtiyaç duyulabilir — hem yazması hem bakımı hem de anlaşılması giderek zorlaşır.</span>
+            <span class="en-text">Each new optional parameter increases the number of constructors you need to write. Supporting different combinations for N optional parameters can require many constructors — writing, maintaining, and understanding them becomes progressively harder.</span>
+        </div>
+        <div class="example-label bad"><span class="tr-text">Kötü Örnek (Before)</span><span class="en-text">Bad Example (Before)</span></div>
+<pre><span class="comment">// 3 opsiyonel boolean → her kombinasyon için ayrı yapıcı</span>
+<span class="keyword">public class</span> <span class="type">ReportConfig</span> {
+    <span class="keyword">private final</span> <span class="type">String</span> title;
+    <span class="keyword">private final boolean</span> header, footer, pageNums;
+
+    <span class="keyword">public</span> <span class="type">ReportConfig</span>(<span class="type">String</span> t) { <span class="keyword">this</span>(t,<span class="keyword">false</span>,<span class="keyword">false</span>,<span class="keyword">false</span>); }
+    <span class="keyword">public</span> <span class="type">ReportConfig</span>(<span class="type">String</span> t, <span class="keyword">boolean</span> h) { <span class="keyword">this</span>(t,h,<span class="keyword">false</span>,<span class="keyword">false</span>); }
+    <span class="keyword">public</span> <span class="type">ReportConfig</span>(<span class="type">String</span> t, <span class="keyword">boolean</span> h, <span class="keyword">boolean</span> f) { <span class="keyword">this</span>(t,h,f,<span class="keyword">false</span>); }
+    <span class="keyword">public</span> <span class="type">ReportConfig</span>(<span class="type">String</span> t, <span class="keyword">boolean</span> h, <span class="keyword">boolean</span> f, <span class="keyword">boolean</span> p) {
+        title=t; header=h; footer=f; pageNums=p;
+    }
+    <span class="comment">// "header=true, footer=false, pageNums=true" kombinasyonu yok!</span>
+}</pre>
+        <div class="example-explain">
+            <span class="tr-text">Parametreler sıralı olduğu için her kombinasyon desteklenemez. "Başlık ve sayfa numarası, alt bilgi yok" kombinasyonu için uygun yapıcı bulunmaz.</span>
+            <span class="en-text">Because parameters are positional, not all combinations can be supported. There's no constructor for "header and page numbers but no footer."</span>
+        </div>
+        <div class="example-label good"><span class="tr-text">İyi Örnek (After)</span><span class="en-text">Good Example (After)</span></div>
+<pre><span class="keyword">public class</span> <span class="type">ReportConfig</span> {
+    <span class="keyword">private final</span> <span class="type">String</span> title;
+    <span class="keyword">private final boolean</span> header, footer, pageNums;
+
+    <span class="keyword">public static class</span> <span class="type">Builder</span> {
+        <span class="keyword">private final</span> <span class="type">String</span> title;
+        <span class="keyword">private boolean</span> header=<span class="keyword">false</span>, footer=<span class="keyword">false</span>, pageNums=<span class="keyword">false</span>;
+
+        <span class="keyword">public</span> <span class="type">Builder</span>(<span class="type">String</span> title) { <span class="keyword">this</span>.title = title; }
+        <span class="keyword">public</span> <span class="type">Builder</span> <span class="method">header</span>()   { header=<span class="keyword">true</span>;   <span class="keyword">return this</span>; }
+        <span class="keyword">public</span> <span class="type">Builder</span> <span class="method">footer</span>()   { footer=<span class="keyword">true</span>;   <span class="keyword">return this</span>; }
+        <span class="keyword">public</span> <span class="type">Builder</span> <span class="method">pageNums</span>(){ pageNums=<span class="keyword">true</span>; <span class="keyword">return this</span>; }
+        <span class="keyword">public</span> <span class="type">ReportConfig</span> <span class="method">build</span>() { <span class="keyword">return new</span> <span class="type">ReportConfig</span>(<span class="keyword">this</span>); }
+    }
+    <span class="keyword">private</span> <span class="type">ReportConfig</span>(<span class="type">Builder</span> b) {
+        title=b.title; header=b.header; footer=b.footer; pageNums=b.pageNums;
+    }
+}
+
+<span class="comment">// İstenen kombinasyon — header ve pageNums, footer yok</span>
+<span class="type">ReportConfig</span> cfg = <span class="keyword">new</span> <span class="type">ReportConfig</span>.<span class="type">Builder</span>(<span class="string">"Yıllık Rapor"</span>)
+    .header().pageNums().build();</pre>
+        <div class="example-explain">
+            <span class="tr-text">Her kombinasyon mümkün. Yeni bir özellik eklemek Builder'a tek metot eklemek demektir — mevcut kullanımlar bozulmaz.</span>
+            <span class="en-text">Every combination is possible. Adding a new feature means adding one method to Builder — existing usage is unaffected.</span>
+        </div>
+        <div class="modal-tip">
+            <span class="tr-text"><strong>Pratik İpucu:</strong> Opsiyonel parametre sayısı 3'ü geçtiğinde veya parametreler birbirinden bağımsız kombinasyonlar oluşturabildiğinde Builder kalıbını tercih edin. Lombok'un <code>@Builder</code> ek açıklaması standart kalıp kodunu otomatik üretir.</span>
+            <span class="en-text"><strong>Practical Tip:</strong> When optional parameters exceed 3, or when they can form independent combinations, prefer the Builder pattern. Lombok's <code>@Builder</code> annotation auto-generates the boilerplate.</span>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    Effective Java &mdash; Joshua Bloch &bullet; Sayfa 11 &bullet; Chapter 2: Item 2
+</div>
+
+<script>const CURRENT_PAGE = 11;</script>
+<script src="../js/common.js"></script>
+
+</body>
+</html>

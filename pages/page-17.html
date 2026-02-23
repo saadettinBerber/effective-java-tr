@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Effective Java — Sayfa 17</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #f8f9fa; color: #212529; line-height: 1.7; }
+  .topbar { background: #0d2137; color: #fff; padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; position: sticky; top: 0; z-index: 100; }
+  .topbar-left { display: flex; flex-direction: column; }
+  .topbar-title { font-size: 1rem; font-weight: 700; color: #f5a623; }
+  .topbar-sub { font-size: 0.78rem; color: #a0b4c8; margin-top: 0.1rem; }
+  .topbar-right { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+  .lang-btn { background: transparent; border: 1px solid #a0b4c8; color: #a0b4c8; padding: 0.25rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; transition: all .2s; }
+  .lang-btn.active { background: #f5a623; border-color: #f5a623; color: #0d2137; font-weight: 700; }
+  .page-nav-input-wrap { display: flex; align-items: center; gap: 0.4rem; position: relative; }
+  .page-nav-input-wrap label { font-size: 0.78rem; color: #a0b4c8; }
+  #pageNumInput { width: 3.2rem; padding: 0.22rem 0.4rem; border-radius: 4px; border: 1px solid #a0b4c8; background: #162d45; color: #fff; font-size: 0.9rem; text-align: center; }
+  #pageNumInput.error { border-color: #e74c3c; animation: shake .3s; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+  #pageNavTooltip { position: absolute; top: 110%; right: 0; background: #e74c3c; color: #fff; font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 4px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  #pageNavTooltip.visible { opacity: 1; }
+  .container { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .item-title { font-size: 1.8rem; font-weight: 800; color: #0d2137; margin: 2rem 0 0.5rem; line-height: 1.3; }
+  .item-title-en { font-size: 1.1rem; color: #6c757d; font-weight: 400; font-style: italic; margin-bottom: 2rem; }
+  .page-label { font-size: 0.78rem; color: #6c757d; margin-bottom: 0.3rem; }
+  .chapter-badge { display: inline-block; background: #e8f0fe; color: #0d2137; font-size: 0.78rem; font-weight: 600; padding: 0.2rem 0.7rem; border-radius: 20px; border: 1px solid #b8d0f0; margin-bottom: 1.2rem; }
+  .continued-box { background: #fff8e1; border-left: 4px solid #f5a623; padding: 0.7rem 1rem; border-radius: 0 6px 6px 0; margin-bottom: 1.5rem; font-size: 0.9rem; color: #7a5c00; }
+  .cuts-box { background: #fff8e1; border-left: 4px solid #f5a623; padding: 0.7rem 1rem; border-radius: 0 6px 6px 0; margin-top: 1.5rem; font-size: 0.9rem; color: #7a5c00; }
+  p { margin-bottom: 1rem; font-size: 1rem; }
+  .code-block { background: #1e2d3d; color: #cdd9e5; font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace; font-size: 0.88rem; padding: 1.2rem 1.4rem; border-radius: 8px; overflow-x: auto; margin: 1.2rem 0; line-height: 1.6; border: 1px solid #2d4a66; }
+  .kw { color: #79b8ff; } .cm { color: #6a737d; font-style: italic; } .cl { color: #b392f0; } .st { color: #9ecbff; } .an { color: #85e89d; } .num { color: #f8c555; }
+  .info-box { background: #e8f4fd; border-left: 4px solid #0d6efd; padding: 0.9rem 1.2rem; border-radius: 0 6px 6px 0; margin: 1.2rem 0; font-size: 0.93rem; color: #0a3d6b; }
+  .concept-btn { display: inline-block; background: #f5a623; color: #0d2137; border: none; padding: 0.4rem 0.9rem; border-radius: 20px; font-size: 0.82rem; font-weight: 600; cursor: pointer; margin: 0.3rem 0.3rem 0.3rem 0; transition: background .2s, transform .1s; }
+  .concept-btn:hover { background: #e09510; transform: translateY(-1px); }
+  .concepts-row { margin: 1.5rem 0; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1000; align-items: center; justify-content: center; padding: 1rem; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: #fff; border-radius: 10px; max-width: 680px; width: 100%; max-height: 88vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .modal-header { background: #0d2137; color: #fff; padding: 1rem 1.4rem; border-radius: 10px 10px 0 0; display: flex; justify-content: space-between; align-items: center; }
+  .modal-header h3 { font-size: 1rem; }
+  .modal-close { background: none; border: none; color: #fff; font-size: 1.4rem; cursor: pointer; line-height: 1; }
+  .modal-body { padding: 1.4rem; }
+  .modal-body p { font-size: 0.93rem; margin-bottom: 0.8rem; }
+  .example-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin: 1rem 0 0.3rem; }
+  .bad { color: #c0392b; } .good { color: #27ae60; }
+  .tip-box { background: #f0faf0; border-left: 3px solid #27ae60; padding: 0.6rem 1rem; border-radius: 0 4px 4px 0; font-size: 0.88rem; margin-top: 1rem; }
+  .page-footer { display: flex; justify-content: space-between; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #dee2e6; gap: 1rem; flex-wrap: wrap; }
+  .nav-btn { background: #0d2137; color: #fff; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: background .2s; text-align: left; min-width: 160px; }
+  .nav-btn:hover { background: #163a5f; }
+  .nav-btn .nav-direction { font-size: 0.7rem; color: #a0b4c8; display: block; margin-bottom: 0.2rem; }
+  .nav-btn .nav-info { font-weight: 600; }
+  @media (max-width: 600px) { .container { padding: 1rem 1rem 3rem; } .topbar { padding: 0.6rem 1rem; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-title">Effective Java — Joshua Bloch</span>
+    <span class="topbar-sub">Chapter 2: Creating and Destroying Objects &nbsp;›&nbsp; Item 3: Enforce the singleton property</span>
+  </div>
+  <div class="topbar-right">
+    <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+    <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+    <div class="page-nav-input-wrap">
+      <label for="pageNumInput">Sayfa</label>
+      <input type="text" id="pageNumInput" value="17" inputmode="numeric"
+             onkeydown="if(event.key==='Enter')goToPageNum()"
+             onblur="resetPageInput()" />
+      <div id="pageNavTooltip"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="page-label">Sayfa 17 / Page 17</div>
+
+  <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 2 (Builder) değerlendirmesi ve sonucu.</em></div>
+
+  <!-- End of Item 2 -->
+  <div class="tr-text">
+    <p>Builder kalıbı (Builder pattern) oldukça esnektir. Tek bir builder, birden fazla nesne oluşturmak için tekrar tekrar kullanılabilir. Üretilen nesneleri çeşitlendirmek için <code>build</code> metodunun farklı çağrıları arasında builder'ın parametrelerinde oynamalar yapılabilir. Bir builder, her nesne oluşturuluşunda artan bir seri numarası gibi bazı alanları örnek (instance) oluşturulurken otomatik olarak doldurabilir.</p>
+
+    <p>Builder kalıbının (Builder pattern) dezavantajları da vardır. Bir nesne oluşturmak için önce o nesnenin builder'ını oluşturmanız gerekir. Bu builder'ı oluşturmanın maliyeti pratikte fark edilecek seviyede olmasa da, performans açısından kritik durumlarda sorun yaratabilir. Ayrıca, Builder kalıbı teleskopik yapıcı (telescoping constructor) kalıbından daha uzun kod (verbose) gerektirir, bu yüzden sadece buna değecek kadar parametre olduğunda, örneğin dört veya daha fazla parametre varsa kullanılmalıdır. Ancak gelecekte daha fazla parametre eklemek isteyebileceğinizi aklınızdan çıkarmayın. Eğer işe yapıcı metotlarla (constructors) veya statik fabrika metotlarıyla (static factory methods) başlayıp, sınıf evrildikçe ve parametre sayısı kontrolden çıktığında builder'a geçiş yaparsanız, eski yapıcı metotlar veya statik fabrikalar göze batacaktır. Bu yüzden, çoğu zaman en başından itibaren bir builder ile başlamak daha iyidir.</p>
+
+    <p>Özetle, özellikle parametrelerin çoğu opsiyonel (optional) veya aynı türdeyse, yapıcıları veya statik fabrika metotları çok sayıda parametreye sahip olacak olan sınıfları tasarlarken Builder kalıbı iyi bir seçimdir. İstemci kodunu builder'lar ile okumak ve yazmak, teleskopik yapıcılarla okuyup yazmaktan çok daha kolaydır ve builder'lar JavaBeans kalıbından çok daha güvenlidir.</p>
+  </div>
+
+  <div class="en-text" style="display:none">
+    <p>The Builder pattern is quite flexible. A single builder can be used repeatedly to build multiple objects. The parameters of the builder can be tweaked between invocations of the build method to vary the objects that are created. A builder can fill in some fields automatically upon object creation, such as a serial number that increases each time an object is created.</p>
+
+    <p>The Builder pattern has disadvantages as well. In order to create an object, you must first create its builder. While the cost of creating this builder is unlikely to be noticeable in practice, it could be a problem in performance-critical situations. Also, the Builder pattern is more verbose than the telescoping constructor pattern, so it should be used only if there are enough parameters to make it worthwhile, say four or more. But keep in mind that you may want to add more parameters in the future. But if you start out with constructors or static factories and switch to a builder when the class evolves to the point where the number of parameters gets out of hand, the obsolete constructors or static factories will stick out like a sore thumb. Therefore, it’s often better to start with a builder in the first place.</p>
+
+    <p>In summary, the Builder pattern is a good choice when designing classes whose constructors or static factories would have more than a handful of parameters, especially if many of the parameters are optional or of identical type. Client code is much easier to read and write with builders than with telescoping constructors, and builders are much safer than JavaBeans.</p>
+  </div>
+
+  <!-- Start of Item 3 -->
+  <hr style="border:0; border-top:1px solid #dee2e6; margin: 2rem 0;">
+  
+  <div class="chapter-badge">Chapter 2 — Item 3</div>
+  <h1 class="item-title tr-text">Madde 3: Singleton (Tekil) özelliğini private yapıcı metot veya enum tipiyle garanti altına alın</h1>
+  <div class="item-title-en en-text" style="display:none">Item 3: Enforce the singleton property with a private constructor or an enum type</div>
+
+  <div class="tr-text">
+    <p>Singleton (Tekil), tam olarak yalnızca bir kez örneklenen (instantiated) bir sınıftır [Gamma95]. Singleton'lar genellikle bir fonksiyon (Madde 24) gibi durumsuz (stateless) bir nesneyi ya da doğası gereği tekil olan bir sistem bileşenini temsil eder. Bir sınıfı singleton yapmak, istemcilerini (clients) test etmeyi zorlaştırabilir çünkü o sınıf tipini temsil eden bir arayüzü (interface) uygulamadığı sürece bir singleton yerine sahte (mock) bir uygulama koymak imkansızdır.</p>
+
+    <p>Singleton'ları uygulamanın iki yaygın yolu vardır. Her ikisi de yapıcı metodu (constructor) private tutmaya ve tek örneğe (sole instance) erişim sağlamak için public statik bir üye (member) dışa aktarmaya dayanır. İlk yaklaşımda bu üye public final bir alandır (field):</p>
+  </div>
+  
+  <div class="en-text" style="display:none">
+    <p>A singleton is simply a class that is instantiated exactly once [Gamma95]. Singletons typically represent either a stateless object such as a function (Item 24) or a system component that is intrinsically unique. Making a class a singleton can make it difficult to test its clients because it’s impossible to substitute a mock implementation for a singleton unless it implements an interface that serves as its type.</p>
+
+    <p>There are two common ways to implement singletons. Both are based on keeping the constructor private and exporting a public static member to provide access to the sole instance. In one approach, the member is a final field:</p>
+  </div>
+
+  <!-- Concept buttons -->
+  <div class="concepts-row">
+    <strong class="tr-text">🔍 Kavramlar:</strong>
+    <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+    <button class="concept-btn" onclick="openModal('singleton')">Singleton (Tekil)</button>
+    <button class="concept-btn" onclick="openModal('mocking')">Mocking (Sahte Nesneler)</button>
+  </div>
+
+  <div class="cuts-box">⚠ Sayfa burada kesiliyor — İlk singleton uygulaması (public final field) kodu sonraki sayfada devam ediyor.</div>
+
+  <div class="page-footer">
+    <button class="nav-btn" onclick="window.location.href='page-16.html'">
+      <span class="nav-direction">← Önceki Sayfa</span>
+      <span class="nav-info">Sayfa 16 — Builder hiyerarşisi</span>
+    </button>
+    <button class="nav-btn" onclick="window.location.href='page-18.html'">
+      <span class="nav-direction">Sonraki Sayfa →</span>
+      <span class="nav-info">Sayfa 18 — Singleton yaklaşımları</span>
+    </button>
+  </div>
+</div>
+
+<!-- Modal: Singleton -->
+<div class="modal-overlay" id="modal-singleton">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Singleton (Tekil) Kalıbı / Singleton Pattern</h3>
+      <button class="modal-close" onclick="closeModal('singleton')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tr-text">
+        <p>Singleton kalıbı, bir sınıfın dünya üzerinde (daha doğrusu JVM üzerinde) yalnızca bir örneğinin (instance) olmasını garanti eden tasarım kalıbıdır. Veritabanı bağlantı havuzları, yapılandırma (configuration) yöneticileri veya loglama sistemleri gibi merkezi yönetilmesi gereken bileşenlerde tercih edilir.</p>
+      </div>
+      <div class="en-text" style="display:none">
+        <p>The Singleton pattern guarantees that a class has exactly one instance across the entire application (JVM). It is typically used for centralized components like database connection pools, configuration managers, or logging systems.</p>
+      </div>
+      <div class="example-label bad">✗ KÖTÜ — Çoklu örnek kontrol altına alınmamış</div>
+      <div class="code-block" style="font-size:0.83rem">
+<span class="kw">public class</span> <span class="cl">ConfigManager</span> {
+    <span class="cm">// Yapıcı public bırakılmış, herkes new ile instance yaratabilir.</span>
+    <span class="kw">public</span> <span class="cl">ConfigManager</span>() {
+        loadConfig();
+    }
+}
+      </div>
+      <div class="example-label good">✓ İYİ — Basit bir Singleton Tasarımı (Enum yaklaşımı daha iyidir)</div>
+      <div class="code-block" style="font-size:0.83rem">
+<span class="kw">public class</span> <span class="cl">VideoPlayerConfig</span> {
+    <span class="cm">// Kendi instance'ını yaratıp gizliyor</span>
+    <span class="kw">public static final</span> <span class="cl">VideoPlayerConfig</span> INSTANCE = <span class="kw">new</span> <span class="cl">VideoPlayerConfig</span>();
+    
+    <span class="cm">// Yapıcı private, dışarıdan kimse new ile yaratamaz</span>
+    <span class="kw">private</span> <span class="cl">VideoPlayerConfig</span>() {
+        loadConfig();
+    }
+}
+      </div>
+      <div class="tip-box tr-text">💡 Singleton yapmak, global bir değişken oluşturmaya çok benzer. Bu yüzden mümkünse sınıfların bağımlılıkları dışarıdan enjekte edilmeli (Dependency Injection), Singleton yalnızca gerçekten ihtiyaç duyulan donanım arayüzü veya paylaşımlı havuzlar için kullanılmalıdır.</div>
+      <div class="tip-box en-text" style="display:none">💡 Creating a Singleton is akin to having a global variable. Aim to pass dependencies explicitly (Dependency Injection), reserving Singletons for shared resources like hardware interfaces or pools.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Mocking -->
+<div class="modal-overlay" id="modal-mocking">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Mocking (Sahte Nesneler) / Mocking</h3>
+      <button class="modal-close" onclick="closeModal('mocking')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tr-text">
+        <p>Bir programı test ederken, sınıfı veritabanından, ağ veya diğer harici bileşenlerden izole etmek için "sahte" (mock) nesnelere ihtiyaç duyarız. Ancak bir Singleton nesneyi mock nesne ile değiştirmek çok zordur, çünkü koda sıkıca (tightly coupled) gömülüdür. Arayüz kullanmak (Interface) bu sorunu çözer.</p>
+      </div>
+      <div class="en-text" style="display:none">
+        <p>To isolate a class during testing, we often replace external dependencies (database, network) with "mock" objects. Replacing a Singleton with a mock is extremely difficult because it is tightly coupled to the code. Extracting an interface solves this testability issue.</p>
+      </div>
+      <div class="example-label bad">✗ KÖTÜ — Test edilemeyen Singleton kullanımı</div>
+      <div class="code-block" style="font-size:0.83rem">
+<span class="kw">public class</span> <span class="cl">UserService</span> {
+    <span class="kw">public void</span> registerUser(<span class="cl">User</span> u) {
+        <span class="cm">// Singleton doğrudan çağrılıyor. Test esnasında gerçek DB'ye gider!</span>
+        <span class="cl">DatabaseConnection</span>.getInstance().save(u);
+    }
+}
+      </div>
+      <div class="example-label good">✓ İYİ — Arayüzü olan Singleton (Mock edilebilir)</div>
+      <div class="code-block" style="font-size:0.83rem">
+<span class="kw">public interface</span> <span class="cl">DatabaseDataStore</span> {
+    <span class="kw">void</span> save(<span class="cl">User</span> u);
+}
+
+<span class="kw">public class</span> <span class="cl">UserService</span> {
+    <span class="kw">private final</span> <span class="cl">DatabaseDataStore</span> db;
+    
+    <span class="cm">// Bağımlılık dışarıdan alınıyor (Dependency Injection)</span>
+    <span class="kw">public</span> <span class="cl">UserService</span>(<span class="cl">DatabaseDataStore</span> db) { <span class="kw">this</span>.db = db; }
+    
+    <span class="kw">public void</span> registerUser(<span class="cl">User</span> u) { db.save(u); }
+}
+
+<span class="cm">// Test sırasında artık gerçek bir Singleton yerine sahte bir MockDataStore gönderebiliriz!</span>
+      </div>
+      <div class="tip-box tr-text">💡 Test edilebilirlik (Testability), iyi bir yazılım mimarisinin önceliklerinden olmalıdır. Eğer Singleton nesneler testlerinizi zorlaştırıyorsa, muhtemelen tasarımı esnetmeniz gerekiyordur.</div>
+      <div class="tip-box en-text" style="display:none">💡 Testability is a hallmark of good architecture. If Singletons are preventing your code from being unit-tested, it's a sign that your design is too rigid.</div>
+    </div>
+  </div>
+</div>
+
+<script>const CURRENT_PAGE = 17;</script>
+<script src="../js/common.js"></script>
+</body>
+</html>

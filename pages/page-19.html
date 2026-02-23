@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 19</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7;
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623;
+        }
+
+        .topbar-sub {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+            margin-top: 0.1rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all .2s;
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700;
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            position: relative;
+        }
+
+        .page-nav-input-wrap label {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: 0.22rem 0.4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s;
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1;
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        .page-label {
+            font-size: 0.78rem;
+            color: #6c757d;
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem;
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: 0.88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66;
+        }
+
+        .kw {
+            color: #79b8ff;
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic;
+        }
+
+        .cl {
+            color: #b392f0;
+        }
+
+        .st {
+            color: #9ecbff;
+        }
+
+        .an {
+            color: #85e89d;
+        }
+
+        .num {
+            color: #f8c555;
+        }
+
+        .info-box {
+            background: #e8f4fd;
+            border-left: 4px solid #0d6efd;
+            padding: 0.9rem 1.2rem;
+            border-radius: 0 6px 6px 0;
+            margin: 1.2rem 0;
+            font-size: 0.93rem;
+            color: #0a3d6b;
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0.3rem 0.3rem 0.3rem 0;
+            transition: background .2s, transform .1s;
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px);
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 1.4rem;
+        }
+
+        .modal-body p {
+            font-size: 0.93rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .example-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin: 1rem 0 0.3rem;
+        }
+
+        .bad {
+            color: #c0392b;
+        }
+
+        .good {
+            color: #27ae60;
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: 0.6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.88rem;
+            margin-top: 1rem;
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px;
+        }
+
+        .nav-btn:hover {
+            background: #163a5f;
+        }
+
+        .nav-btn .nav-direction {
+            font-size: 0.7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem 1rem 3rem;
+            }
+
+            .topbar {
+                padding: 0.6rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 2: Creating and Destroying Objects &nbsp;›&nbsp; Item 4: Enforce
+                noninstantiability with a private constructor</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="19" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 19 / Page 19</div>
+        <div class="chapter-badge">Chapter 2 — Item 4: private yapıcı metotlarla örneklenememeyi garanti altına alın /
+            Enforce noninstantiability with a private constructor</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 4'e giriş.</em></div>
+
+        <div class="tr-text">
+            <p>...insanlar bu yardımcı (utility) sınıfları nesne yönelimli düşünmekten kaçmak için suistimal ettikleri
+                için kötü bir şöhrete sahip olsalar da, asıl kullanım amaçları geçerlidir. Tıpkı
+                <code>java.lang.Math</code> veya <code>java.util.Arrays</code> gibi birbiriyle ilişkili metotları ilkel
+                tipler (primitive values) üzerinde veya diziler üzerinde gruplandırmak için kullanılabilirler. Ya da
+                <code>java.util.Collections</code> gibi, belirli bir arayüzü uygulayan nesneler için fabrika metotları
+                (Madde 1) da dahil olmak üzere statik metotları gruplandırmak için kullanılabilirler. (Java 8'den
+                itibaren, değişiklik hakkı sizdeyse bu tür metotları doğrudan arayüzün (interface) içine
+                koyabilirsiniz.) Son olarak bu tür sınıflar, bir sınıf final olduğunda, yani ondan alt sınıf
+                türetemediğinizde (subclassing yapılamıyorsa), o sınıf üzerindeki metotları gruplandırmak için
+                kullanılabilir.</p>
+
+            <p>Bu tür yardımcı sınıflar örneklenmek (instantiated) için tasarlanmamıştır: bir örnek (instance) mantıksız
+                olurdu. Ancak, açıkça belirtilmiş bir yapıcı metot (explicit constructor) bulunmadığı durumlarda,
+                derleyici herkesin erişimine açık ve parametresiz varsayılan bir yapıcı metot (public default
+                constructor) sağlar. Bir kullanıcı için, bu yapıcının diğer nesnelerin yapıcılarından ayırt edilmesi
+                imkânsızdır. Piyasaya sürülmüş bazı API'lerde, kazara örneklenmeye müsait durumda bırakılmış
+                (unintentionally instantiable) sınıflara rastlamak hiç de nadir değildir.</p>
+
+            <p>Bir sınıfı soyut (abstract) yaparak örneklenmesini (instantiability) engellemeye çalışmak <strong>işe
+                    yaramaz</strong>. Bu sınıfın alt sınıfı oluşturulabilir ve alt sınıf örneklenebilir. Üstelik bu
+                durum, sınıfın bilakis kalıtım (inheritance) yoluyla kullanılmak üzere tasarlandığı yanılgısına düşürür
+                (Madde 19). Ancak, örneklenememeyi (noninstantiability) garanti altına almanın çok basit bir deyimi
+                (idiom) vardır. Derleyici, varsayılan bir yapıcı metodu sadece eğer sınıf içinde hiç açık yapıcı
+                (explicit constructor) yoksa üretir. O halde, bir sınıfın içine <strong>private</strong> bir yapıcı
+                metot eklendiğinde o sınıf örneklenemez hale gelir:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>...people abuse them to avoid thinking in terms of objects, but they do have valid uses. They can be used
+                to group related methods on primitive values or arrays, in the manner of <code>java.lang.Math</code> or
+                <code>java.util.Arrays</code>. They can also be used to group static methods, including factories (Item
+                1), for objects that implement some interface, in the manner of <code>java.util.Collections</code>. (As
+                of Java 8, you can also put such methods in the interface, assuming it’s yours to modify.) Lastly, such
+                classes can be used to group methods on a final class, since you can’t put them in a subclass.</p>
+
+            <p>Such utility classes were not designed to be instantiated: an instance would be nonsensical. In the
+                absence of explicit constructors, however, the compiler provides a public, parameterless default
+                constructor. To a user, this constructor is indistinguishable from any other. It is not uncommon to see
+                unintentionally instantiable classes in published APIs.</p>
+
+            <p>Attempting to enforce noninstantiability by making a class abstract does <strong>not work</strong>. The
+                class can be subclassed and the subclass instantiated. Furthermore, it misleads the user into thinking
+                the class was designed for inheritance (Item 19). There is, however, a simple idiom to ensure
+                noninstantiability. A default constructor is generated only if a class contains no explicit
+                constructors, so a class can be made noninstantiable by including a private constructor:</p>
+        </div>
+
+        <!-- Code Block for Noninstantiable class -->
+        <div class="code-block">
+            <span class="cm">// Örneklenemeyen yardımcı sınıf (Noninstantiable utility class)</span>
+            <span class="kw">public class</span> <span class="cl">UtilityClass</span> {
+            <span class="cm">// Örneklenmeyi engellemek için varsayılan yapıcıyı gizle</span>
+            <span class="kw">private</span> <span class="cl">UtilityClass</span>() {
+            <span class="kw">throw new</span> <span class="cl">AssertionError</span>();
+            }
+            ... <span class="cm">// Geri kalanı kırpıldı (Remainder omitted)</span>
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Açık (explicit) yapıcı metot <code>private</code> olduğu için, sınıf dışından erişilemez. İçerisine
+                yazılan <code>AssertionError</code> mutlak olarak zorunlu değildir, ancak yine de yapıcı metot sınıf
+                içinden bile olsa yanlışlıkla çağrıldığında ekstra bir sigorta görevi görür. Bu, sınıfın her koşulda
+                asla örneklendirilmeyeceğini (instantiated) garanti eder. Ancak bu deyim biraz sezgilere aykırıdır çünkü
+                bilerek sadece hiç çağrılmamasını sağlamak adına bir yapıcı metot verilmiştir. Bu nedenle önceki
+                örnekteki gibi bir açıklama satırı eklemek her zaman akıllıca olur.</p>
+
+            <p>Bu deyimin (idiom) bir yan etkisi olarak aynı zamanda sınıfın <strong>alt sınıf oluşturulması da
+                    engellenir</strong> (subclassed). Bütün yapıcı metotlar, açık (explicit) veya kapalı (implicit)
+                olarak mutlaka üst sınıfın yapıcı metotlarından birini çağırmak (invoke) zorundadır. Ancak bu alt
+                sınıfın çağırabileceği erişilebilir hiçbir üst sınıf yapıcısı bulunamaz.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Because the explicit constructor is private, it is inaccessible outside the class. The
+                <code>AssertionError</code> isn’t strictly required, but it provides insurance in case the constructor
+                is accidentally invoked from within the class. It guarantees the class will never be instantiated under
+                any circumstances. This idiom is mildly counterintuitive because the constructor is provided expressly
+                so that it cannot be invoked. It is therefore wise to include a comment, as shown earlier.</p>
+
+            <p>As a side effect, this idiom also prevents the class from being subclassed. All constructors must invoke
+                a superclass constructor, explicitly or implicitly, and a subclass would have no accessible superclass
+                constructor to invoke.</p>
+        </div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('utilityclass')">Utility Class (Yardımcı Sınıf)</button>
+            <button class="concept-btn" onclick="openModal('abstract-noninstantiable')">Abstract vs Private
+                Constructor</button>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 5 bir sonraki sayfada başlıyor.</div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-18.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 18 — Singleton kalıbı türleri</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-20.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 20 — Madde 5 başlar</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Utility Class -->
+    <div class="modal-overlay" id="modal-utilityclass">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Utility Class (Yardımcı Sınıf) / Utility Class</h3>
+                <button class="modal-close" onclick="closeModal('utilityclass')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Utility sınıfları, içinde nesne durumu tutmaya (state) gerek olmayan, yalnızca genel amaçlı
+                        <code>static</code> metot veya sabit değerler (constants) barındıran sınıflardır. Hiçbir zaman
+                        <code>new</code> komutuyla oluşturulmamalıdırlar. Eğer kurucularını gizlemezseniz API'nizi
+                        kullanan kişiler, hata yaparak onlardan nesne üretmeye çalışabilir.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Utility classes are classes that don't need any object state and only contain general-purpose
+                        <code>static</code> methods or constants. They should never be instantiated with the
+                        <code>new</code> keyword. If you don't hide their constructors, API consumers might instantiate
+                        them by mistake.</p>
+                </div>
+                <div class="example-label bad">✗ KÖTÜ — İstenmeden yaratılabilen yararcı sınıf</div>
+                <div class="code-block" style="font-size:0.83rem">
+                    <span class="kw">public class</span> <span class="cl">StringUtils</span> {
+                    <span class="cm">// Derleyici buraya otomatik public StringUtils() koyar.</span>
+                    <span class="kw">public static</span> <span class="cl">String</span> capitalize(<span
+                        class="cl">String</span> text) { ... }
+                    }
+
+                    <span class="cm">// İstemci yanlışlıkla yapabilir:</span>
+                    <span class="cl">StringUtils</span> utils = <span class="kw">new</span> <span
+                        class="cl">StringUtils</span>();
+                    utils.capitalize(<span class="st">"hello"</span>);
+                </div>
+                <div class="example-label good">✓ İYİ — Örneklenemez (Noninstantiable) Sınıf</div>
+                <div class="code-block" style="font-size:0.83rem">
+                    <span class="kw">public final class</span> <span class="cl">StringUtils</span> {
+                    <span class="kw">private</span> <span class="cl">StringUtils</span>() {
+                    <span class="kw">throw new</span> <span class="cl">AssertionError</span>(<span
+                        class="st">"Örneklenemez yardımcı sınıf!"</span>);
+                    }
+
+                    <span class="kw">public static</span> <span class="cl">String</span> capitalize(<span
+                        class="cl">String</span> text) { ... }
+                    }
+
+                    <span class="cm">// İstemci doğrudan sınıfı kullanmak zorundadır:</span>
+                    <span class="cl">StringUtils</span>.capitalize(<span class="st">"hello"</span>);
+                </div>
+                <div class="tip-box tr-text">💡 Aynı zamanda, Java 8 ile birlikte eğer yardımcı kodlarınız belli bir
+                    konsept veya <code>interface</code> etrafında toplanıyorsa, utility class yerine
+                    <code>interface</code> içersine static metotlar (static interface methods) deklare edebileceğinizi
+                    unutmayın.</div>
+                <div class="tip-box en-text" style="display:none">💡 Also keep in mind that since Java 8, if your
+                    utility methods revolve around an interface concept, you can place them directly as static methods
+                    inside that <code>interface</code> instead of making a new utility class.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Abstract vs Private -->
+    <div class="modal-overlay" id="modal-abstract-noninstantiable">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Abstract vs Private Constructor</h3>
+                <button class="modal-close" onclick="closeModal('abstract-noninstantiable')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Bazı geliştiriciler bir sınıfın örneklenmesini engellemek için sınıfı <code>abstract</code>
+                        (soyut) işaretlemenin yeterli olacağını düşünür. Ancak bu büyük bir hatadır.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Some developers assume that marking a class as <code>abstract</code> is sufficient to prevent it
+                        from being instantiated. However, this is a big mistake.</p>
+                </div>
+                <div class="example-label bad">✗ KÖTÜ — Abstract kullanıldığında alt sınıfı yapılabilir</div>
+                <div class="code-block" style="font-size:0.83rem">
+                    <span class="kw">public abstract class</span> <span class="cl">DateUtils</span> {
+                    <span class="kw">public static</span> <span class="cl">String</span> format(<span
+                        class="cl">Date</span> d) { ... }
+                    }
+
+                    <span class="cm">// Kötü niyetli/bilgisiz istemci abstract'ı atlatır:</span>
+                    <span class="kw">public class</span> <span class="cl">MyDateUtils</span> <span
+                        class="kw">extends</span> <span class="cl">DateUtils</span> { }
+
+                    <span class="cm">// Artık örnek yaratılabilir!</span>
+                    <span class="cl">MyDateUtils</span> utils = <span class="kw">new</span> <span
+                        class="cl">MyDateUtils</span>();
+                </div>
+                <div class="tr-text">
+                    <p>Ayrıca <code>abstract</code> sınıflar kullanıcılara <em>"bu sınıf kalıtım için (inheritance)
+                            tasarlanmıştır, eksiklerini tamamlayıp alt sınıf oluşturmalısın"</em> şeklinde yanlış bir
+                        mesaj verir. <strong>Private constructor deyimi (idiom)</strong> ise hiçbir constructor'ın
+                        çağrılamamasını güvence altına aldığı için otomatik olarak o sınıfın abstract veya subclass
+                        olmasını tamamen önler.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 19;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

@@ -3,6 +3,7 @@ name: cevir
 description: Effective Java kitabının belirtilen sayfasını EN/TR interaktif HTML olarak çevirir. Tekli sayfa, sayfa aralığı (X-Y), başlangıç+adet (X adet), chapter modu (chapter-N) veya "next/sıradaki" ile kullanılır.
 argument-hint: "[sayfa-numarasi | next | X-Y | X adet | chapter-N]"
 allowed-tools: ["Read", "Write", "Edit", "Bash", "Glob"]
+compatibility: ["antigravity", "claude-code"]
 ---
 
 # Effective Java Sayfa Çeviri Skill'i
@@ -57,7 +58,7 @@ Sayfalar: X – Y (toplam Z sayfa)
 
 ### Sonraki Sayfa Modu
 **Girdi:** "next", "sıradaki", "sonraki", "devam" veya boş
-- `CLAUDE.md` dosyasındaki `last_translated_page` değerini oku.
+- `AGENTS.md` (veya `CLAUDE.md`) dosyasındaki `last_translated_page` değerini oku.
 - O değere 1 ekleyerek sonraki sayfayı belirle (tekli mod olarak devam et).
 - Eğer değer 0 ise, sayfa 1'den başla.
 
@@ -97,7 +98,7 @@ Başlıyorum...
 
 ## 3. Glossary'yi Oku
 
-- `.claude/skills/cevir/glossary.md` dosyasını oku.
+- `.claude/skills/cevir/glossary.md` dosyasını oku (paylaşılan tek kaynak).
 - Mevcut terim çevirilerini öğren ve çeviri sırasında tutarlı kullan.
 - **Önemli**: Glossary'yi yalnızca bir kez başta oku; her sayfa için tekrar okumana gerek yok.
 
@@ -124,15 +125,14 @@ Sayfa N çevrilecek. N-1 (önceki) ve N+1 (sonraki) bağlam için gereklidir. He
 
 **Hedef sayfa N için:**
 - Her zaman PDF'den oku (bu sayfa çevrilecek).
-- PDF yolu: `docs/Effective Java (3rd Edition).pdf`
-- Sayfa offset: PDF sayfa = kitap sayfa + 19
-  - Örnek: Kitap sayfa 5 → PDF sayfa 24
+- PDF yolu ve sayfa offset bilgisi için AGENTS.md'deki **PDF Bilgileri** bölümüne bak.
+- Örnek: Kitap sayfa 5 → PDF sayfa 24 (5 + 19 = 24)
 
 **Önbellek avantajı (toplu modda):** Sayfa N işlenirken N+1 EN-only kaydedilir; N+1 sıraya geldiğinde PDF okumaya gerek kalmaz, sadece N+2 için PDF okunur.
 
 ### 4b. Çeviriyi Yap
 
-- `CLAUDE.md` ve `.claude/rules/translation-style.md` kurallarına uy.
+- AGENTS.md'deki tüm çeviri kurallarına uy.
 - Parantezli terminoloji kullan: `Türkçe Karşılık (English Term)`
 - Kod bloklarını asla çevirme.
 - Sayfanın ait olduğu Chapter ve Item bilgisini belirle.
@@ -149,6 +149,8 @@ Sayfadaki önemli Java/Effective Java kavramları için:
 
 ### 4d. page-X.html Oluştur veya Güncelle
 
+Dosya yolu AGENTS.md'deki yapıya göre `pages/page-X.html` (X = sayfa numarası).
+
 **Eğer dosya zaten var (4a adımında EN-only olarak oluşturulmuştu):**
 - Mevcut dosyayı aç.
 - TR içeriğini, kavram butonlarını ve navigasyonu ekle/tamamla.
@@ -158,8 +160,7 @@ Sayfadaki önemli Java/Effective Java kavramları için:
 - Sıfırdan oluştur, hem EN hem TR kısımları dolu tam bir sayfa olarak kaydet.
 
 **Her iki durumda da geçerli kurallar:**
-- Dosya yolu: `pages/page-X.html` (X = sayfa numarası)
-- `CLAUDE.md`'deki tüm HTML çıktı kurallarına uy.
+- AGENTS.md'deki HTML çıktı kurallarına uy.
 - CSS inline, JS ise `../js/common.js` harici dosyasından yüklenir.
 - Script bölümü sadece şu 2 satırdan oluşmalı:
   - `<script>const CURRENT_PAGE = X;</script>`
@@ -189,10 +190,10 @@ Sayfadaki önemli Java/Effective Java kavramları için:
 - Yeni teknik terimler varsa `.claude/skills/cevir/glossary.md`'ye ekle.
 - Alfabetik sıra koru.
 
-### 4h. CLAUDE.md'yi Güncelle
+### 4h. AGENTS.md ve CLAUDE.md'yi Güncelle
 
 - `last_translated_page` değerini yeni çevrilen sayfa numarasıyla güncelle.
-- `last_translated_page: X` satırını `last_translated_page: Y` olarak değiştir.
+- Hem `AGENTS.md` hem `CLAUDE.md` dosyalarındaki `last_translated_page: X` satırını güncelle (her ikisi senkronize tutulur).
 - **Her sayfa tamamlandıktan sonra** güncelle (döngü ortasında kesilirse bile doğru kayıt kalsın).
 
 **Toplu modda** sayfa tamamlanınca bildir:

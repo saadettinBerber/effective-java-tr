@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 23</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7;
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623;
+        }
+
+        .topbar-sub {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+            margin-top: 0.1rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all .2s;
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700;
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            position: relative;
+        }
+
+        .page-nav-input-wrap label {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: 0.22rem 0.4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s;
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1;
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        .page-label {
+            font-size: 0.78rem;
+            color: #6c757d;
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem;
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: 0.88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66;
+        }
+
+        .kw {
+            color: #79b8ff;
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic;
+        }
+
+        .cl {
+            color: #b392f0;
+        }
+
+        .st {
+            color: #9ecbff;
+        }
+
+        .an {
+            color: #85e89d;
+        }
+
+        .num {
+            color: #f8c555;
+        }
+
+        .info-box {
+            background: #e8f4fd;
+            border-left: 4px solid #0d6efd;
+            padding: 0.9rem 1.2rem;
+            border-radius: 0 6px 6px 0;
+            margin: 1.2rem 0;
+            font-size: 0.93rem;
+            color: #0a3d6b;
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0.3rem 0.3rem 0.3rem 0;
+            transition: background .2s, transform .1s;
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px);
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 1.4rem;
+        }
+
+        .modal-body p {
+            font-size: 0.93rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .example-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin: 1rem 0 0.3rem;
+        }
+
+        .bad {
+            color: #c0392b;
+        }
+
+        .good {
+            color: #27ae60;
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: 0.6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.88rem;
+            margin-top: 1rem;
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px;
+        }
+
+        .nav-btn:hover {
+            background: #163a5f;
+        }
+
+        .nav-btn .nav-direction {
+            font-size: 0.7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem 1rem 3rem;
+            }
+
+            .topbar {
+                padding: 0.6rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 2: Creating and Destroying Objects &nbsp;›&nbsp; Item 6: Avoid creating
+                unnecessary objects</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="23" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 23 / Page 23</div>
+        <div class="chapter-badge">Chapter 2 — Item 6: Gereksiz nesneler yaratmaktan kaçının / Avoid creating
+            unnecessary objects</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 6 Regular Expressions performansı</em></div>
+
+        <div class="tr-text">
+            <p>Bu uygulamanın (implementation) asıl sorunu, <code>String.matches</code> metoduna dayanmasıdır. Bir
+                dizenin belli bir düzenli ifadeyle (regular expression) eşleşip eşleşmediğini kontrol etmek için
+                <code>String.matches</code> kullanmak en kolay yol olsa da, <b>performansın kritik olduğu durumlarda
+                    tekrarlı olarak kullanılmaya uygun değildir</b>. Sorun şudur ki; String sınıfı kendi iç yapısında
+                (internally), sadece bir kez kullanılmak üzere bir <code>Pattern</code> örneği oluşturur, işini yapar ve
+                sonrasında bu nesne doğrudan çöp (garbage collection) haline gelir. Düzenli ifadeyi bir sonlu durum
+                makinesine (finite state machine) derlemek gerektiğinden ötürü <code>Pattern</code> örneği yaratmak
+                oldukça maliyetli bir iştir.</p>
+
+            <p>Performansı iyileştirmek için, sınıf ilklendirmesinin (class initialization) bir parçası olarak düzenli
+                ifadeyi açıkça derleyip (compile edip) ömrü boyunca değişmeyecek bir (immutable) <code>Pattern</code>
+                örneği olarak çıkarın. Bunu tamponlayın (önbellekleyin) ve her <code>isRomanNumeral</code> metot
+                çağrısında aynı örneği baştan yaratmak yerine tekrar tekrar onu çağırıp kullanın:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>The problem with this implementation is that it relies on the <code>String.matches</code> method. While
+                <code>String.matches</code> is the easiest way to check if a string matches a regular expression, it’s
+                <b>not suitable for repeated use in performance-critical situations</b>. The problem is that it
+                internally creates a <code>Pattern</code> instance for the regular expression and uses it only once,
+                after which it becomes eligible for garbage collection. Creating a <code>Pattern</code> instance is
+                expensive because it requires compiling the regular expression into a finite state machine.</p>
+
+            <p>To improve the performance, explicitly compile the regular expression into a <code>Pattern</code>
+                instance (which is immutable) as part of class initialization, cache it, and reuse the same instance for
+                every invocation of the <code>isRomanNumeral</code> method:</p>
+        </div>
+
+        <!-- Code Block for Reusing expensive object -->
+        <div class="code-block">
+            <span class="cm">// Performans artışı için maliyetli nesneyi yeniden kullanmak
+                // Reusing expensive object for improved performance</span>
+            <span class="kw">public class</span> <span class="cl">RomanNumerals</span> {
+            <span class="kw">private static final</span> <span class="cl">Pattern</span> ROMAN = <span
+                class="cl">Pattern</span>.compile(
+            <span class="st">"^(?=.)M*(C[MD]|D?C{0,3})"</span>
+            + <span class="st">"(X[CL]|L?X{0,3})(I[XV]|V?I{0,3})$"</span>);
+
+            <span class="kw">static boolean</span> isRomanNumeral(<span class="cl">String</span> s) {
+            <span class="kw">return</span> ROMAN.matcher(s).matches();
+            }
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Geliştirdiğimiz <code>isRomanNumeral</code> versiyonu, şayet sıklıkla tetiklenirse, hatrı sayılır
+                performans kazanımları (significant performance gains) sağlar. Kendi makinemde, 8 karakter uzunluğunda
+                bir dize üzerinden test yaptığımda orijinal sürüm 1.1 µs çalışma süresi talep ederken, gelişmiş
+                (önbelleklenmiş Pattern modeli) sürüm sadece 0.17 µs almaktadır; ki bu da asıl koda kıyasla ortalama 6.5
+                kat daha hızlı demektir. Sadece performans iyileştirilmiş olmakla kalmamış; tartışmaya açık olmakla
+                birlikte aynı zamanda daha <em>net (clarity)</em> hale gelmiştir. Normalde gözle görülmez olan
+                <code>Pattern</code> yapısına final bir özellik (isim) biçip sabitlendirmek, bize kod kalitesi
+                sağlamıştır ki bu "ROMAN" ismiyle değişkeni okumak doğrudan düzenli ifade silsilesini okumaktan (regular
+                expression) çok ama çok daha okunabilirdir (readable).</p>
+
+            <p>Eğer ki yeni <code>isRomanNumeral</code> yöntemini içeren sınıf belleğe yüklenip ilklendirilir
+                (initialized) ancak içindeki bu metot asla çağrılmazsa (invoked), <code>ROMAN</code> nesnesi bellekte
+                fuzuli yere yer kaplayıp ilklendirilmiş (needlessly initialized) bir nesne olarak yatacaktır. Bunu
+                engellemek ve <code>isRomanNumeral</code> ilk defa çağrılana dek bu ilklendirmeyi ertelemek yani
+                <b>tembel ilklendirme (lazy initialization)</b> kullanmak (Madde 83) elbette mümkündür ama önerilmez.
+                Hatta tembel (lazy) yaklaşımlarla çok sık karşılaşıldığı üzere; bu çözüm performansa gözle görülür
+                herhangi bir tatmin veya iyileşme (measurable improvement) sunmayacağı gibi sadece kod mimarisini işin
+                içinden çıkması daha da zor, karmaşık bir (complicate) yapıya doğru sürükler (Madde 67).</p>
+
+            <p>Bir nesnenin değişmez (immutable) olduğu durumlarda, güvenle yeniden kullanılabileceği çok belirgindir;
+                ancak nesneyi yeniden kullanmanın tamamen o kadar da aşikâr olmadığı, hatta biraz sezgisel olmayan bazı
+                farklı senaryolar da mevcuttur. Bunun örneklerinden biri olarak, gösterimler (views) olarak da bilinen
+                bağdaştırıcıları (adapters) [Gamma95] düşünebiliriz. Bir adaptör, asıl işi kendisine destek olan
+                (backing object) gerçek bir nesneye devrederek çalışan arayüz parçalarıdır. Adaptörler, kendilerine
+                destek veren o asıl sınıfın sahip olduğu durumların (state) ötesinde farklı veya özel hiçbir durum
+                ihtiva etmedikleri için, bir objenin üzerine uyarlanacak tek asıl adaptör türünden yalnızca bir örneğe
+                (instance) sahip olmak çoğu zaman ziyadesiyle yeterlidir.</p>
+
+            <p>Örneğin, <code>Map</code> arayüzünün (interface) <code>keySet</code> metodu, haritanın barındırdığı tüm
+                anahtarlardan meydana gelen bir <code>Set</code> görünümü (Set view) döndürür. Duruma safça bakarsak,
+                sanırsınız ki <code>keySet()</code>'e yapılan her metot çağrısının her defasında gıcır gıcır yeni bir
+                <code>Set</code> objesi yaratacağı var sayılır, ancak belirli bir <code>Map</code> objesinin üzerine
+                yapılan tüm <code>keySet()</code> çağrıları gayetle de aynı <code>Set</code> görünüm objesini döndürür
+                veya döndürebilir. Çoğu kez geriye döndürülen <code>Set</code> özellikleri bakımından değişebilir
+                karakterdedir (mutable) olmasına rağmen, sonuç olarak geri dönen tüm <code>Set</code> objeleri aynı asıl
+                <code>Map</code> verisinin sillesine dayandığından dolayı geri getirilenler (returned) fonksiyonel
+                olarak hep özdeştir ve birebir (identical) aynılardır. Geri dönen tek bir <code>Map</code> elemanı
+                değişirse tüm gösterimler de doğrudan o referansı göreceklerinden tüm gösterimler de bir bakıma anında
+                değişmiş olurlar. <code>keySet</code> adaptörü kullanılarak birden fazla set gösterim örneğini ayakta
+                tutmak zararsızmış gibi gözükse bile son derece gereksizdir ve hiç kimseye yarar veya ekstra fayda
+                (benefits) getirmez.</p>
+
+            <p>Gereksiz yere nesneler yaratmanın yollarından bir diğeri ise <b>otomatik boks etme (autoboxing)</b>
+                işlemidir. Bu işlem, programcının klasik Java ilkel tipleriyle (primitive types) Java nesneye
+                dönüştürülmüş tiplerini (boxed primitive types) iç içe özgürce harmanlayıp kullanabilmesini, gerekli
+                noktalarda arka planda sinsi paketleme ve ayıklama işlemleri yaparak... (Devamı sonraki sayfada)</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>The improved version of <code>isRomanNumeral</code> provides significant performance gains if invoked
+                frequently. On my machine, the original version takes 1.1 µs on an 8-character input string, while the
+                improved version takes 0.17 µs, which is 6.5 times faster. Not only is the performance improved, but
+                arguably, so is clarity. Making a static final field for the otherwise invisible <code>Pattern</code>
+                instance allows us to give it a name, which is far more readable than the regular expression itself.</p>
+
+            <p>If the class containing the improved version of the <code>isRomanNumeral</code> method is initialized but
+                the method is never invoked, the field <code>ROMAN</code> will be initialized needlessly. It would be
+                possible to eliminate the initialization by lazily initializing the field (Item 83) the first time the
+                <code>isRomanNumeral</code> method is invoked, but this is not recommended. As is often the case with
+                lazy initialization, it would complicate the implementation with no measurable performance improvement
+                (Item 67).</p>
+
+            <p>When an object is immutable, it is obvious it can be reused safely, but there are other situations where
+                it is far less obvious, even counterintuitive. Consider the case of adapters [Gamma95], also known as
+                views. An adapter is an object that delegates to a backing object, providing an alternative interface.
+                Because an adapter has no state beyond that of its backing object, there’s no need to create more than
+                one instance of a given adapter to a given object.</p>
+
+            <p>For example, the <code>keySet</code> method of the <code>Map</code> interface returns a <code>Set</code>
+                view of the <code>Map</code> object, consisting of all the keys in the map. Naively, it would seem that
+                every call to <code>keySet</code> would have to create a new <code>Set</code> instance, but every call
+                to <code>keySet</code> on a given <code>Map</code> object may return the same <code>Set</code> instance.
+                Although the returned <code>Set</code> instance is typically mutable, all of the returned objects are
+                functionally identical: when one of the returned objects changes, so do all the others, because they’re
+                all backed by the same <code>Map</code> instance. While it is largely harmless to create multiple
+                instances of the <code>keySet</code> view object, it is unnecessary and has no benefits.</p>
+
+            <p>Another way to create unnecessary objects is autoboxing, which allows the programmer to mix primitive and
+                boxed primitive types, boxing and unboxing automatically as needed. Autoboxing blurs but does not erase
+                the distinction between primitive and boxed primitive types... (Continued on next page)</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 6'da Autoboxing sonraki sayfada devam ediyor.</div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('regex')">Pattern (Düzenli İfade) Önbellekleme</button>
+            <button class="concept-btn" onclick="openModal('adapter')">Adapter / View Pattern</button>
+            <button class="concept-btn" onclick="openModal('autoboxing')">Autoboxing Nedir?</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-22.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 22 — Gereksiz Nesneler & String Pool</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-24.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 24 — Autoboxing tehlikesi & Garbage Collector</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: cached Pattern Regex -->
+    <div class="modal-overlay" id="modal-regex">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Pattern Önbellekleme / Regular Expression Caching</h3>
+                <button class="modal-close" onclick="closeModal('regex')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Herhangi bir metinsel ifadenin şablona uyup uymadığını kontrol ettiğimiz
+                        <code>String.matches(regex)</code> komutu arka planda <code>Pattern.compile(regex)</code>
+                        işletir. Fakat bu iş derleme (compile) işlemi içerdiğinden pahalıdır. Eğer regex ifadeniz
+                        statikse bunu bir sabite bağlayın.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Because regular expressions require compiling the text-based regex into a state machine before
+                        they can be ran, they are extremely heavy CPU-wise. Invoking <code>String.matches</code>
+                        repeatedly literally forces the app to recompile the regex every time.</p>
+                </div>
+                <div class="tip-box tr-text">💡 Regex kurallarınızı <code>private static final Pattern</code> sabiti
+                    olarak sınıfa bir kere compile olarak gömmek CPU yükünüzü çoğu senaryoda olağanüstü miktarda
+                    azaltacaktır.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Adapter / View Pattern -->
+    <div class="modal-overlay" id="modal-adapter">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Adapter & View (Gösterim) Prensibi</h3>
+                <button class="modal-close" onclick="closeModal('adapter')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Kendi hafızasına/durumuna sahip bir işleyici (adapter) yoksa ve sadece diğer var olan devasa
+                        nesnenin kılıfı gibiyse (örn Java Collection Framework: <code>Map.keySet()</code>,
+                        <code>Arrays.asList()</code> vs), bu nesnelerin her çağrılışında yepyeni objee kopyaları
+                        fırlatmasına gerek yoktur.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Adapters (Views) do not carry state. They literally just translate input and forward it to the
+                        main collection (the backing map, for example). Hence, <code>map.keySet()</code> doesn't build a
+                        new list of keys, it simply hands you a reference proxy to the keys in the map.</p>
+                </div>
+                <div class="example-label good">Map keySet() İçi Orijinal Kaynak Gösterir</div>
+                <div class="code-block" style="font-size:0.83rem">
+                    <span class="cl">Map</span>&lt;<span class="cl">String</span>, <span class="cl">Integer</span>&gt;
+                    scores = <span class="kw">new</span> <span class="cl">HashMap</span>&lt;&gt;();
+                    scores.put(<span class="st">"Ali"</span>, 90);
+
+                    <span class="cm">// Map içerisinden view alındı</span>
+                    <span class="cl">Set</span>&lt;<span class="cl">String</span>&gt; keys1 = scores.keySet();
+                    <span class="cl">Set</span>&lt;<span class="cl">String</span>&gt; keys2 = scores.keySet();
+
+                    <span class="cm">// Aslında ikisi de tam olarak AYNI BACKING MAP nesnesini kullanır.</span>
+                    System.out.println(keys1 == keys2); <span class="cm">// true olmasa bile (JVM impl bazında), ikisi
+                        de birebir map datasına bakar.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Autoboxing -->
+    <div class="modal-overlay" id="modal-autoboxing">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Autoboxing Sinsiliği Nedir?</h3>
+                <button class="modal-close" onclick="closeModal('autoboxing')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>C, C++ gibi dillerde <code>int</code> bir direkt donanımsal 32-bit sayıdır. Ama Java aynı zamanda
+                        her şeyi obje olarak kullanan koleksiyonlara sahip olduğu için, ona da obje formunda
+                        (Wrapper/Boks edilmiş form) olan <code>Integer</code> (Büyük I ile) sınıfını hediye etmiştir.
+                    </p>
+                    <p>Java 5 ile gelen <b>Autoboxing</b> özelliği siz primitive (<code>int</code>) ile Wrapper objesini
+                        (<code>Integer</code>) birbirine denk eşlediğinizde kaputun altında birini gizlice diğerine
+                        dönüştürür. Ancak obje dönüştürme performanstan feda etmek anlamına gelir, özellikle döngüler
+                        (loops) içerisinde.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Autoboxing is the automatic conversion that the Java compiler makes between the primitive types
+                        and their corresponding object wrapper classes. For example, converting an <code>int</code> to
+                        an <code>Integer</code>. If you misuse this inside a loop, you end up silently creating
+                        thousands of Wrapper instance <i>objects</i> for basic numbers.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 23;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

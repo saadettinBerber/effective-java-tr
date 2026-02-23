@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 20</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7;
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623;
+        }
+
+        .topbar-sub {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+            margin-top: 0.1rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all .2s;
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700;
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            position: relative;
+        }
+
+        .page-nav-input-wrap label {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: 0.22rem 0.4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s;
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1;
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        .item-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0d2137;
+            margin: 2rem 0 0.5rem;
+            line-height: 1.3;
+        }
+
+        .item-title-en {
+            font-size: 1.1rem;
+            color: #6c757d;
+            font-weight: 400;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+
+        .page-label {
+            font-size: 0.78rem;
+            color: #6c757d;
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem;
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: 0.88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66;
+        }
+
+        .kw {
+            color: #79b8ff;
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic;
+        }
+
+        .cl {
+            color: #b392f0;
+        }
+
+        .st {
+            color: #9ecbff;
+        }
+
+        .an {
+            color: #85e89d;
+        }
+
+        .num {
+            color: #f8c555;
+        }
+
+        .info-box {
+            background: #e8f4fd;
+            border-left: 4px solid #0d6efd;
+            padding: 0.9rem 1.2rem;
+            border-radius: 0 6px 6px 0;
+            margin: 1.2rem 0;
+            font-size: 0.93rem;
+            color: #0a3d6b;
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0.3rem 0.3rem 0.3rem 0;
+            transition: background .2s, transform .1s;
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px);
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 1.4rem;
+        }
+
+        .modal-body p {
+            font-size: 0.93rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .example-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin: 1rem 0 0.3rem;
+        }
+
+        .bad {
+            color: #c0392b;
+        }
+
+        .good {
+            color: #27ae60;
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: 0.6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.88rem;
+            margin-top: 1rem;
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px;
+        }
+
+        .nav-btn:hover {
+            background: #163a5f;
+        }
+
+        .nav-btn .nav-direction {
+            font-size: 0.7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem 1rem 3rem;
+            }
+
+            .topbar {
+                padding: 0.6rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 2: Creating and Destroying Objects &nbsp;›&nbsp; Item 5: Dependency
+                injection</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="20" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 20 / Page 20</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 4 sonucu.</em></div>
+
+        <!-- End of Item 4 -->
+        <div class="tr-text">
+            <p>...yan etkisidir elbette. Çünkü tüm alt sınıflar kendi yapıcı metotlarının içinden örtük
+                (istemsiz/implicit) veya açıkça üst sınıfın yapıcısı (superclass constructor) çağırmak zorundadırlar,
+                ancak burada erişebilecekleri (not private) bir üst sınıf yapıcısı (superclass constructor) kalmamıştır.
+            </p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>...is a side effect. All constructors must invoke a superclass constructor, explicitly or implicitly, and
+                a subclass would have no accessible superclass constructor to invoke.</p>
+        </div>
+
+        <hr style="border:0; border-top:1px solid #dee2e6; margin: 2rem 0;">
+
+        <!-- Start of Item 5 -->
+        <div class="chapter-badge">Chapter 2 — Item 5</div>
+        <h1 class="item-title tr-text">Madde 5: Kaynakları koda gömmek yerine bağımlılık enjeksiyonunu (dependency
+            injection) tercih edin</h1>
+        <div class="item-title-en en-text" style="display:none">Item 5: Prefer dependency injection to hardwiring
+            resources</div>
+
+        <div class="tr-text">
+            <p>Pek çok sınıf, bir veya daha fazla temel kaynağa (underlying resource) bağımlıdır. Örneğin, bir yazım
+                denetleyicisi (spell checker), bir sözlüğe bağımlıdır. Bu tür sınıfların statik yardımcı bir sınıf
+                (static utility class) (Madde 4) şeklinde gerçekleşirildiğini görmek oldukça olağandır:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Many classes depend on one or more underlying resources. For example, a spell checker depends on a
+                dictionary. It is not uncommon to see such classes implemented as static utility classes (Item 4):</p>
+        </div>
+
+        <!-- Code Block for Inappropriate SpellChecker (Utility) -->
+        <div class="code-block">
+            <span class="cm">// Yanlış: Statik yardımcı sınıfı kullanmak - Esnek değil (inflexible) ve test edilemez
+                (untestable)! </span>
+            <span class="cm">// Inappropriate use of static utility - inflexible & untestable!</span>
+            <span class="kw">public class</span> <span class="cl">SpellChecker</span> {
+            <span class="kw">private static final</span> <span class="cl">Lexicon</span> dictionary = ...;
+            <span class="kw">private</span> <span class="cl">SpellChecker</span>() {} <span class="cm">// Örneklenemez
+                (Noninstantiable)</span>
+            <span class="kw">public static boolean</span> isValid(<span class="cl">String</span> word) { ... }
+            <span class="kw">public static</span> <span class="cl">List</span>&lt;<span class="cl">String</span>&gt;
+            suggestions(<span class="cl">String</span> typo) { ... }
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Benzer şekilde, bunların Singleton (Madde 3) şeklinde gerçekleştirilmeleri de çok yaygındır:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Similarly, it’s not uncommon to see them implemented as singletons (Item 3):</p>
+        </div>
+
+        <!-- Code Block for Inappropriate SpellChecker (Singleton) -->
+        <div class="code-block">
+            <span class="cm">// Yanlış: Singleton kalıbı kullanmak - Esnek değil ve test edilemez!</span>
+            <span class="cm">// Inappropriate use of singleton - inflexible & untestable!</span>
+            <span class="kw">public class</span> <span class="cl">SpellChecker</span> {
+            <span class="kw">private final</span> <span class="cl">Lexicon</span> dictionary = ...;
+            <span class="kw">private</span> <span class="cl">SpellChecker</span>(...) {}
+            <span class="kw">public static</span> INSTANCE = <span class="kw">new</span> <span
+                class="cl">SpellChecker</span>(...);
+            <span class="kw">public boolean</span> isValid(<span class="cl">String</span> word) { ... }
+            <span class="kw">public</span> <span class="cl">List</span>&lt;<span class="cl">String</span>&gt;
+            suggestions(<span class="cl">String</span> typo) { ... }
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Her iki yaklaşım da tatmin edici değildir, çünkü hepsi tek bir sözlük kullandığını veya tek bir sözlüğün
+                yeteceğini varsayar. Uygulamada, her dilin kendi farklı sözlükleri vardır ve test evresi veya farklı
+                özel amaçlı sözcük dağarcıkları için yine başka sözlükler gerekir. Tek bir sözlüğün sonsuza kadar
+                işimizi çözeceğini ummak maalesef iyimserlikten öteye gidemez.</p>
+
+            <p>Siz de <code>SpellChecker</code>'ı birden çok sözlüğü desteklemesi için modifiye etmeyi düşünebilir,
+                sözlük alanını (field) <code>nonfinal</code> yapıp sözlüğü metod ile değiştirebileceğinizi
+                kurgulayabilirsiniz ancak bu hantal (awkward), hataya açık ve özellikle çok izlekli (concurrent)
+                programlamada çalışması pek olası olmayan (unworkable) bir hal alır. Statik yardımcı sınıfları veya
+                Singleton'lar, davranışları belirli kaynak (ya da kaynakların) girdisine (parameterized by resource)
+                bağlılık gösteren durumlar için uygun tasarımlar değillerdir.</p>
+
+            <p>İhtiyacımız olan şey, aynı sınıftan (örneğin <code>SpellChecker</code>) her biri istenilen/ayrı kaynağı
+                kullanan birbirinden bağımsız birden çok örneği (multiple instances) destekleme yeteneğidir.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Neither of these approaches is satisfactory, because they assume that there is only one dictionary worth
+                using. In practice, each language has its own dictionary, and special dictionaries are used for special
+                vocabularies. Also, it may be desirable to use a special dictionary for testing. It is wishful thinking
+                to assume that a single dictionary will suffice for all time.</p>
+
+            <p>You could try to have <code>SpellChecker</code> support multiple dictionaries by making the dictionary
+                field nonfinal and adding a method to change the dictionary in an existing spell checker, but this would
+                be awkward, error-prone, and unworkable in a concurrent setting. Static utility classes and singletons
+                are inappropriate for classes whose behavior is parameterized by an underlying resource.</p>
+
+            <p>What is required is the ability to support multiple instances of the class (in our example,
+                <code>SpellChecker</code>), each of which uses the resource desired by the...</p>
+        </div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('di')">Dependency Injection (Bağımlılık Enjeksiyonu)</button>
+            <button class="concept-btn" onclick="openModal('tight-coupling')">Tight Coupling (Sıkı Bağımlılık)</button>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 5 Bağımlılık Enjeksiyonu sonraki sayfada devam ediyor.
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-19.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 19 — Madde 4 yardımcı sınıflar</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-21.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 21 — Madde 5 devamı</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Dependency Injection -->
+    <div class="modal-overlay" id="modal-di">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Bağımlılık Enjeksiyonu / Dependency Injection (DI)</h3>
+                <button class="modal-close" onclick="closeModal('di')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Bağımlılık enjeksiyonu (DI), bir sınıfın ihtiyaç duyduğu diğer nesneleri (bağımlılıkları)
+                        kendisinin <code>new</code> ile yaratması veya bir Singleton havuzundan çekip zorla alması
+                        yerine; kurucular (constructors), metotlar ya da DI frameworkleri aracılığıyla dışarıdan temin
+                        etme/aktarma fikridir. Bu sayede sınıflar test edilebilir, esnek ve başka yerlerde
+                        kullanılabilir hale gelirler.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Dependency Injection (DI) is the idea that rather than a class creating the objects it needs (via
+                        <code>new</code> or reaching into a Singleton), those dependencies are passed in from the
+                        outside (injected) typically via constructors. This makes the class testable, flexible, and
+                        reusable.</p>
+                </div>
+                <div class="example-label bad">✗ KÖTÜ — Koda gömülü bağımlılık alanı (Hardwiring)</div>
+                <div class="code-block" style="font-size:0.83rem">
+                    <span class="kw">public class</span> <span class="cl">NotificationService</span> {
+                    <span class="cm">// Kendi loglarını yaratmayı seçmiş:</span>
+                    <span class="kw">private final</span> <span class="cl">Logger</span> logger = <span
+                        class="kw">new</span> <span class="cl">FileLogger</span>(<span
+                        class="st">"/var/log/app.log"</span>);
+
+                    <span class="kw">public void</span> send(<span class="cl">String</span> msg) {
+                    logger.log(<span class="st">"Sending "</span> + msg);
+                    ...
+                    }
+                    }
+                </div>
+                <div class="example-label good">✓ İYİ — Bağımlılık Enjeksiyonu (Constructor Injection)</div>
+                <div class="code-block" style="font-size:0.83rem">
+                    <span class="kw">public class</span> <span class="cl">NotificationService</span> {
+                    <span class="kw">private final</span> <span class="cl">Logger</span> logger;
+
+                    <span class="cm">// Hangi tip logger'ı seçeceğinize Dışarısı (istemci) karar verecek</span>
+                    <span class="kw">public</span> <span class="cl">NotificationService</span>(<span
+                        class="cl">Logger</span> logger) {
+                    <span class="kw">this</span>.logger = logger;
+                    }
+                    }
+
+                    <span class="cm">// İstemciniz istediği logger'ı enjekte edebilir:</span>
+                    <span class="cl">NotificationService</span> emailSvc = <span class="kw">new</span> <span
+                        class="cl">NotificationService</span>(<span class="kw">new</span> <span
+                        class="cl">ConsoleLogger</span>());
+                    <span class="cl">NotificationService</span> smsSvc = <span class="kw">new</span> <span
+                        class="cl">NotificationService</span>(<span class="kw">new</span> <span
+                        class="cl">FileLogger</span>());
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Tight Coupling -->
+    <div class="modal-overlay" id="modal-tight-coupling">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Tight Coupling (Sıkı Bağımlılık)</h3>
+                <button class="modal-close" onclick="closeModal('tight-coupling')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Bir modül (veya sınıf), başka bir modüle yoğun derecede bağımlı olduğunda buna sıkı bağlılık
+                        (tight coupling) denir. Singleton sınıflar veya direkt <code>new</code> kullanarak oluşturulan
+                        somut bileşenler sıkı bağımlılığa neden olur, bu da bakım ve test zorluğu yaratır.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>When a module or class relies heavily on another concrete class, it is said to be tightly
+                        coupled. Singletons and hardcoding instantiation with <code>new</code> create tight coupling,
+                        leading to maintenance and testing nightmares.</p>
+                </div>
+                <div class="tip-box tr-text">💡 Kural basit: <b>"New considers true, Interface handles all."</b> Ne
+                    kadar az <code>new</code>, o kadar gevşek bağımlılık (Loose Coupling)! (Veri taşıyan basit nesneler:
+                    List, String vb. için kural geçerli değildir.)</div>
+                <div class="tip-box en-text" style="display:none">💡 The rule of thumb is: Limit <code>new</code> to
+                    value objects (data containers). For behavioral services, rely on interfaces and inject them. This
+                    promotes <b>Loose Coupling</b>.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 20;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

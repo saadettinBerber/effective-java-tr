@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sayfa 14 — Chapter 2: Item 2 | Effective Java Türkçe</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:#f8f9fa;color:#212529;line-height:1.8;font-size:17px;min-height:100vh}
+.top-bar{background:#0d2137;color:#e0e0e0;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,0.2);position:sticky;top:0;z-index:100}
+.top-bar-left{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.home-link{color:#f5a623;text-decoration:none;font-size:14px;font-weight:600;padding:6px 12px;border:1px solid rgba(245,166,35,0.3);border-radius:6px;transition:all 0.3s;white-space:nowrap}
+.home-link:hover{background:rgba(245,166,35,0.1);border-color:#f5a623}
+.top-bar-title{display:flex;flex-direction:column}
+.book-title{font-size:16px;font-weight:700;color:#f5a623}
+.chapter-info{font-size:12px;color:#adb5bd}
+.top-bar-right{display:flex;align-items:center;gap:12px}
+.lang-toggle{display:flex;border:1px solid rgba(245,166,35,0.3);border-radius:6px;overflow:hidden}
+.lang-btn{padding:5px 12px;font-size:13px;font-weight:700;background:0;color:#adb5bd;border:none;cursor:pointer;transition:all 0.3s}
+.lang-btn.active{background:#f5a623;color:#0d2137}
+.lang-btn:hover:not(.active){color:#f5a623}
+.page-number-wrapper{display:flex;align-items:center;gap:6px;position:relative}
+.page-number-label{font-size:12px;color:#adb5bd;white-space:nowrap}
+.page-number-input{width:52px;padding:4px 8px;text-align:center;border:1px solid rgba(245,166,35,0.3);border-radius:6px;background:rgba(255,255,255,0.08);color:#f5a623;font-size:14px;font-weight:700;font-family:inherit;outline:0;transition:border-color 0.3s}
+.page-number-input:focus{border-color:#f5a623}
+.page-number-input.error{border-color:#dc3545;animation:shake 0.4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.page-nav-tooltip{position:absolute;top:100%;right:0;margin-top:6px;background:#dc3545;color:#fff;font-size:12px;padding:6px 12px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.3s;z-index:200}
+.page-nav-tooltip.visible{opacity:1}
+.content{max-width:760px;margin:0 auto;padding:40px 24px 60px}
+.page-badge{display:inline-block;background:#0d2137;color:#f5a623;font-size:13px;font-weight:700;padding:4px 14px;border-radius:20px;margin-bottom:24px}
+.item-title{font-size:24px;font-weight:800;color:#0d2137;margin:40px 0 8px;line-height:1.3}
+.item-title-en{font-size:16px;color:#6c757d;font-weight:400;font-style:italic;margin-bottom:24px}
+.divider{height:3px;background:linear-gradient(90deg,#f5a623 0%,transparent 100%);border:0;margin-bottom:32px;border-radius:2px}
+.text-paragraph{margin-bottom:20px;text-align:justify;hyphens:auto}
+.text-paragraph em{font-style:italic;color:#555}
+.text-paragraph strong{font-weight:700;color:#0d2137}
+.text-paragraph code{background:#f0f0f0;padding:2px 6px;border-radius:4px;font-size:15px;color:#0d2137;font-family:'Fira Code','Consolas','Monaco',monospace}
+.note-box{background:#fff8e1;border-left:4px solid #f5a623;border-radius:0 8px 8px 0;padding:14px 18px;margin:20px 0;font-size:15px;color:#555}
+.success-box{background:#e8f5e9;border:2px solid #2e7d32;border-radius:10px;padding:16px 20px;margin:24px 0}
+.success-box strong{color:#1b5e20}
+.warning-box{background:#fff3cd;border:2px solid #ffc107;border-radius:10px;padding:16px 20px;margin:24px 0;font-size:15px}
+.warning-box strong{color:#856404}
+.code-label{font-size:12px;color:#adb5bd;margin-bottom:6px;font-family:'Fira Code','Consolas','Monaco',monospace}
+pre{background:#1e1e2e;color:#cdd6f4;padding:18px 20px;border-radius:10px;overflow-x:auto;font-size:14px;line-height:1.6;margin-bottom:12px;font-family:'Fira Code','Consolas','Monaco',monospace}
+pre .keyword{color:#cba6f7}
+pre .type{color:#89b4fa}
+pre .string{color:#a6e3a1}
+pre .comment{color:#6c7086;font-style:italic}
+pre .annotation{color:#f9e2af}
+pre .number{color:#fab387}
+pre .method{color:#89dceb}
+.concepts-section{margin-top:40px;padding-top:32px;border-top:2px solid #eee}
+.concepts-title{font-size:18px;font-weight:700;color:#0d2137;margin-bottom:16px}
+.concepts-grid{display:flex;flex-wrap:wrap;gap:10px}
+.concept-btn{padding:10px 20px;background:#fff;border:2px solid #0d2137;border-radius:10px;color:#0d2137;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;font-family:inherit}
+.concept-btn:hover{background:#0d2137;color:#f5a623;transform:translateY(-2px);box-shadow:0 4px 12px rgba(13,33,55,0.2)}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:500;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.active{display:flex}
+.modal{background:#fff;border-radius:16px;max-width:680px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.modal-header{background:#0d2137;color:#fff;padding:20px 24px;border-radius:16px 16px 0 0;display:flex;justify-content:space-between;align-items:flex-start}
+.modal-title{font-size:18px;font-weight:700;color:#f5a623}
+.modal-subtitle{font-size:13px;color:#adb5bd;margin-top:4px}
+.modal-close{background:none;border:none;color:#adb5bd;font-size:24px;cursor:pointer;line-height:1;padding:0 4px}
+.modal-close:hover{color:#fff}
+.modal-body{padding:24px}
+.modal-description{margin-bottom:20px;color:#444;line-height:1.7}
+.code-block-label{font-size:12px;font-weight:700;padding:4px 10px;border-radius:6px 6px 0 0;display:inline-block;margin-bottom:0}
+.code-block-label.bad{background:#dc3545;color:#fff}
+.code-block-label.good{background:#198754;color:#fff}
+.code-explanation{background:#f8f9fa;border-radius:0 0 8px 8px;padding:12px 16px;font-size:14px;color:#555;margin-bottom:16px;border:1px solid #dee2e6;border-top:none}
+.tip-box{background:#e8f5e9;border-left:4px solid #2e7d32;border-radius:0 8px 8px 0;padding:12px 16px;font-size:14px;color:#2e7d32;margin-top:16px}
+.tip-box strong{color:#1b5e20}
+.page-nav{display:flex;justify-content:space-between;gap:16px;margin-top:48px;padding-top:24px;border-top:2px solid #eee}
+.nav-btn{flex:1;padding:16px 20px;border:2px solid #dee2e6;border-radius:12px;text-decoration:none;color:#0d2137;background:#fff;cursor:pointer;transition:all 0.3s;text-align:center;font-family:inherit;font-size:15px}
+.nav-btn:hover:not(.disabled){border-color:#0d2137;box-shadow:0 4px 12px rgba(0,0,0,0.08);transform:translateY(-2px)}
+.nav-btn.disabled{opacity:0.4;cursor:not-allowed;background:#f0f0f0}
+.nav-btn-label{font-size:12px;color:#6c757d;margin-bottom:4px}
+.nav-btn-title{font-weight:700;font-size:15px}
+.footer{text-align:center;padding:24px;color:#adb5bd;font-size:13px;border-top:1px solid #dee2e6;margin-top:20px}
+@media (max-width:700px){.top-bar{padding:12px 16px}.book-title{font-size:14px}.content{padding:24px 16px 40px}.item-title{font-size:20px}.page-nav{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="top-bar-left">
+    <a href="../index.html" class="home-link">Ana Sayfa</a>
+    <div class="top-bar-title">
+      <div class="book-title">Effective Java &mdash; Joshua Bloch</div>
+      <div class="chapter-info">Chapter 2: Item 2</div>
+    </div>
+  </div>
+  <div class="top-bar-right">
+    <div class="lang-toggle">
+      <button class="lang-btn" data-lang="tr" onclick="setLang('tr')">TR</button>
+      <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+    </div>
+    <div class="page-number-wrapper">
+      <span class="page-number-label">Sayfa</span>
+      <input type="text" class="page-number-input" id="pageNumInput" value="14" maxlength="4"
+             autocomplete="off" onkeydown="if(event.key==='Enter') goToPageNum()" onblur="resetPageInput()">
+      <div class="page-nav-tooltip" id="pageNavTooltip"></div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="page-badge">Sayfa 14</div>
+
+  <h1 class="item-title">
+    <span class="tr-text">Madde 2: Çok Sayıda Parametreyle Karşılaşınca Builder'ı Düşünün</span>
+    <span class="en-text">Item 2: Consider a builder when faced with many constructor parameters</span>
+  </h1>
+  <div class="item-title-en">
+    <span class="tr-text">Item 2: Consider a builder when faced with many constructor parameters</span>
+    <span class="en-text">Madde 2: Çok Sayıda Parametreyle Karşılaşınca Builder'ı Düşünün</span>
+  </div>
+  <hr class="divider">
+
+  <div class="note-box">
+    <span class="tr-text">↩ Önceki sayfadan devam: Builder kalıbının NutritionFacts.Builder uygulaması gösteriliyordu.</span>
+    <span class="en-text">↩ Continued from previous page: The NutritionFacts.Builder implementation of the Builder pattern was being shown.</span>
+  </div>
+
+  <!-- Builder kodu tamamlanıyor -->
+  <div class="code-label tr-text">NutritionFacts — Builder Kalıbı (tamamı)</div>
+  <div class="code-label en-text">NutritionFacts — Builder Pattern (complete)</div>
+<pre><span class="comment">// Builder Kalıbı (devam)</span>
+        <span class="keyword">public</span> <span class="type">Builder</span> <span class="method">fat</span>(<span class="keyword">int</span> val)
+            { fat = val;          <span class="keyword">return this</span>; }
+        <span class="keyword">public</span> <span class="type">Builder</span> <span class="method">sodium</span>(<span class="keyword">int</span> val)
+            { sodium = val;       <span class="keyword">return this</span>; }
+        <span class="keyword">public</span> <span class="type">Builder</span> <span class="method">carbohydrate</span>(<span class="keyword">int</span> val)
+            { carbohydrate = val; <span class="keyword">return this</span>; }
+
+        <span class="keyword">public</span> <span class="type">NutritionFacts</span> <span class="method">build</span>() {
+            <span class="keyword">return new</span> <span class="type">NutritionFacts</span>(<span class="keyword">this</span>);
+        }
+    }
+
+    <span class="keyword">private</span> <span class="method">NutritionFacts</span>(<span class="type">Builder</span> builder) {
+        servingSize  = builder.servingSize;
+        servings     = builder.servings;
+        calories     = builder.calories;
+        fat          = builder.fat;
+        sodium       = builder.sodium;
+        carbohydrate = builder.carbohydrate;
+    }
+}</pre>
+
+  <p class="text-paragraph tr-text">
+    <code>NutritionFacts</code> sınıfı değiştirilemez (immutable) olup tüm parametre varsayılan değerleri
+    tek bir yerde toplanmıştır. Builder'ın setter metotları, çağrıların zincirlenebilmesi için Builder'ın
+    kendisini döndürmektedir; bu da <strong>akıcı bir API (fluent API)</strong> oluşturur. İstemci kodu şu
+    şekilde görünür:
+  </p>
+  <p class="text-paragraph en-text">
+    The <code>NutritionFacts</code> class is immutable, and all parameter default values are in one place.
+    The builder's setter methods return the builder itself so that invocations can be chained, resulting in
+    a <strong>fluent API</strong>. Here's how the client code looks:
+  </p>
+
+<pre><span class="type">NutritionFacts</span> cocaCola = <span class="keyword">new</span> <span class="type">NutritionFacts</span>.<span class="type">Builder</span>(<span class="number">240</span>, <span class="number">8</span>)
+    .<span class="method">calories</span>(<span class="number">100</span>).<span class="method">sodium</span>(<span class="number">35</span>).<span class="method">carbohydrate</span>(<span class="number">27</span>).<span class="method">build</span>();</pre>
+
+  <div class="success-box">
+    <span class="tr-text">
+      <strong>✓ Sonuç:</strong> Bu istemci kodu yazmak kolaydır ve — daha önemlisi — <strong>okumak
+      da kolaydır</strong>. Builder kalıbı, Python ve Scala'da bulunan adlandırılmış opsiyonel
+      parametreleri (named optional parameters) simüle eder.
+    </span>
+    <span class="en-text">
+      <strong>✓ Result:</strong> This client code is easy to write and, more importantly,
+      <strong>easy to read</strong>. The Builder pattern simulates named optional parameters
+      as found in Python and Scala.
+    </span>
+  </div>
+
+  <!-- Geçerlilik Kontrolleri -->
+  <p class="text-paragraph tr-text">
+    Geçerlilik kontrolleri (validity checks), kısalık adına kod örneğinde çıkarılmıştır. Geçersiz
+    parametreleri olabildiğince erken tespit etmek için, Builder'ın yapıcısında ve metotlarında parametre
+    geçerliliğini denetleyin. <code>build()</code> metodu tarafından çağrılan yapıcıda ise birden fazla
+    parametreyi birden ilgilendiren değişmezleri (invariants) denetleyin. Bu değişmezleri saldırılara
+    karşı korumak için, kontrolleri Builder'dan parametreler kopyalandıktan <em>sonra</em> nesnenin kendi
+    alanları üzerinde gerçekleştirin (Madde 50). Bir denetim başarısız olursa, hangi parametrelerin
+    geçersiz olduğunu belirten bir ayrıntı mesajı içeren <code>IllegalArgumentException</code> (Madde 72)
+    fırlatın (Madde 75).
+  </p>
+  <p class="text-paragraph en-text">
+    Validity checks were omitted for brevity. To detect invalid parameters as soon as possible, check
+    parameter validity in the builder's constructor and methods. Check invariants involving multiple
+    parameters in the constructor invoked by the <code>build</code> method. To ensure these invariants
+    against attack, do the checks on object fields after copying parameters from the builder (Item 50).
+    If a check fails, throw an <code>IllegalArgumentException</code> (Item 72) whose detail message
+    indicates which parameters are invalid (Item 75).
+  </p>
+
+  <!-- Builder ve Sınıf Hiyerarşileri -->
+  <p class="text-paragraph tr-text">
+    Builder kalıbı <strong>sınıf hiyerarşilerine (class hierarchies)</strong> son derece uygundur.
+    Her sınıfa karşılık gelen, o sınıfın içine yuvalanmış (nested) paralel bir Builder hiyerarşisi
+    kullanın. Soyut (abstract) sınıfların soyut Builder'ları; somut (concrete) sınıfların somut
+    Builder'ları olur. Örneğin, çeşitli pizza türlerini temsil eden bir hiyerarşinin kökündeki soyut
+    sınıfı düşünün:
+  </p>
+  <p class="text-paragraph en-text">
+    The Builder pattern is well suited to <strong>class hierarchies</strong>. Use a parallel hierarchy of
+    builders, each nested in the corresponding class. Abstract classes have abstract builders; concrete
+    classes have concrete builders. For example, consider an abstract class at the root of a hierarchy
+    representing various kinds of pizza:
+  </p>
+
+  <div class="warning-box">
+    <span class="tr-text">
+      <strong>⚠ Sayfa burada kesiliyor.</strong> Sayfa 15'te soyut <code>Pizza</code> sınıfı kodu
+      ve <code>NyPizza</code> / <code>Calzone</code> alt sınıf örnekleri gösterilmektedir.
+    </span>
+    <span class="en-text">
+      <strong>⚠ Page continues on Page 15.</strong> The abstract <code>Pizza</code> class code
+      and the <code>NyPizza</code> / <code>Calzone</code> subclass examples follow on Page 15.
+    </span>
+  </div>
+
+  <!-- Kavramlar Bölümü -->
+  <div class="concepts-section">
+    <h2 class="concepts-title">
+      <span class="tr-text">Kavramlar</span>
+      <span class="en-text">Concepts</span>
+    </h2>
+    <div class="concepts-grid">
+      <button class="concept-btn" onclick="openModal('validity-check')">
+        <span class="tr-text">Geçerlilik Kontrolü</span>
+        <span class="en-text">Validity Check</span>
+      </button>
+      <button class="concept-btn" onclick="openModal('invariant')">
+        <span class="tr-text">Değişmez (Invariant)</span>
+        <span class="en-text">Invariant</span>
+      </button>
+      <button class="concept-btn" onclick="openModal('builder-hierarchy')">
+        <span class="tr-text">Builder ile Hiyerarşi</span>
+        <span class="en-text">Builder with Hierarchy</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Navigasyon -->
+  <div class="page-nav">
+    <a href="page-13.html" class="nav-btn">
+      <div class="nav-btn-label">
+        <span class="tr-text">Önceki Sayfa</span>
+        <span class="en-text">Previous Page</span>
+      </div>
+      <div class="nav-btn-title">
+        <span class="tr-text">Sayfa 13 — Madde 2: Builder Tanıtımı</span>
+        <span class="en-text">Page 13 — Item 2: Builder Introduction</span>
+      </div>
+    </a>
+    <a href="#" class="nav-btn" onclick="return handleUntranslated(event, 15)">
+      <div class="nav-btn-label">
+        <span class="tr-text">Sonraki Sayfa</span>
+        <span class="en-text">Next Page</span>
+      </div>
+      <div class="nav-btn-title">
+        <span class="tr-text">Sayfa 15 — Madde 2: Builder Hiyerarşisi</span>
+        <span class="en-text">Page 15 — Item 2: Builder Hierarchy</span>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="footer">Effective Java &mdash; Joshua Bloch &bullet; Sayfa 14 &bullet; Chapter 2: Item 2</div>
+
+<!-- Modal: Geçerlilik Kontrolü -->
+<div class="modal-overlay" id="modal-validity-check">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">
+          <span class="tr-text">Geçerlilik Kontrolü (Validity Check)</span>
+          <span class="en-text">Validity Check</span>
+        </div>
+        <div class="modal-subtitle">
+          <span class="tr-text">Parametrelerin olabildiğince erken doğrulanması</span>
+          <span class="en-text">Validating parameters as early as possible</span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('validity-check')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-description">
+        <span class="tr-text">
+          Builder kalıbında geçerlilik kontrolleri iki yerde yapılabilir: Builder'ın setter metotlarında
+          (tek parametre kontrolleri) ve <code>build()</code> içindeki private yapıcıda (birden fazla
+          parametreyi ilgilendiren değişmezler). Bu strateji "erken başarısız ol (fail-fast)" prensibini
+          uygular.
+        </span>
+        <span class="en-text">
+          In the Builder pattern, validity checks can happen in two places: in the Builder's setter methods
+          (single-parameter checks) and in the private constructor called by <code>build()</code>
+          (multi-parameter invariants). This strategy implements the "fail-fast" principle.
+        </span>
+      </div>
+
+      <span class="code-block-label bad">✗ Kötü (kontrol yok, hata uzak noktada)</span>
+<pre><span class="comment">// Kötü: Geçersiz değer nesneye girdi, hata çok sonra fırlatılıyor</span>
+<span class="keyword">public</span> <span class="type">Builder</span> <span class="method">timeout</span>(<span class="keyword">int</span> millis) {
+    <span class="keyword">this</span>.timeout = millis; <span class="comment">// negatif değer kabul edildi!</span>
+    <span class="keyword">return this</span>;
+}
+<span class="comment">// ... çok sonra: timeout -1 ile ağ bağlantısı açılmaya çalışılıyor</span></pre>
+      <div class="code-explanation">
+        <span class="tr-text">Geçersiz değer sessizce depolanıyor; hata çok sonra, tamamen farklı bir kodda ortaya çıkıyor.</span>
+        <span class="en-text">Invalid value is silently stored; error surfaces much later in completely different code.</span>
+      </div>
+
+      <span class="code-block-label good">✓ İyi (setter'da erken kontrol)</span>
+<pre><span class="comment">// İyi: Geçersiz değer hemen reddediliyor</span>
+<span class="keyword">public</span> <span class="type">Builder</span> <span class="method">timeout</span>(<span class="keyword">int</span> millis) {
+    <span class="keyword">if</span> (millis &lt;= <span class="number">0</span>)
+        <span class="keyword">throw new</span> <span class="type">IllegalArgumentException</span>(
+            <span class="string">"timeout sıfırdan büyük olmalı, verildi: "</span> + millis);
+    <span class="keyword">this</span>.timeout = millis;
+    <span class="keyword">return this</span>;
+}
+<span class="comment">// Hata tam burada, açık bir mesajla fırlatılıyor</span></pre>
+      <div class="code-explanation">
+        <span class="tr-text">Hata, geçersiz değerin girildiği noktada, net bir mesajla fırlatılıyor. Hata ayıklama (debug) çok daha kolay.</span>
+        <span class="en-text">Error is thrown at the point of invalid input with a clear message. Debugging is much easier.</span>
+      </div>
+
+      <div class="tip-box">
+        <span class="tr-text"><strong>💡 İpucu:</strong> <code>IllegalArgumentException</code> hangi parametrenin geçersiz olduğunu ve neden geçersiz olduğunu açıkça belirtmelidir. Örnek: <code>"timeout must be positive: " + timeout</code>.</span>
+        <span class="en-text"><strong>💡 Tip:</strong> The <code>IllegalArgumentException</code> should clearly state which parameter is invalid and why. Example: <code>"timeout must be positive: " + timeout</code>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Invariant -->
+<div class="modal-overlay" id="modal-invariant">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">
+          <span class="tr-text">Değişmez (Invariant)</span>
+          <span class="en-text">Invariant</span>
+        </div>
+        <div class="modal-subtitle">
+          <span class="tr-text">Nesne ömrü boyunca her zaman doğru olması gereken koşul</span>
+          <span class="en-text">A condition that must always be true throughout an object's lifetime</span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('invariant')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-description">
+        <span class="tr-text">
+          Değişmez (invariant), bir nesnenin tüm ömrü boyunca doğru kalması gereken koşuldur. Birden fazla
+          parametreyi ilgilendiren değişmezler (örneğin "başlangıç tarihi bitiş tarihinden önce olmak zorunda")
+          Builder'ın yapıcısında — parametreler kopyalandıktan sonra — denetlenmelidir.
+        </span>
+        <span class="en-text">
+          An invariant is a condition that must remain true throughout an object's lifetime. Multi-parameter
+          invariants (e.g., "start date must be before end date") should be checked in the Builder's
+          constructor — after parameters are copied from the builder.
+        </span>
+      </div>
+
+      <span class="code-block-label bad">✗ Kötü (değişmez denetlenmiyor)</span>
+<pre><span class="comment">// Kötü: DateRange nesnesi geçersiz oluşturulabilir</span>
+<span class="keyword">public</span> <span class="type">DateRange</span>(<span class="type">Builder</span> b) {
+    <span class="keyword">this</span>.start = b.start;
+    <span class="keyword">this</span>.end   = b.end;
+    <span class="comment">// Kontrol yok! start > end durumu sessizce geçebilir</span>
+}</pre>
+      <div class="code-explanation">
+        <span class="tr-text"><code>start</code> ve <code>end</code> arasındaki ilişki denetlenmiyor. Nesne geçersiz bir tarih aralığıyla oluşturulabiliyor.</span>
+        <span class="en-text">The relationship between <code>start</code> and <code>end</code> is not checked. Object can be created with an invalid date range.</span>
+      </div>
+
+      <span class="code-block-label good">✓ İyi (değişmez yapıcıda denetleniyor)</span>
+<pre><span class="comment">// İyi: Değişmez build() tarafından çağrılan yapıcıda denetleniyor</span>
+<span class="keyword">private</span> <span class="method">DateRange</span>(<span class="type">Builder</span> b) {
+    <span class="keyword">this</span>.start = b.start;
+    <span class="keyword">this</span>.end   = b.end;
+    <span class="comment">// Parametreler kopyalandıktan sonra kontrol et (Madde 50)</span>
+    <span class="keyword">if</span> (<span class="keyword">this</span>.start.<span class="method">isAfter</span>(<span class="keyword">this</span>.end))
+        <span class="keyword">throw new</span> <span class="type">IllegalArgumentException</span>(
+            <span class="string">"start ("</span> + start + <span class="string">") bitiş tarihinden sonra olamaz: "</span> + end);
+}</pre>
+      <div class="code-explanation">
+        <span class="tr-text">Alanlar kopyalandıktan <em>sonra</em> denetleniyor (kopyalama saldırısına karşı koruma). Her <code>DateRange</code> nesnesi geçerli garantilidir.</span>
+        <span class="en-text">Check is done <em>after</em> copying fields (protection against copy attacks). Every <code>DateRange</code> object is guaranteed valid.</span>
+      </div>
+
+      <div class="tip-box">
+        <span class="tr-text"><strong>💡 İpucu:</strong> Kontrolleri Builder parametrelerinde değil, nesnenin kendi alanlarında yapın. Bu, kötü niyetli bir başlıksız saldırıya (untrusted subclass attack) karşı koruma sağlar.</span>
+        <span class="en-text"><strong>💡 Tip:</strong> Perform checks on the object's own fields, not on the builder's parameters. This protects against malicious subclass attacks.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Builder ile Hiyerarşi -->
+<div class="modal-overlay" id="modal-builder-hierarchy">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">
+          <span class="tr-text">Builder ile Sınıf Hiyerarşisi</span>
+          <span class="en-text">Builder with Class Hierarchy</span>
+        </div>
+        <div class="modal-subtitle">
+          <span class="tr-text">Soyut sınıflara soyut Builder'lar, somut sınıflara somut Builder'lar</span>
+          <span class="en-text">Abstract builders for abstract classes, concrete builders for concrete classes</span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('builder-hierarchy')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-description">
+        <span class="tr-text">
+          Builder kalıbı sınıf hiyerarşileriyle son derece iyi çalışır. Her sınıfta iç içe (nested) bir
+          Builder alt sınıfı tanımlanır. Soyut sınıfın soyut Builder'ı, alt sınıflarda somutlaştırılır.
+          Bu sayede her alt sınıf, atadan gelen tüm opsiyonları kullanabileceği gibi kendi opsiyonlarını
+          da ekleyebilir.
+        </span>
+        <span class="en-text">
+          The Builder pattern works extremely well with class hierarchies. A nested Builder subclass is
+          defined in each class. The abstract Builder from the parent is concretized in subclasses.
+          Each subclass can use all options from the parent while adding its own.
+        </span>
+      </div>
+
+      <span class="code-block-label bad">✗ Kötü (hiyerarşide Builder yok)</span>
+<pre><span class="comment">// Kötü: Her alt sınıf için farklı yapıcı imzaları</span>
+<span class="type">Vehicle</span> car   = <span class="keyword">new</span> <span class="type">Car</span>(<span class="string">"Toyota"</span>, <span class="number">4</span>, <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="string">"red"</span>);
+<span class="type">Vehicle</span> truck = <span class="keyword">new</span> <span class="type">Truck</span>(<span class="string">"Ford"</span>, <span class="number">6</span>, <span class="number">5000</span>, <span class="keyword">false</span>, <span class="keyword">true</span>);
+<span class="comment">// Her alt sınıf farklı bir API — tutarsız, okunaksız</span></pre>
+      <div class="code-explanation">
+        <span class="tr-text">Her alt sınıf farklı bir yapıcı imzasına sahip. Tutarsız API, hataya açık.</span>
+        <span class="en-text">Each subclass has a different constructor signature. Inconsistent API, error-prone.</span>
+      </div>
+
+      <span class="code-block-label good">✓ İyi (paralel Builder hiyerarşisi)</span>
+<pre><span class="comment">// İyi: Paralel Builder hiyerarşisi, tutarlı API</span>
+<span class="type">Vehicle</span> car = <span class="keyword">new</span> <span class="type">Car</span>.<span class="type">Builder</span>(<span class="string">"Toyota"</span>)
+    .<span class="method">doors</span>(<span class="number">4</span>)
+    .<span class="method">color</span>(<span class="string">"red"</span>)
+    .<span class="method">sunroof</span>(<span class="keyword">true</span>)
+    .<span class="method">build</span>();
+
+<span class="type">Vehicle</span> truck = <span class="keyword">new</span> <span class="type">Truck</span>.<span class="type">Builder</span>(<span class="string">"Ford"</span>)
+    .<span class="method">axles</span>(<span class="number">6</span>)
+    .<span class="method">maxLoad</span>(<span class="number">5000</span>)
+    .<span class="method">build</span>();
+<span class="comment">// Her alt sınıf kendi özgün alanlarına sahip, ama API tutarlı</span></pre>
+      <div class="code-explanation">
+        <span class="tr-text">Her alt sınıf kendi Builder'ını kalıtım yoluyla genişletiyor. API tutarlı, okumak ve kullanmak kolay.</span>
+        <span class="en-text">Each subclass extends its own Builder via inheritance. Consistent API, easy to read and use.</span>
+      </div>
+
+      <div class="tip-box">
+        <span class="tr-text"><strong>💡 İpucu:</strong> Builder hiyerarşisinde <em>simulated self-type (benzetilmiş kendi tipi)</em> deyimini kullanın: <code>abstract T self()</code> metoduyla alt sınıfların Builder setter metotları casting gerektirmeden çalışabilir hale gelir.</span>
+        <span class="en-text"><strong>💡 Tip:</strong> Use the <em>simulated self-type</em> idiom in Builder hierarchies: an <code>abstract T self()</code> method lets subclass Builder setters work without casting.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>const CURRENT_PAGE = 14;</script>
+<script src="../js/common.js"></script>
+</body>
+</html>

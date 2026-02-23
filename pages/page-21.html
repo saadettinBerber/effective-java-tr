@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 21</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7;
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623;
+        }
+
+        .topbar-sub {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+            margin-top: 0.1rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all .2s;
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700;
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            position: relative;
+        }
+
+        .page-nav-input-wrap label {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: 0.22rem 0.4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s;
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1;
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        .item-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0d2137;
+            margin: 2rem 0 0.5rem;
+            line-height: 1.3;
+        }
+
+        .item-title-en {
+            font-size: 1.1rem;
+            color: #6c757d;
+            font-weight: 400;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+
+        .page-label {
+            font-size: 0.78rem;
+            color: #6c757d;
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem;
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: 0.88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66;
+        }
+
+        .kw {
+            color: #79b8ff;
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic;
+        }
+
+        .cl {
+            color: #b392f0;
+        }
+
+        .st {
+            color: #9ecbff;
+        }
+
+        .an {
+            color: #85e89d;
+        }
+
+        .num {
+            color: #f8c555;
+        }
+
+        .info-box {
+            background: #e8f4fd;
+            border-left: 4px solid #0d6efd;
+            padding: 0.9rem 1.2rem;
+            border-radius: 0 6px 6px 0;
+            margin: 1.2rem 0;
+            font-size: 0.93rem;
+            color: #0a3d6b;
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0.3rem 0.3rem 0.3rem 0;
+            transition: background .2s, transform .1s;
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px);
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 1.4rem;
+        }
+
+        .modal-body p {
+            font-size: 0.93rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .example-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin: 1rem 0 0.3rem;
+        }
+
+        .bad {
+            color: #c0392b;
+        }
+
+        .good {
+            color: #27ae60;
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: 0.6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.88rem;
+            margin-top: 1rem;
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px;
+        }
+
+        .nav-btn:hover {
+            background: #163a5f;
+        }
+
+        .nav-btn .nav-direction {
+            font-size: 0.7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem 1rem 3rem;
+            }
+
+            .topbar {
+                padding: 0.6rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 2: Creating and Destroying Objects &nbsp;›&nbsp; Item 5: Dependency
+                injection</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="21" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 21 / Page 21</div>
+        <div class="chapter-badge">Chapter 2 — Item 5: Kaynakları koda gömmek yerine bağımlılık enjeksiyonunu tercih
+            edin / Prefer dependency injection to hardwiring resources</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 5 DI giriş</em></div>
+
+        <div class="tr-text">
+            <p>...istemcinin (bizim örneğimizde sözlük) ihtiyacını karşılayacak örneği kullanmasıdır. Bu gereksinimi
+                karşılayan basit bir tasarım kalıbı (pattern), yeni bir örnek (instance) oluşturulurken kaynağı
+                (resource) doğrudan sınıfın yapıcı metoduna (constructor) aktarmaktır (pass in). Bu, bağımlılık
+                enjeksiyonunun (dependency injection) bir biçimidir: Sözlük, <code>SpellChecker</code> sınıfı için bir
+                bağımlılıktır ve yazım denetleyicisi oluşturulduğunda içine enjekte edilir.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>...client (in our example, the dictionary). A simple pattern that satisfies this requirement is to pass
+                the resource into the constructor when creating a new instance. This is one form of dependency
+                injection: the dictionary is a dependency of the spell checker and is injected into the spell checker
+                when it is created.</p>
+        </div>
+
+        <!-- Code Block for Dependency injection SpellChecker -->
+        <div class="code-block">
+            <span class="cm">// Bağımlılık enjeksiyonu esneklik ve test edilebilirlik sağlar</span>
+            <span class="cm">// Dependency injection provides flexibility and testability</span>
+            <span class="kw">public class</span> <span class="cl">SpellChecker</span> {
+            <span class="kw">private final</span> <span class="cl">Lexicon</span> dictionary;
+
+            <span class="kw">public</span> <span class="cl">SpellChecker</span>(<span class="cl">Lexicon</span>
+            dictionary) {
+            <span class="kw">this</span>.dictionary = <span class="cl">Objects</span>.requireNonNull(dictionary);
+            }
+
+            <span class="kw">public boolean</span> isValid(<span class="cl">String</span> word) { ... }
+            <span class="kw">public</span> <span class="cl">List</span>&lt;<span class="cl">String</span>&gt;
+            suggestions(<span class="cl">String</span> typo) { ... }
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Bağımlılık enjeksiyonu tasarım kalıbı o kadar basittir ki, birçok programcı adının bu olduğunu dahi
+                bilmeden onu yıllarca kullanır. Bizim yazım denetleyici (spell checker) örneğimiz yalnızca tek bir
+                kaynağa (sözlüğe) sahip olsa da, bağımlılık enjeksiyonu keyfi sayıda kaynakla ve dilediğiniz bağımlılık
+                ağaçlarıyla (dependency graphs) birlikte de çalışır. Verilerin değişmezliğini (immutability) (Madde 17)
+                korur, böylece birden çok istemci (client) (istemcilerin temel alınan aynı kaynağı arzu ettiği
+                varsayılarak) bağımlı nesneleri ortaklaşa paylaşabilir. Bağımlılık enjeksiyonu sadece yapıcı metotlara
+                (constructors) değil, statik fabrikalara (static factories) (Madde 1) ve builder'lara (Madde 2) da eşit
+                ölçüde uygulanabilir.</p>
+
+            <p>Bu kalıbın yararlı bir varyantı da yapıcı metoda bir <b>kaynak fabrikası (resource factory)</b>
+                aktarmaktır. Bir fabrika, belirli türde yeni örnekler oluşturabilmek için defalarca çağrılabilen bir
+                nesnedir. Bu tür fabrikalar aslen <i>Factory Method (Fabrika Metodu)</i> tasarım kalıbını (Design
+                Pattern) [Gamma95] cisme büründürürler. Java 8 ile birlikte dile eklenen <code>Supplier&lt;T&gt;</code>
+                arayüzü fabrika metodları temsil etmek amacıyla kusursuz bir biçimde tasarlanmıştır. Parametre girdisi
+                olarak dışarıdan <code>Supplier&lt;T&gt;</code> bekleyen metotlar genellikle fabrikanın oluşturacağı tip
+                parametresini "sınırlı bir joker tipiyle (bounded wildcard type)" (Madde 31) daraltmalıdır (constrain).
+                Böylece istemciye, belirlenen asıl tipte (veya onun bir alt tipinde) örnekler oluşturan herhangi bir
+                fabrikayı aktarma ihtimali tanınmış olur. Misal, aşağıda her bir döşeme taşını (tile) oluşturmak için
+                istemci tarafından sağlanan bir fabrika kullanarak bir mozaik üreten bir metoda örnek yer almaktadır:
+            </p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>The dependency injection pattern is so simple that many programmers use it for years without knowing it
+                has a name. While our spell checker example had only a single resource (the dictionary), dependency
+                injection works with an arbitrary number of resources and arbitrary dependency graphs. It preserves
+                immutability (Item 17), so multiple clients can share dependent objects (assuming the clients desire the
+                same underlying resources). Dependency injection is equally applicable to constructors, static factories
+                (Item 1), and builders (Item 2).</p>
+
+            <p>A useful variant of the pattern is to pass a resource factory to the constructor. A factory is an object
+                that can be called repeatedly to create instances of a type. Such factories embody the Factory Method
+                pattern [Gamma95]. The <code>Supplier&lt;T&gt;</code> interface, introduced in Java 8, is perfect for
+                representing factories. Methods that take a <code>Supplier&lt;T&gt;</code> on input should typically
+                constrain the factory’s type parameter using a bounded wildcard type (Item 31) to allow the client to
+                pass in a factory that creates any subtype of a specified type. For example, here is a method that makes
+                a mosaic using a client-provided factory to produce each tile:</p>
+        </div>
+
+        <!-- Code Block for Bounded wildcard type -> Factory -->
+        <div class="code-block">
+            <span class="cl">Mosaic</span> create(<span class="cl">Supplier</span>&lt;? <span class="kw">extends</span>
+            <span class="cl">Tile</span>&gt; tileFactory) { ... }
+        </div>
+
+        <div class="tr-text">
+            <p>Bağımlılık enjeksiyonu, test edilebilirliği ve esnekliği büyük ölçüde artırsa da, genelde binlerce
+                bağımlılık barındıran devasa projelerde kodu darmadağın edebilme (clutter up) potansiyeline sahiptir.
+                Neyse ki, bu dağınıklık bir bağımlılık enjeksiyonu altyapısı (DI framework) kullanılarak... (Devamı
+                sonraki sayfada)</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Although dependency injection greatly improves flexibility and testability, it can clutter up large
+                projects, which typically contain thousands of dependencies. This clutter can be all but eliminated by
+                using a dependency injection...</p>
+        </div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('factorymethod')">Factory Method (Fabrika Metodu)</button>
+            <button class="concept-btn" onclick="openModal('boundedwildcard')">Bounded Wildcard (Sınırlı Joker
+                Karakteri)</button>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 5 bir sonraki sayfada sonlanıyor ve Madde 6 başlıyor.
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-20.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 20 — Singleton & Yardımcı Sınıfların Limitleri</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-22.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 22 — Madde 5 Sonucu & Madde 6 Başı</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Factory Method / Supplier -->
+    <div class="modal-overlay" id="modal-factorymethod">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Factory Method (Fabrika Metodu) & Supplier</h3>
+                <button class="modal-close" onclick="closeModal('factorymethod')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Bazen bir nesnenin constructor'ına bir bağımlılık listesi veya nesne değil de yeni bağımlılıkları
+                        oluşturmayı bilen bir <i>üretici mekanizma / fabrika</i> göndermek isteriz. Java 8 ile
+                        <code>Supplier&lt;T&gt;</code> arayüzü bu işlemi çok kolaylaştırmıştır, her istendiğinde yeni
+                        bir referans elde etmeyi olanaklı kılar.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Sometimes you don't just want to inject a static dependency, but rather a <i>producer mechanism /
+                            factory</i> that knows how to create new dependencies on the fly. Java 8's
+                        <code>Supplier&lt;T&gt;</code> interface makes this incredibly simple, acting as a lightweight
+                        Factory Method pattern.</p>
+                </div>
+                <div class="example-label bad">✗ KÖTÜ — Koda gömülü fabrika bağımlılığı</div>
+                <div class="code-block" style="font-size:0.83rem">
+                    <span class="kw">public class</span> <span class="cl">GameEngine</span> {
+                    <span class="kw">public</span> <span class="cl">Enemy</span> spawnEnemy() {
+                    <span class="cm">// Daima aynı tip, esnemeye kapalı</span>
+                    <span class="kw">return new</span> <span class="cl">OrcEnemy</span>();
+                    }
+                    }
+                </div>
+                <div class="example-label good">✓ İYİ — Supplier kullanarak dinamik Üretici Yöntemi (Factory Method)
+                </div>
+                <div class="code-block" style="font-size:0.83rem">
+                    <span class="kw">public class</span> <span class="cl">GameEngine</span> {
+                    <span class="kw">private final</span> <span class="cl">Supplier</span>&lt;<span
+                        class="cl">Enemy</span>&gt; enemyFactory;
+
+                    <span class="kw">public</span> <span class="cl">GameEngine</span>(<span
+                        class="cl">Supplier</span>&lt;<span class="cl">Enemy</span>&gt; enemyFactory) {
+                    <span class="kw">this</span>.enemyFactory = enemyFactory;
+                    }
+
+                    <span class="kw">public</span> <span class="cl">Enemy</span> spawnEnemy() {
+                    <span class="cm">// Hangi üretici verilmişse ondan çağırılır</span>
+                    <span class="kw">return</span> enemyFactory.get();
+                    }
+                    }
+
+                    <span class="cm">// İstemci her senaryoda farklı bir fabrika fırlatabilir:</span>
+                    <span class="cl">GameEngine</span> devEngine = <span class="kw">new</span> <span
+                        class="cl">GameEngine</span>(<span class="cl">OrcEnemy</span>::new);
+                    <span class="cl">GameEngine</span> elfEngine = <span class="kw">new</span> <span
+                        class="cl">GameEngine</span>(<span class="cl">ElfEnemy</span>::new);
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Bounded Wildcard -->
+    <div class="modal-overlay" id="modal-boundedwildcard">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Bounded Wildcard (Sınırlı Joker)</h3>
+                <button class="modal-close" onclick="closeModal('boundedwildcard')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Jenerik parametrelerde <code>? extends T</code> kullanmak, bir tipin tamı tamına aynısı olmasını
+                        beklemediğimizi, aksine o türü (<code>T</code>) genişleten/miras alan (veya tam o tip olan)
+                        nesnelere tolerans göstereceğimizi belirtir (Üst sınır — Upper Bound).</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Using <code>? extends T</code> in generic parameters tells the compiler we are flexible: we can
+                        accept not just exactly <code>T</code>, but any type that extends or implements <code>T</code>
+                        (Upper Bound wildcard).</p>
+                </div>
+                <div class="example-label bad">✗ KÖTÜ — Esnemez Tip Parametresi</div>
+                <div class="code-block" style="font-size:0.83rem">
+                    <span class="cm">// Yalnızca mutlak şekilde Tile dönen fabrika kabul edilir.</span>
+                    <span class="cl">Mosaic</span> create(<span class="cl">Supplier</span>&lt;<span
+                        class="cl">Tile</span>&gt; tileFactory) { ... }
+
+                    <span class="cm">// RedTile açıkça bir Tile arabirimi olsa da kabul edilmez</span>
+                    <span class="cl">Supplier</span>&lt;<span class="cl">RedTile</span>&gt; redFactory = <span
+                        class="cl">RedTile</span>::new;
+                    create(redFactory); <span class="cm">// Derleme Hata (Compile Error)!</span>
+                </div>
+                <div class="example-label good">✓ İYİ — Bounded Wildcard ile Tam Esneklik</div>
+                <div class="code-block" style="font-size:0.83rem">
+                    <span class="cm">// Herhangi bir Tile'ı veya alt türünü barındıran her türlü factory uygun</span>
+                    <span class="cl">Mosaic</span> create(<span class="cl">Supplier</span>&lt;? <span
+                        class="kw">extends</span> <span class="cl">Tile</span>&gt; tileFactory) { ... }
+
+                    <span class="cl">Supplier</span>&lt;<span class="cl">RedTile</span>&gt; redFactory = <span
+                        class="cl">RedTile</span>::new;
+                    create(redFactory); <span class="cm">// Başarılı (Valid code)</span>
+                </div>
+                <div class="tip-box tr-text">💡 Ürettiğiniz API'lerde listeler veya supplier'lar dışarıdan çekilecekse,
+                    tüketen parametreler için hemen hemen daima wildcard kullanmayı pratik haline getirin. API'nizin
+                    kullanımı ciddi oranda esnek kalır.</div>
+                <div class="tip-box en-text" style="display:none">💡 When designing APIs that consume generics (Lists,
+                    Suppliers, etc.), getting into the habit of using wildcards makes your API dramatically more
+                    flexible for its clients.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 21;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

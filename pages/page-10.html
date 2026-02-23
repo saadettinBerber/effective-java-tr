@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sayfa 10 — Chapter 2: Item 2 | Effective Java Türkçe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.8;
+            font-size: 17px;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: #0d2137;
+            color: #e0e0e0;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-bar-left { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+        .home-link {
+            color: #f5a623;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border: 1px solid rgba(245,166,35,0.3);
+            border-radius: 6px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .home-link:hover { background: rgba(245,166,35,0.1); border-color: #f5a623; }
+
+        .top-bar-title { display: flex; flex-direction: column; }
+        .book-title { font-size: 16px; font-weight: 700; color: #f5a623; }
+        .chapter-info { font-size: 12px; color: #adb5bd; }
+        .top-bar-right { display: flex; align-items: center; gap: 12px; }
+
+        .lang-toggle { display: flex; border: 1px solid rgba(245,166,35,0.3); border-radius: 6px; overflow: hidden; }
+        .lang-btn { padding: 5px 12px; font-size: 13px; font-weight: 700; background: transparent; color: #adb5bd; border: none; cursor: pointer; transition: all 0.3s; }
+        .lang-btn.active { background: #f5a623; color: #0d2137; }
+        .lang-btn:hover:not(.active) { color: #f5a623; }
+
+        .page-number-wrapper { display: flex; align-items: center; gap: 6px; position: relative; }
+        .page-number-label { font-size: 12px; color: #adb5bd; white-space: nowrap; }
+        .page-number-input {
+            width: 52px; padding: 4px 8px; text-align: center;
+            border: 1px solid rgba(245,166,35,0.3); border-radius: 6px;
+            background: rgba(255,255,255,0.08); color: #f5a623;
+            font-size: 14px; font-weight: 700; font-family: inherit; outline: none;
+            transition: border-color 0.3s;
+        }
+        .page-number-input:focus { border-color: #f5a623; }
+        .page-number-input.error { border-color: #dc3545; animation: shake 0.4s ease; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .page-nav-tooltip {
+            position: absolute; top: 100%; right: 0; margin-top: 6px;
+            background: #dc3545; color: #fff; font-size: 12px; padding: 6px 12px;
+            border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s; z-index: 200;
+        }
+        .page-nav-tooltip.visible { opacity: 1; }
+
+        .content { max-width: 760px; margin: 0 auto; padding: 40px 24px 60px; }
+
+        .page-badge {
+            display: inline-block; background: #0d2137; color: #f5a623;
+            font-size: 13px; font-weight: 700; padding: 4px 14px;
+            border-radius: 20px; margin-bottom: 24px;
+        }
+
+        .chapter-title { font-size: 28px; font-weight: 800; color: #0d2137; margin-bottom: 8px; line-height: 1.3; }
+        .chapter-title-en { font-size: 18px; color: #6c757d; font-weight: 400; font-style: italic; margin-bottom: 32px; }
+
+        .item-title { font-size: 24px; font-weight: 800; color: #0d2137; margin: 40px 0 8px; line-height: 1.3; }
+        .item-title-en { font-size: 16px; color: #6c757d; font-weight: 400; font-style: italic; margin-bottom: 24px; }
+
+        .divider {
+            height: 3px; background: linear-gradient(90deg, #f5a623 0%, transparent 100%);
+            border: none; margin-bottom: 32px; border-radius: 2px;
+        }
+
+        .item-divider {
+            height: 2px; background: linear-gradient(90deg, #0d2137 0%, #f5a623 50%, transparent 100%);
+            border: none; margin: 40px 0 32px; border-radius: 2px;
+        }
+
+        .text-paragraph { margin-bottom: 20px; text-align: justify; hyphens: auto; }
+        .text-paragraph em { font-style: italic; color: #555; }
+        .text-paragraph strong { font-weight: 700; color: #0d2137; }
+        .text-paragraph code {
+            background: #f0f0f0; padding: 2px 6px; border-radius: 4px;
+            font-size: 15px; color: #0d2137;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+
+        .summary-box {
+            background: #fdf6eb; border: 2px solid #f5a623; border-radius: 12px;
+            padding: 20px 24px; margin: 28px 0; line-height: 1.7;
+        }
+        .summary-box strong { color: #0d2137; }
+
+        pre {
+            background: #1e1e2e; color: #cdd6f4; padding: 18px 20px; border-radius: 10px;
+            overflow-x: auto; font-size: 14px; line-height: 1.6; margin-bottom: 12px;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        }
+        pre .keyword { color: #cba6f7; }
+        pre .type { color: #89b4fa; }
+        pre .string { color: #a6e3a1; }
+        pre .comment { color: #6c7086; font-style: italic; }
+        pre .annotation { color: #f9e2af; }
+        pre .number { color: #fab387; }
+        pre .method { color: #89dceb; }
+
+        .concepts-section { margin-top: 40px; padding-top: 32px; border-top: 2px solid #eee; }
+        .concepts-title { font-size: 18px; font-weight: 700; color: #0d2137; margin-bottom: 16px; }
+        .concepts-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+        .concept-btn {
+            padding: 10px 20px; background: #fff; border: 2px solid #0d2137;
+            border-radius: 10px; color: #0d2137; font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s; font-family: inherit;
+        }
+        .concept-btn:hover {
+            background: #0d2137; color: #f5a623; transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13,33,55,0.2);
+        }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center;
+            align-items: flex-start; padding: 40px 16px; overflow-y: auto;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: #fff; border-radius: 16px; max-width: 720px; width: 100%;
+            padding: 32px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-close {
+            position: absolute; top: 16px; right: 16px; width: 32px; height: 32px;
+            border-radius: 50%; border: none; background: #f0f0f0; color: #333;
+            font-size: 18px; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; transition: all 0.3s;
+        }
+        .modal-close:hover { background: #dc3545; color: #fff; }
+        .modal-title { font-size: 22px; font-weight: 800; color: #0d2137; margin-bottom: 4px; }
+        .modal-subtitle { font-size: 14px; color: #6c757d; font-style: italic; margin-bottom: 20px; }
+        .modal-desc { margin-bottom: 24px; line-height: 1.7; color: #333; }
+
+        .example-label {
+            font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 8px; padding: 4px 10px; border-radius: 4px; display: inline-block;
+        }
+        .example-label.bad { background: #fce4e4; color: #dc3545; }
+        .example-label.good { background: #e3f9e5; color: #28a745; }
+        .example-explain { font-size: 14px; color: #555; margin: 8px 0 20px; padding-left: 12px; border-left: 3px solid #dee2e6; }
+        .modal-tip {
+            background: #fdf6eb; border: 1px solid #f5a623; border-radius: 8px;
+            padding: 14px 18px; margin-top: 20px; font-size: 14px; color: #0d2137;
+        }
+        .modal-tip strong { color: #f5a623; }
+
+        .page-nav { display: flex; justify-content: space-between; gap: 16px; margin-top: 48px; padding-top: 24px; border-top: 2px solid #eee; }
+        .nav-btn {
+            flex: 1; padding: 16px 20px; border: 2px solid #dee2e6; border-radius: 12px;
+            text-decoration: none; color: #0d2137; background: #fff; cursor: pointer;
+            transition: all 0.3s; text-align: center; font-family: inherit; font-size: 15px;
+        }
+        .nav-btn:hover:not(.disabled) { border-color: #0d2137; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .nav-btn.disabled { opacity: 0.4; cursor: not-allowed; background: #f0f0f0; }
+        .nav-btn-label { font-size: 12px; color: #6c757d; margin-bottom: 4px; }
+        .nav-btn-title { font-weight: 700; font-size: 15px; }
+
+        .footer { text-align: center; padding: 24px; color: #adb5bd; font-size: 13px; border-top: 1px solid #dee2e6; margin-top: 20px; }
+
+        @media (max-width: 700px) {
+            .top-bar { padding: 12px 16px; }
+            .book-title { font-size: 14px; }
+            .content { padding: 24px 16px 40px; }
+            .chapter-title { font-size: 22px; }
+            .item-title { font-size: 20px; }
+            .modal-content { padding: 24px 18px; }
+            .page-nav { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Üst Bar -->
+<div class="top-bar">
+    <div class="top-bar-left">
+        <a href="../index.html" class="home-link">Ana Sayfa</a>
+        <div class="top-bar-title">
+            <div class="book-title">Effective Java &mdash; Joshua Bloch</div>
+            <div class="chapter-info">Chapter 2: Creating and Destroying Objects / Item 2</div>
+        </div>
+    </div>
+    <div class="top-bar-right">
+        <div class="lang-toggle">
+            <button class="lang-btn" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="page-number-wrapper">
+            <span class="page-number-label">Sayfa</span>
+            <input type="text" class="page-number-input" id="pageNumInput" value="10" maxlength="4" autocomplete="off"
+                   onkeydown="if(event.key==='Enter') goToPageNum()"
+                   onblur="resetPageInput()">
+            <div class="page-nav-tooltip" id="pageNavTooltip"></div>
+        </div>
+    </div>
+</div>
+
+<!-- İçerik -->
+<div class="content">
+    <div class="page-badge">Sayfa 10</div>
+
+    <h1 class="item-title">
+        <span class="tr-text">Madde 2: Çok Sayıda Yapıcı Parametresiyle Karşılaşınca Builder Kullanmayı Düşünün</span>
+        <span class="en-text">Item 2: Consider a Builder When Faced with Many Constructor Parameters</span>
+    </h1>
+    <div class="item-title-en">
+        <span class="tr-text">Item 2: Consider a builder when faced with many constructor parameters</span>
+        <span class="en-text">Madde 2: Çok Sayıda Yapıcı Parametresiyle Karşılaşınca Builder Kullanmayı Düşünün</span>
+    </div>
+    <hr class="divider">
+
+    <!-- Paragraf 1: Builder avantajları -->
+    <p class="text-paragraph tr-text">
+        İstemci kodu okunması kolay ve yazılması kolaysa, Builder kalıbı Python ve Scala gibi <em>adlandırılmış opsiyonel parametreleri</em> (named optional parameters) olan dillerdeki yapının çok iyi bir simülasyonudur. Builder'ın akıllıca tasarlanması, parametrelerine varsayılan değerleri (default values) sağlayabilir. Builder, değişmezlik (invariant) kontrol yapabilir — tamamlanmış (final) nesneyi sunmadan önce Builder'ın alanlarında hata yoksa kontrol edebilir. Builder'ın çok önemli avantajı, birden fazla thread'in (iş parçacığı) bir Builder nesnesini güvenle paylaşabilmesidir.
+    </p>
+    <p class="text-paragraph en-text">
+        This client code is much easier to write and, far more importantly, much easier to read. The Builder pattern simulates the optional parameters found in Python and Scala. Critically, the Builders can have default values for their parameters. The builder is smart enough to fill in parameters. The NutritionFacts class is immutable, and all parameter defaulting is done in the builder. The build method could check invariants (Item 49). It is very simple to make the builder thread-safe if multiple threads are to share a builder.
+    </p>
+
+    <!-- Paragraf 2: Builder ve method chaining -->
+    <p class="text-paragraph tr-text">
+        Bir zamanlar Builder kalıbı Bloch'a <code>NutritionFacts cocaCola = new NutritionFacts.Builder(240, 8).calories(100).fat(35).sodium(35).carbs(27).build();</code> gibi bir çağrı yazmasını (yazma sürecinde) mümkün kılmıştır. Her <code>Builder</code> metodu, Builder nesnesinin bir başka <code>Builder</code> nesnesine geri dönüşü sağlar. Bunu <em>metot zincirleme</em> (method chaining) veya <em>akıcı arayüz</em> (fluent interface) denir.
+    </p>
+    <p class="text-paragraph en-text">
+        A nice feature of the Builder pattern is that it reads nicely. The method invocation on lines 2–5 are easier to understand than the telescoping constructor. This is related to the fact that the Builder pattern allows you to use method chaining—also known as fluent interface. Here's how the client code reads:
+    </p>
+
+    <!-- Kod: Builder Method Chaining -->
+<pre><span class="comment">// Builder ile metot zincirleme — okunması çok kolay</span>
+<span class="type">NutritionFacts</span> cocaCola = <span class="keyword">new</span> <span class="type">NutritionFacts</span>.<span class="type">Builder</span>(240, 8)
+    .calories(100)
+    .fat(35)
+    .sodium(35)
+    .carbs(27)
+    .build();</pre>
+
+    <!-- Paragraf 3: Builder sınırlamaları -->
+    <p class="text-paragraph tr-text">
+        Builder kalıbının tek sınırlaması, nesne oluşturmak için Builder nesnesini önce oluşturmanız gerekliliğidir. Çok sayıda parametreli yapıcı metotların daha sık olarak kullanıldığı ortamlarda bu ekstra maliyet önemli olabilir. Ayrıca, Builder kalıbı teleskopik yapıcı kalıbından daha ayrıntılı (verbose) ve karmaşıktır. Bu nedenle, bunu sadece çok sayıda parametreniz (dört veya daha fazla, ideal olarak) olduğunda kullanmalısınız. Fakat dikkat edin — API'nin gerçek büyümesinden muasır gelişim süreci kapsamında başlayabilirsiniz (veya başlamış olabilirsiniz).
+    </p>
+    <p class="text-paragraph en-text">
+        The Builder pattern is flexible. A single builder can be used to build multiple objects. The parameters of the builder can be tweaked between object constructions to vary the created objects. The builder can automatically fill in some fields, such as a serial number that increments each time an object is created, or the timestamp.
+    </p>
+
+    <!-- Paragraf 4: Builder örnekleri -->
+    <p class="text-paragraph tr-text">
+        Pratikte, Builder kalıbı çok sayıda başarılı uygulama görmüştür. Java'daki bazı standart kütüphaneler Builder kalıbını kullanır: <code>StringBuilder</code> (karakter dizileri oluşturmak için), <code>TreeMap</code> (ağaç haritaları için), ve HTTP istek kütüphaneleri. Çoğu popüler Java web çerçevesi (framework) de Builder'ı tercih eder. Lombok gibi araçlar da <code>@Builder</code> ek açıklaması ile Builder kodunu otomatik olarak oluşturabilir.
+    </p>
+    <p class="text-paragraph en-text">
+        In short, the Builder pattern is a good choice when designing classes whose constructors or static factories would have more than a handful of parameters. It is much easier to read and write client code with builders than with telescoping constructors, and builders are much safer than JavaBeans.
+    </p>
+
+    <!-- Özet kutusu -->
+    <div class="summary-box">
+        <p class="tr-text">
+            <strong>Özet:</strong> Çok sayıda parametreye sahip sınıfları tasarlarken, Builder kalıbı, teleskopik yapıcı kalıbından çok daha iyi ve okunabilir bir seçimdir. Builder kalıbı, özelliklede dört veya daha fazla parametre olduğunda tercih edilmelidir. Builder metotları <code>this</code> nesnesini döndürerek metot zincirleme (method chaining) sağlar, bu da istemci kodunu okunması kolay hale getirir.
+        </p>
+        <p class="en-text">
+            <strong>Summary:</strong> The Builder pattern is a good choice when designing classes whose constructors or static factories would have more than a handful of parameters. It is much easier to read and write client code with builders than with telescoping constructors, and builders are much safer than JavaBeans.
+        </p>
+    </div>
+
+    <!-- Kavram Butonları -->
+    <div class="concepts-section">
+        <h2 class="concepts-title">
+            <span class="tr-text">Kavramlar</span>
+            <span class="en-text">Concepts</span>
+        </h2>
+        <div class="concepts-grid">
+            <button class="concept-btn" onclick="openModal('method-chaining')">
+                <span class="tr-text">Metot Zincirleme (Method Chaining)</span>
+                <span class="en-text">Method Chaining</span>
+            </button>
+            <button class="concept-btn" onclick="openModal('fluent-interface')">
+                <span class="tr-text">Akıcı Arayüz (Fluent Interface)</span>
+                <span class="en-text">Fluent Interface</span>
+            </button>
+            <button class="concept-btn" onclick="openModal('invariant-checking')">
+                <span class="tr-text">Değişmezlik Kontrolü (Invariant Checking)</span>
+                <span class="en-text">Invariant Checking</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigasyon -->
+    <div class="page-nav">
+        <a href="page-9.html" class="nav-btn">
+            <div class="nav-btn-label">
+                <span class="tr-text">Önceki Sayfa</span>
+                <span class="en-text">Previous Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 9 &mdash; Madde 2: Builder Tanıtımı</span>
+                <span class="en-text">Page 9 &mdash; Item 2: Builder Introduction</span>
+            </div>
+        </a>
+        <a href="#" class="nav-btn" onclick="return handleUntranslated(event, 11)">
+            <div class="nav-btn-label">
+                <span class="tr-text">Sonraki Sayfa</span>
+                <span class="en-text">Next Page</span>
+            </div>
+            <div class="nav-btn-title">
+                <span class="tr-text">Sayfa 11 &mdash; Madde 3: Singleton Kalıbı</span>
+                <span class="en-text">Page 11 &mdash; Item 3: Singleton Pattern</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Modal: Metot Zincirleme -->
+<div class="modal-overlay" id="modal-method-chaining">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('method-chaining')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Metot Zincirleme</span>
+            <span class="en-text">Method Chaining</span>
+        </div>
+        <div class="modal-subtitle">Method Chaining / Fluent Interface</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Metot zincirleme (method chaining), bir nesne üzerinde art arda metotlar çağrılmasını ve her metot çağrısından sonra aynı nesneyi (genellikle <code>this</code>) döndürmesini sağlayan bir tekniktir. Bu, istemci kodunu okunması kolay ve akıcı (fluent) bir biçimde yazılmasını mümkün kılar. Özellikle Builder kalıbında ve akıcı arayüzlerde (fluent interfaces) kullanılır.
+            </span>
+            <span class="en-text">
+                Method chaining is a technique where methods called on an object return the same object (usually <code>this</code>, allowing consecutive method calls. This makes client code readable and "fluent" in style. It's particularly useful in the Builder pattern and fluent interfaces.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Metot zincirleme olmadan — çok ayrıntılı (verbose)</span>
+<span class="type">QueryBuilder</span> qb = <span class="keyword">new</span> <span class="type">QueryBuilder</span>(<span class="string">"SELECT * FROM users"</span>);
+qb.where(<span class="string">"age > ?"</span>);
+qb.addParameter(18);
+qb.orderBy(<span class="string">"name"</span>);
+qb.limit(10);
+<span class="type">String</span> sql = qb.build();</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Her metot çağrısı ayrı bir satırda. Kod uzun ve okunması yorucu. İnşa sürecinin her adımı benzer bir yapıda tekrarlanır.
+            </span>
+            <span class="en-text">
+                Each method call is on a separate line. The code is verbose and tedious to read. Each step of the construction repeats similar patterns.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Metot zincirleme ile — akıcı ve okunabilir</span>
+<span class="type">String</span> sql = <span class="keyword">new</span> <span class="type">QueryBuilder</span>(<span class="string">"SELECT * FROM users"</span>)
+    .where(<span class="string">"age > ?"</span>)
+    .addParameter(18)
+    .orderBy(<span class="string">"name"</span>)
+    .limit(10)
+    .build();</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Her metot kendisini döndürdüğü için, çağrılar zincirleme yapılabilir. Kod daha kısa, açık ve okuması kolaydır. Niyet (intent) hemen belli olur.
+            </span>
+            <span class="en-text">
+                Since each method returns itself, calls can be chained. The code is concise, clear, and easy to read. The intent is immediately obvious.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Method chaining'i uygulamak için, Builder veya konfigürasyon sınıflarındaki her "setter" benzeri metot <code>this</code> veya <code>return this;</code> ile sonlandırılmalıdır. StringBuilder ve Stream API'si gibi Java standart kütüphaneleri bu tekniği yoğun olarak kullanır.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> To implement method chaining, every "setter"-like method in a Builder or configuration class should end with <code>this</code> or <code>return this;</code>. Java standard libraries like StringBuilder and Stream API use this technique extensively.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Akıcı Arayüz -->
+<div class="modal-overlay" id="modal-fluent-interface">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('fluent-interface')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Akıcı Arayüz</span>
+            <span class="en-text">Fluent Interface</span>
+        </div>
+        <div class="modal-subtitle">Fluent Interface Design Pattern</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Akıcı arayüz (fluent interface), metot zincirleme yoluyla kodu insan diline yakın, okuması doğal bir şekilde yazılmasını sağlayan bir tasarım kalıbıdır. API'ler akıcı arayüz kullanarak, karmaşık işlemleri basit ve okunabilir bir biçimde ifade edilebilir hale getirebilir. Amacı, kod okunabilirliğini artırmak ve API'nin sezgisel olması sağlamaktır.
+            </span>
+            <span class="en-text">
+                A fluent interface is a design pattern that uses method chaining to make code read naturally, close to human language. APIs using fluent interfaces can express complex operations in a simple and readable way. The goal is to improve code readability and make the API intuitive.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Akıcı olmayan arayüz — çok adımlı ve komplike</span>
+<span class="type">HttpRequest</span> req = <span class="keyword">new</span> <span class="type">HttpRequest</span>(<span class="string">"https://api.example.com"</span>);
+req.setMethod(<span class="string">"POST"</span>);
+req.setHeader(<span class="string">"Content-Type"</span>, <span class="string">"application/json"</span>);
+req.setBody(<span class="string">"{\"user\": \"alice\"}"</span>);
+req.setRetries(3);
+req.setTimeoutMs(5000);
+<span class="type">HttpResponse</span> res = req.execute();</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Setter metotları <code>void</code> döndürüyor, bu yüzden zincirleme yapılamıyor. Ayrıca <code>setTimeoutMs</code> gibi adlandırmalar da natural değildir.
+            </span>
+            <span class="en-text">
+                Setter methods return <code>void</code>, so chaining isn't possible. Also, naming like <code>setTimeoutMs</code> is less natural. It doesn't read like a sentence.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Akıcı arayüz — doğal ve okunabilir</span>
+<span class="type">HttpResponse</span> res = <span class="keyword">new</span> <span class="type">HttpRequest</span>(<span class="string">"https://api.example.com"</span>)
+    .post()
+    .withHeader(<span class="string">"Content-Type"</span>, <span class="string">"application/json"</span>)
+    .withBody(<span class="string">"{\"user\": \"alice\"}"</span>)
+    .retries(3)
+    .timeout(5000, <span class="type">TimeUnit</span>.MILLISECONDS)
+    .execute();</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Her metot <code>this</code> döndürüyor. <code>.post()</code>, <code>.withHeader()</code> gibi isimlendirmeler daha doğal görünüyor. Bütün yapısı bir cümle gibi okuluyor ve niyeti hemen belli oluyor.
+            </span>
+            <span class="en-text">
+                Each method returns <code>this</code> for chaining. Method names like <code>.post()</code>, <code>.withHeader()</code> read more naturally. The whole structure reads like a sentence and intent is immediately clear.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Fluent interface tasarlarken, metot adları emir kipi veya "with" ön eki kullanan isimlendirme ("post", "withHeader") tercih edilmelidir. Her metot Builder nesnesini döndürmelidir. Java'daki Stream API (<code>stream().filter().map().collect()</code>) fluent interface'in mükemmel bir örneğidir.
+            </span>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> When designing fluent interfaces, method names should use imperative or "with" prefixes ("post", "withHeader"). Each method should return the Builder object. Java's Stream API (<code>stream().filter().map().collect()</code>) is a perfect example of fluent interface.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Değişmezlik Kontrolü -->
+<div class="modal-overlay" id="modal-invariant-checking">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('invariant-checking')">&times;</button>
+        <div class="modal-title">
+            <span class="tr-text">Değişmezlik Kontrolü</span>
+            <span class="en-text">Invariant Checking</span>
+        </div>
+        <div class="modal-subtitle">Invariant Checking & Validation</div>
+
+        <div class="modal-desc">
+            <span class="tr-text">
+                Değişmezlik kontrolü (invariant checking), nesne oluşturulduktan sonra ve hatta kullanılmadan önce, nesnenin durumunun tutarlı ve geçerli olup olmadığını kontrol etme işlemidir. Değişmez (invariant), nesneler sırasında her zaman doğru olması gereken bir koşuldur. Builder kalıbında, <code>build()</code> metodu çağrılmadan önce tüm parametrelerin doğruluğu kontrol edilebilir. Bu sayede hatalı nesneler oluşması engellenir.
+            </span>
+            <span class="en-text">
+                Invariant checking is the process of validating that an object's state is consistent and valid after (or before) it's created. An invariant is a condition that must always be true about an object. In the Builder pattern, before <code>build()</code> is called, all parameters can be validated. This prevents invalid objects from being created.
+            </span>
+        </div>
+
+        <div class="example-label bad">
+            <span class="tr-text">Kötü Örnek (Before)</span>
+            <span class="en-text">Bad Example (Before)</span>
+        </div>
+<pre><span class="comment">// Doğrulama olmadan — hatalı nesneler oluşabilir</span>
+<span class="keyword">public class</span> <span class="type">DateRange</span> {
+    <span class="keyword">private final</span> <span class="type">LocalDate</span> start;
+    <span class="keyword">private final</span> <span class="type">LocalDate</span> end;
+
+    <span class="keyword">public</span> <span class="type">DateRange</span>(<span class="type">LocalDate</span> start, <span class="type">LocalDate</span> end) {
+        <span class="keyword">this</span>.start = start;    <span class="comment">// Doğrulama yok!</span>
+        <span class="keyword">this</span>.end = end;      <span class="comment">// end < start olabilir!</span>
+    }
+}
+
+<span class="comment">// Hata: start > end — geçersiz bir DateRange</span>
+<span class="type">DateRange</span> broken = <span class="keyword">new</span> <span class="type">DateRange</span>(
+    <span class="type">LocalDate</span>.of(2025, 1, 31),  <span class="comment">// start</span>
+    <span class="type">LocalDate</span>.of(2025, 1, 1)   <span class="comment">// end (yanlış!)</span>
+);</pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                Parametreler doğrulanmıyor. <code>end</code> tarihi <code>start</code> tarihinden daha eski olabilir. Nesne oluşturulduktan sonra bu hata fark edilirse, hata ayıklamak çok zor olabilir.
+            </span>
+            <span class="en-text">
+                Parameters aren't validated. The <code>end</code> date could be before <code>start</code>. If this error is discovered after object creation, debugging becomes difficult.
+            </span>
+        </div>
+
+        <div class="example-label good">
+            <span class="tr-text">İyi Örnek (After)</span>
+            <span class="en-text">Good Example (After)</span>
+        </div>
+<pre><span class="comment">// Builder ile doğrulama — hataları erken yakalar</span>
+<span class="keyword">public class</span> <span class="type">DateRange</span> {
+    <span class="keyword">private final</span> <span class="type">LocalDate</span> start;
+    <span class="keyword">private final</span> <span class="type">LocalDate</span> end;
+
+    <span class="keyword">public static class</span> <span class="type">Builder</span> {
+        <span class="keyword">private</span> <span class="type">LocalDate</span> start;
+        <span class="keyword">private</span> <span class="type">LocalDate</span> end;
+
+        <span class="keyword">public</span> <span class="type">Builder</span> <span class="method">start</span>(<span class="type">LocalDate</span> s) { start = s; <span class="keyword">return this</span>; }
+        <span class="keyword">public</span> <span class="type">Builder</span> <span class="method">end</span>(<span class="type">LocalDate</span> e) { end = e; <span class="keyword">return this</span>; }
+
+        <span class="keyword">public</span> <span class="type">DateRange</span> <span class="method">build</span>() {
+            <span class="comment">// Doğrulama — start <= end olmalı</span>
+            <span class="keyword">if</span> (start != <span class="keyword">null</span> &amp;&amp; end != <span class="keyword">null</span> &amp;&amp; start.isAfter(end)) {
+                <span class="keyword">throw new</span> <span class="type">IllegalArgumentException</span>(
+                    <span class="string">"start (" + start + ") end'den ("</span> + end + <span class="string">") sonra olamaz"</span>
+                );
+            }
+            <span class="keyword">return new</span> <span class="type">DateRange</span>(<span class="keyword">this</span>);
+        }
+    }
+    <span class="keyword">private</span> <span class="type">DateRange</span>(<span class="type">Builder</span> b) {
+        <span class="keyword">this</span>.start = b.start;
+        <span class="keyword">this</span>.end = b.end;
+    }
+}
+
+<span class="comment">// Doğrulama başarısız — hata hemen çıkar</span>
+<span class="type">DateRange</span> range = <span class="keyword">new</span> <span class="type">DateRange</span>.<span class="type">Builder</span>()
+    .start(<span class="type">LocalDate</span>.of(2025, 1, 31))
+    .end(<span class="type">LocalDate</span>.of(2025, 1, 1))
+    .build();  <span class="comment">// IllegalArgumentException fırlatılır!</span></pre>
+
+        <div class="example-explain">
+            <span class="tr-text">
+                <code>build()</code> metodu parametreleri kontrol eder. Eğer <code>start > end</code> ise, hemen <code>IllegalArgumentException</code> fırlatılır. Hata oluşturma noktasında hemen belli olur, hata ayıklama kolaydır.
+            </span>
+            <span class="en-text">
+                The <code>build()</code> method validates parameters. If <code>start > end</code>, it immediately throws <code>IllegalArgumentException</code>. The error is obvious at the point of construction, making debugging easy.
+            </span>
+        </div>
+
+        <div class="modal-tip">
+            <span class="tr-text">
+                <strong>Pratik İpucu:</strong> Builder'ın <code>build()</code> metotunda her zaman önemli değişmezlik kontrollerini yapın. Null kontrolleri, aralık doğrulamaları, tutarsızlık kontrolleri burada yapılmalıdır. Bu sayede hatalı nesneler sistem içinde yayılmaz. Hata mesajları açık ve anlaşılır olmalıdır.
+            </p>
+            <span class="en-text">
+                <strong>Practical Tip:</strong> Always perform critical invariant checks in the Builder's <code>build()</code> method. Null checks, range validations, and consistency checks should be done here. This prevents invalid objects from spreading through the system. Error messages should be clear and descriptive.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+    Effective Java &mdash; Joshua Bloch &bullet; Sayfa 10 &bullet; Chapter 2: Item 2
+</div>
+
+<script>const CURRENT_PAGE = 10;</script>
+<script src="../js/common.js"></script>
+
+</body>
+</html>

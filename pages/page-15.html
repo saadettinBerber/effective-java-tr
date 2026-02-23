@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sayfa 15 — Chapter 2: Item 2 | Effective Java Türkçe</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:#f8f9fa;color:#212529;line-height:1.8;font-size:17px;min-height:100vh}
+.top-bar{background:#0d2137;color:#e0e0e0;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,0.2);position:sticky;top:0;z-index:100}
+.top-bar-left{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.home-link{color:#f5a623;text-decoration:none;font-size:14px;font-weight:600;padding:6px 12px;border:1px solid rgba(245,166,35,0.3);border-radius:6px;transition:all 0.3s;white-space:nowrap}
+.home-link:hover{background:rgba(245,166,35,0.1);border-color:#f5a623}
+.top-bar-title{display:flex;flex-direction:column}
+.book-title{font-size:16px;font-weight:700;color:#f5a623}
+.chapter-info{font-size:12px;color:#adb5bd}
+.top-bar-right{display:flex;align-items:center;gap:12px}
+.lang-toggle{display:flex;border:1px solid rgba(245,166,35,0.3);border-radius:6px;overflow:hidden}
+.lang-btn{padding:5px 12px;font-size:13px;font-weight:700;background:0;color:#adb5bd;border:none;cursor:pointer;transition:all 0.3s}
+.lang-btn.active{background:#f5a623;color:#0d2137}
+.lang-btn:hover:not(.active){color:#f5a623}
+.page-number-wrapper{display:flex;align-items:center;gap:6px;position:relative}
+.page-number-label{font-size:12px;color:#adb5bd;white-space:nowrap}
+.page-number-input{width:52px;padding:4px 8px;text-align:center;border:1px solid rgba(245,166,35,0.3);border-radius:6px;background:rgba(255,255,255,0.08);color:#f5a623;font-size:14px;font-weight:700;font-family:inherit;outline:0;transition:border-color 0.3s}
+.page-number-input:focus{border-color:#f5a623}
+.page-number-input.error{border-color:#dc3545;animation:shake 0.4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.page-nav-tooltip{position:absolute;top:100%;right:0;margin-top:6px;background:#dc3545;color:#fff;font-size:12px;padding:6px 12px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.3s;z-index:200}
+.page-nav-tooltip.visible{opacity:1}
+.content{max-width:760px;margin:0 auto;padding:40px 24px 60px}
+.page-badge{display:inline-block;background:#0d2137;color:#f5a623;font-size:13px;font-weight:700;padding:4px 14px;border-radius:20px;margin-bottom:24px}
+.item-title{font-size:24px;font-weight:800;color:#0d2137;margin:40px 0 8px;line-height:1.3}
+.item-title-en{font-size:16px;color:#6c757d;font-weight:400;font-style:italic;margin-bottom:24px}
+.divider{height:3px;background:linear-gradient(90deg,#f5a623 0%,transparent 100%);border:0;margin-bottom:32px;border-radius:2px}
+.text-paragraph{margin-bottom:20px;text-align:justify;hyphens:auto}
+.text-paragraph strong{font-weight:700;color:#0d2137}
+.text-paragraph code{background:#f0f0f0;padding:2px 6px;border-radius:4px;font-size:15px;color:#0d2137;font-family:'Fira Code','Consolas','Monaco',monospace}
+.note-box{background:#fff8e1;border-left:4px solid #f5a623;border-radius:0 8px 8px 0;padding:14px 18px;margin:20px 0;font-size:15px;color:#555}
+.info-box{background:#e3f2fd;border:2px solid #1565c0;border-radius:10px;padding:16px 20px;margin:20px 0;font-size:15px}
+.info-box strong{color:#0d47a1}
+.warning-box{background:#fff3cd;border:2px solid #ffc107;border-radius:10px;padding:16px 20px;margin:24px 0;font-size:15px}
+.warning-box strong{color:#856404}
+.code-label{font-size:12px;color:#adb5bd;margin-bottom:6px;font-family:monospace}
+pre{background:#1e1e2e;color:#cdd6f4;padding:18px 20px;border-radius:10px;overflow-x:auto;font-size:14px;line-height:1.6;margin-bottom:12px;font-family:'Fira Code','Consolas','Monaco',monospace}
+pre .keyword{color:#cba6f7}
+pre .type{color:#89b4fa}
+pre .string{color:#a6e3a1}
+pre .comment{color:#6c7086;font-style:italic}
+pre .annotation{color:#f9e2af}
+pre .number{color:#fab387}
+pre .method{color:#89dceb}
+.concepts-section{margin-top:40px;padding-top:32px;border-top:2px solid #eee}
+.concepts-title{font-size:18px;font-weight:700;color:#0d2137;margin-bottom:16px}
+.concepts-grid{display:flex;flex-wrap:wrap;gap:10px}
+.concept-btn{padding:10px 20px;background:#fff;border:2px solid #0d2137;border-radius:10px;color:#0d2137;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;font-family:inherit}
+.concept-btn:hover{background:#0d2137;color:#f5a623;transform:translateY(-2px);box-shadow:0 4px 12px rgba(13,33,55,0.2)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:500;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.active{display:flex}
+.modal{background:#fff;border-radius:16px;max-width:680px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.modal-header{background:#0d2137;color:#fff;padding:20px 24px;border-radius:16px 16px 0 0;display:flex;justify-content:space-between;align-items:flex-start}
+.modal-title{font-size:18px;font-weight:700;color:#f5a623}
+.modal-subtitle{font-size:13px;color:#adb5bd;margin-top:4px}
+.modal-close{background:none;border:none;color:#adb5bd;font-size:24px;cursor:pointer;line-height:1;padding:0 4px}
+.modal-close:hover{color:#fff}
+.modal-body{padding:24px}
+.modal-description{margin-bottom:20px;color:#444;line-height:1.7}
+.code-block-label{font-size:12px;font-weight:700;padding:4px 10px;border-radius:6px 6px 0 0;display:inline-block;margin-bottom:0}
+.code-block-label.bad{background:#dc3545;color:#fff}
+.code-block-label.good{background:#198754;color:#fff}
+.code-explanation{background:#f8f9fa;border-radius:0 0 8px 8px;padding:12px 16px;font-size:14px;color:#555;margin-bottom:16px;border:1px solid #dee2e6;border-top:none}
+.tip-box{background:#e8f5e9;border-left:4px solid #2e7d32;padding:12px 16px;font-size:14px;color:#2e7d32;margin-top:16px;border-radius:0 8px 8px 0}
+.tip-box strong{color:#1b5e20}
+.page-nav{display:flex;justify-content:space-between;gap:16px;margin-top:48px;padding-top:24px;border-top:2px solid #eee}
+.nav-btn{flex:1;padding:16px 20px;border:2px solid #dee2e6;border-radius:12px;text-decoration:none;color:#0d2137;background:#fff;cursor:pointer;transition:all 0.3s;text-align:center;font-family:inherit;font-size:15px}
+.nav-btn:hover:not(.disabled){border-color:#0d2137;box-shadow:0 4px 12px rgba(0,0,0,0.08);transform:translateY(-2px)}
+.nav-btn-label{font-size:12px;color:#6c757d;margin-bottom:4px}
+.nav-btn-title{font-weight:700;font-size:15px}
+.footer{text-align:center;padding:24px;color:#adb5bd;font-size:13px;border-top:1px solid #dee2e6;margin-top:20px}
+@media(max-width:700px){.top-bar{padding:12px 16px}.content{padding:24px 16px 40px}.item-title{font-size:20px}.page-nav{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <div class="top-bar-left">
+    <a href="../index.html" class="home-link">Ana Sayfa</a>
+    <div class="top-bar-title">
+      <div class="book-title">Effective Java &mdash; Joshua Bloch</div>
+      <div class="chapter-info">Chapter 2: Item 2</div>
+    </div>
+  </div>
+  <div class="top-bar-right">
+    <div class="lang-toggle">
+      <button class="lang-btn" data-lang="tr" onclick="setLang('tr')">TR</button>
+      <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+    </div>
+    <div class="page-number-wrapper">
+      <span class="page-number-label">Sayfa</span>
+      <input type="text" class="page-number-input" id="pageNumInput" value="15" maxlength="4"
+             autocomplete="off" onkeydown="if(event.key==='Enter') goToPageNum()" onblur="resetPageInput()">
+      <div class="page-nav-tooltip" id="pageNavTooltip"></div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="page-badge">Sayfa 15</div>
+
+  <h1 class="item-title">
+    <span class="tr-text">Madde 2: Çok Sayıda Parametreyle Karşılaşınca Builder'ı Düşünün</span>
+    <span class="en-text">Item 2: Consider a builder when faced with many constructor parameters</span>
+  </h1>
+  <div class="item-title-en">
+    <span class="tr-text">Item 2: Consider a builder when faced with many constructor parameters</span>
+    <span class="en-text">Madde 2: Çok Sayıda Parametreyle Karşılaşınca Builder'ı Düşünün</span>
+  </div>
+  <hr class="divider">
+
+  <div class="note-box">
+    <span class="tr-text">↩ Önceki sayfadan devam: Builder kalıbının sınıf hiyerarşilerine uygunluğu anlatılıyordu.</span>
+    <span class="en-text">↩ Continued from previous page: How the Builder pattern suits class hierarchies was being discussed.</span>
+  </div>
+
+  <div class="code-label tr-text">Builder kalıbı — sınıf hiyerarşisi (Pizza soyut sınıfı)</div>
+  <div class="code-label en-text">Builder pattern for class hierarchies (abstract Pizza class)</div>
+<pre><span class="comment">// Builder kalıbı — sınıf hiyerarşileri için</span>
+<span class="keyword">public abstract class</span> <span class="type">Pizza</span> {
+    <span class="keyword">public enum</span> <span class="type">Topping</span> { HAM, MUSHROOM, ONION, PEPPER, SAUSAGE }
+    <span class="keyword">final</span> <span class="type">Set</span>&lt;<span class="type">Topping</span>&gt; toppings;
+
+    <span class="keyword">abstract static class</span> <span class="type">Builder</span>&lt;<span class="type">T</span> <span class="keyword">extends</span> <span class="type">Builder</span>&lt;<span class="type">T</span>&gt;&gt; {
+        <span class="type">EnumSet</span>&lt;<span class="type">Topping</span>&gt; toppings = <span class="type">EnumSet</span>.<span class="method">noneOf</span>(<span class="type">Topping</span>.<span class="keyword">class</span>);
+
+        <span class="keyword">public</span> <span class="type">T</span> <span class="method">addTopping</span>(<span class="type">Topping</span> topping) {
+            toppings.<span class="method">add</span>(<span class="type">Objects</span>.<span class="method">requireNonNull</span>(topping));
+            <span class="keyword">return</span> <span class="method">self</span>();
+        }
+
+        <span class="keyword">abstract</span> <span class="type">Pizza</span> <span class="method">build</span>();
+
+        <span class="comment">// Alt sınıflar bu metodu "this" döndürecek şekilde override etmeli</span>
+        <span class="keyword">protected abstract</span> <span class="type">T</span> <span class="method">self</span>();
+    }
+
+    <span class="method">Pizza</span>(<span class="type">Builder</span>&lt;?&gt; builder) {
+        toppings = builder.toppings.<span class="method">clone</span>(); <span class="comment">// Madde 50</span>
+    }
+}</pre>
+
+  <div class="info-box">
+    <span class="tr-text">
+      <strong>Not:</strong> <code>Pizza.Builder</code>, özyinelemeli tip parametresine (recursive type parameter)
+      sahip bir jenerik tiptir (Madde 30). <code>abstract T self()</code> metodu sayesinde metot zincirleme,
+      alt sınıflarda cast gerekmeden doğru şekilde çalışır. Java'da "kendi tipinin" bulunmamasına karşı bu
+      geçici çözüm <strong>benzetilmiş kendi tipi (simulated self-type)</strong> deyimi olarak bilinir.
+    </span>
+    <span class="en-text">
+      <strong>Note:</strong> <code>Pizza.Builder</code> is a generic type with a recursive type parameter
+      (Item 30). This, along with the abstract <code>self</code> method, allows method chaining to work
+      properly in subclasses without the need for casts. This workaround for Java's lack of a self type is
+      known as the <strong>simulated self-type idiom</strong>.
+    </span>
+  </div>
+
+  <p class="text-paragraph tr-text">
+    İşte <code>Pizza</code>'nın iki somut alt sınıfı: biri standart New York usulü pizzayı, diğeri calzone'u
+    temsil eder. Birincisi zorunlu bir boyut (size) parametresi alırken, ikincisi sosin içeride mi dışarıda
+    mı olacağını belirlemeye olanak tanır:
+  </p>
+  <p class="text-paragraph en-text">
+    Here are two concrete subclasses of Pizza, one of which represents a standard New-York-style pizza,
+    the other a calzone. The former has a required size parameter, while the latter lets you specify
+    whether sauce should be inside or out:
+  </p>
+
+  <div class="code-label tr-text">NyPizza — somut alt sınıf</div>
+  <div class="code-label en-text">NyPizza — concrete subclass</div>
+<pre><span class="keyword">public class</span> <span class="type">NyPizza</span> <span class="keyword">extends</span> <span class="type">Pizza</span> {
+    <span class="keyword">public enum</span> <span class="type">Size</span> { SMALL, MEDIUM, LARGE }
+    <span class="keyword">private final</span> <span class="type">Size</span> size;
+
+    <span class="keyword">public static class</span> <span class="type">Builder</span> <span class="keyword">extends</span> <span class="type">Pizza</span>.<span class="type">Builder</span>&lt;<span class="type">Builder</span>&gt; {
+        <span class="keyword">private final</span> <span class="type">Size</span> size;
+
+        <span class="keyword">public</span> <span class="method">Builder</span>(<span class="type">Size</span> size) {
+            <span class="keyword">this</span>.size = <span class="type">Objects</span>.<span class="method">requireNonNull</span>(size);
+        }
+
+        <span class="annotation">@Override</span> <span class="keyword">public</span> <span class="type">NyPizza</span> <span class="method">build</span>() {
+            <span class="keyword">return new</span> <span class="type">NyPizza</span>(<span class="keyword">this</span>);
+        }
+
+        <span class="annotation">@Override</span> <span class="keyword">protected</span> <span class="type">Builder</span> <span class="method">self</span>() { <span class="keyword">return this</span>; }
+    }
+
+    <span class="keyword">private</span> <span class="method">NyPizza</span>(<span class="type">Builder</span> builder) {
+        <span class="keyword">super</span>(builder);
+        size = builder.size;
+    }
+}</pre>
+
+  <div class="warning-box">
+    <span class="tr-text">
+      <strong>⚠ Sayfa burada kesiliyor.</strong> Sayfa 16'da <code>Calzone</code> alt sınıfı,
+      kovaryant dönüş tipi (covariant return typing) açıklaması ve istemci kodu gösterilmektedir.
+    </span>
+    <span class="en-text">
+      <strong>⚠ Page continues on Page 16.</strong> The <code>Calzone</code> subclass,
+      covariant return typing explanation, and client code follow on Page 16.
+    </span>
+  </div>
+
+  <div class="concepts-section">
+    <h2 class="concepts-title"><span class="tr-text">Kavramlar</span><span class="en-text">Concepts</span></h2>
+    <div class="concepts-grid">
+      <button class="concept-btn" onclick="openModal('recursive-type')">
+        <span class="tr-text">Özyinelemeli Tip Parametresi</span>
+        <span class="en-text">Recursive Type Parameter</span>
+      </button>
+      <button class="concept-btn" onclick="openModal('simulated-self-type')">
+        <span class="tr-text">Benzetilmiş Kendi Tipi</span>
+        <span class="en-text">Simulated Self-Type</span>
+      </button>
+      <button class="concept-btn" onclick="openModal('covariant-return')">
+        <span class="tr-text">Kovaryant Dönüş Tipi</span>
+        <span class="en-text">Covariant Return Typing</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="page-nav">
+    <a href="page-14.html" class="nav-btn">
+      <div class="nav-btn-label"><span class="tr-text">Önceki Sayfa</span><span class="en-text">Previous Page</span></div>
+      <div class="nav-btn-title"><span class="tr-text">Sayfa 14 — Builder Tamamlanıyor</span><span class="en-text">Page 14 — Builder Completed</span></div>
+    </a>
+    <a href="#" class="nav-btn" onclick="return handleUntranslated(event, 16)">
+      <div class="nav-btn-label"><span class="tr-text">Sonraki Sayfa</span><span class="en-text">Next Page</span></div>
+      <div class="nav-btn-title"><span class="tr-text">Sayfa 16 — Calzone ve İstemci Kodu</span><span class="en-text">Page 16 — Calzone and Client Code</span></div>
+    </a>
+  </div>
+</div>
+
+<div class="footer">Effective Java &mdash; Joshua Bloch &bullet; Sayfa 15 &bullet; Chapter 2: Item 2</div>
+
+<!-- Modal: Recursive Type Parameter -->
+<div class="modal-overlay" id="modal-recursive-type">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title"><span class="tr-text">Özyinelemeli Tip Parametresi</span><span class="en-text">Recursive Type Parameter</span></div>
+        <div class="modal-subtitle"><span class="tr-text">Builder&lt;T extends Builder&lt;T&gt;&gt; kalıbı</span><span class="en-text">The Builder&lt;T extends Builder&lt;T&gt;&gt; pattern</span></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('recursive-type')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-description">
+        <span class="tr-text">Özyinelemeli tip parametresi <code>T extends Builder&lt;T&gt;</code>, bir Builder'ın kendi tipini döndürmesini sağlar. Bu sayede alt sınıf builder'larında zincirleme metotlar doğru tipi döndürür ve cast gerekmez.</span>
+        <span class="en-text">The recursive type parameter <code>T extends Builder&lt;T&gt;</code> lets a Builder return its own type. Chained methods in subclass builders thus return the correct type without casting.</span>
+      </div>
+      <span class="code-block-label bad">✗ Kötü (cast gerekiyor)</span>
+<pre><span class="comment">// Cast olmadan alt sınıf metodu çalışmıyor</span>
+(<span class="type">AnimalBuilder</span>) <span class="keyword">new</span> <span class="type">DogBuilder</span>()
+    .<span class="method">breed</span>(<span class="string">"Labrador"</span>)   <span class="comment">// Object döner — cast şart</span>
+    .<span class="method">color</span>(<span class="string">"black"</span>)
+    .<span class="method">build</span>();</pre>
+      <div class="code-explanation"><span class="tr-text">Üst sınıf Builder döndürdüğünden alt sınıf metotlarına erişmek için cast gerekiyor.</span><span class="en-text">Since the superclass returns Builder, you need a cast to access subclass methods.</span></div>
+      <span class="code-block-label good">✓ İyi (özyinelemeli tip parametresi ile)</span>
+<pre><span class="comment">// T extends Builder&lt;T&gt; ile cast gereksiz</span>
+<span class="type">Dog</span> dog = <span class="keyword">new</span> <span class="type">DogBuilder</span>()
+    .<span class="method">breed</span>(<span class="string">"Labrador"</span>)   <span class="comment">// DogBuilder döner</span>
+    .<span class="method">color</span>(<span class="string">"black"</span>)     <span class="comment">// DogBuilder döner</span>
+    .<span class="method">build</span>();            <span class="comment">// Dog döner</span></pre>
+      <div class="code-explanation"><span class="tr-text">Özyinelemeli tip sayesinde her metot doğru alt tipi döndürüyor, cast yok.</span><span class="en-text">Thanks to the recursive type, each method returns the correct subtype, no cast needed.</span></div>
+      <div class="tip-box"><span class="tr-text"><strong>💡 İpucu:</strong> Bu kalıp Jenerikler bölümünde Madde 30'da ayrıntılı anlatılmaktadır.</span><span class="en-text"><strong>💡 Tip:</strong> This pattern is detailed in Item 30 of the Generics chapter.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Simulated Self-Type -->
+<div class="modal-overlay" id="modal-simulated-self-type">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title"><span class="tr-text">Benzetilmiş Kendi Tipi (Simulated Self-Type)</span><span class="en-text">Simulated Self-Type Idiom</span></div>
+        <div class="modal-subtitle"><span class="tr-text">abstract T self() metodu ile kendi tipin döndürülmesi</span><span class="en-text">Returning own type via abstract T self() method</span></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('simulated-self-type')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-description">
+        <span class="tr-text">Swift ve Kotlin gibi dillerde <code>Self</code> tipi vardır; Java'da yoktur. <code>abstract T self()</code> metodu bu eksikliği giderir: her alt sınıf <code>self()</code>'i <code>return this;</code> olarak override eder, böylece üst sınıfın zincirleme metotları alt sınıfı döndürür.</span>
+        <span class="en-text">Languages like Swift and Kotlin have a <code>Self</code> type; Java does not. The <code>abstract T self()</code> method fills this gap: each subclass overrides <code>self()</code> to return <code>this</code>, so the parent's chained methods return the subclass type.</span>
+      </div>
+<pre><span class="comment">// Üst sınıfta:</span>
+<span class="keyword">protected abstract</span> <span class="type">T</span> <span class="method">self</span>();
+
+<span class="comment">// Alt sınıfta:</span>
+<span class="annotation">@Override</span>
+<span class="keyword">protected</span> <span class="type">ConcreteBuilder</span> <span class="method">self</span>() { <span class="keyword">return this</span>; }</pre>
+      <div class="code-explanation"><span class="tr-text">Her alt sınıf <code>self()</code>'i override ederek kendini döndürüyor. Üst sınıfın <code>addTopping</code> gibi metotları bu sayede doğru alt tipi zincirleyebiliyor.</span><span class="en-text">Each subclass overrides <code>self()</code> to return itself. The parent's methods like <code>addTopping</code> can thus chain the correct subtype.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Covariant Return Typing -->
+<div class="modal-overlay" id="modal-covariant-return">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title"><span class="tr-text">Kovaryant Dönüş Tipi (Covariant Return Typing)</span><span class="en-text">Covariant Return Typing</span></div>
+        <div class="modal-subtitle"><span class="tr-text">Alt sınıf metodu üst sınıfın dönüş tipiyle aynı veya daha özgül bir tip döndürür</span><span class="en-text">Subclass method returns the same or a more specific return type than the superclass</span></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('covariant-return')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-description">
+        <span class="tr-text"><code>NyPizza.Builder.build()</code> <code>NyPizza</code> döndürür, <code>Pizza</code> değil. Bu kovaryant dönüş tipidir: istemci <code>NyPizza</code> beklerken cast yapmadan direkt kullanabilir.</span>
+        <span class="en-text"><code>NyPizza.Builder.build()</code> returns <code>NyPizza</code>, not <code>Pizza</code>. This is covariant return typing: the client can use it directly as <code>NyPizza</code> without casting.</span>
+      </div>
+<pre><span class="comment">// Kovaryant dönüş tipi sayesinde istemci cast yapmıyor</span>
+<span class="type">NyPizza</span> pizza = <span class="keyword">new</span> <span class="type">NyPizza</span>.<span class="type">Builder</span>(<span class="type">NyPizza</span>.<span class="type">Size</span>.LARGE)
+    .<span class="method">addTopping</span>(<span class="type">Pizza</span>.<span class="type">Topping</span>.SAUSAGE)
+    .<span class="method">build</span>(); <span class="comment">// NyPizza döner, Pizza değil</span></pre>
+      <div class="code-explanation"><span class="tr-text">Cast olmadan <code>NyPizza</code> türünde bir değişkene atanabiliyor.</span><span class="en-text">Can be assigned to an <code>NyPizza</code> variable without any cast.</span></div>
+      <div class="tip-box"><span class="tr-text"><strong>💡 İpucu:</strong> Kovaryant dönüş tipi Java 5'ten beri desteklenmektedir. Bu özellik, builder hiyerarşilerini istemci açısından temiz tutmanın anahtarıdır.</span><span class="en-text"><strong>💡 Tip:</strong> Covariant return typing has been supported since Java 5. It's the key to keeping builder hierarchies clean for clients.</span></div>
+    </div>
+  </div>
+</div>
+
+<script>const CURRENT_PAGE = 15;</script>
+<script src="../js/common.js"></script>
+</body>
+</html>

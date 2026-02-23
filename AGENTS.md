@@ -1,5 +1,10 @@
 # Effective Java Kitap Çeviri Projesi
 
+> **Not**: Bu dosya Antigravity IDE için CLAUDE.md'nin karşılığıdır. Her iki dosya her zaman senkronize tutulmalıdır.
+> Skill konumu: `.agent/skills/cevir/SKILL.md`
+> Stil kuralları: `.agent/rules/translation-style.md`
+> Glossary: `.claude/skills/cevir/glossary.md` (paylaşılan tek kaynak)
+
 ## Proje Amacı
 
 Bu proje, Joshua Bloch'un "Effective Java (3rd Edition)" kitabını sayfa sayfa interaktif bir HTML sayfasına çevirmeyi amaçlar. Kullanıcı her seferinde bir sayfa çeviri ister. Çıktı olarak bir `index.html` dosyası üretilir.
@@ -28,7 +33,7 @@ Bu proje, Joshua Bloch'un "Effective Java (3rd Edition)" kitabını sayfa sayfa 
 
 ## Son Çevrilen Sayfa Takibi
 
-- **KRİTİK KURAL**: Her çeviri tamamlandığında, bu dosyadaki `last_translated_page` değerini güncelle.
+- **KRİTİK KURAL**: Her çeviri tamamlandığında, bu dosyadaki `last_translated_page` değerini güncelle. CLAUDE.md'yi de aynı anda güncelle.
 - **last_translated_page**: 38
 - Kullanıcı "sıradaki sayfa", "sonraki sayfa", "next", "devam" gibi ifadeler kullandığında veya `/cevir next` yazdığında, `last_translated_page + 1` sayfasını çevir.
 - Eğer `last_translated_page` değeri 0 ise ve kullanıcı "sıradaki" derse, sayfa 1'den başla.
@@ -44,10 +49,14 @@ Bu proje, Joshua Bloch'un "Effective Java (3rd Edition)" kitabını sayfa sayfa 
 5. **Başlıklar**: Hem Türkçe hem İngilizce yazılır. Örnek: "Yapıcı Metot Yerine Statik Fabrika Metotlarını Düşünün / Consider Static Factory Methods Instead of Constructors"
 6. **Item başlıkları**: Her Item'ın orijinal İngilizce başlığı korunur ve Türkçe çevirisi eklenir.
 
-### Sayfa Bağlamı
-- Her çeviri yapılırken istenilen sayfanın **bir önceki** ve **bir sonraki** sayfası da PDF'den okunur.
+### Sayfa Bağlamı ve Önbellek Kullanımı
+- Her çeviri yapılırken istenilen sayfanın **bir önceki** ve **bir sonraki** sayfası da bağlam için okunur.
 - Amaç: Paragraf ortasında kesilebilecek cümleleri tamamlamak ve bağlamı anlamak.
 - Ancak çeviri sadece istenilen sayfayı kapsar, önceki/sonraki sayfalar sadece bağlam içindir.
+- **KRİTİK OPTİMİZASYON — Önbellek Kontrolü**: Bağlam sayfalarını okumadan önce `pages/page-X.html` dosyasının var olup olmadığını kontrol et:
+  - **Dosya varsa** → dosyadan EN içeriğini oku. PDF okuma YOK, zaman kaybı YOK.
+  - **Dosya yoksa** → PDF'den oku VE dosyayı EN-only olarak kaydet (ileride çevrilmeye hazır önbellek).
+- Bu sayede toplu çevirilerde her sayfa için PDF yalnızca **bir kez** okunur.
 
 ### Bulunduğu Başlık/Bölüm
 - Sayfanın hangi Chapter ve Item altında olduğu her zaman belirtilmelidir.
@@ -73,7 +82,12 @@ Bu proje, Joshua Bloch'un "Effective Java (3rd Edition)" kitabını sayfa sayfa 
 - Her sayfa dosyasında sadece `<script>const CURRENT_PAGE = X;</script>` ve `<script src="../js/common.js"></script>` bulunur.
 - Responsive tasarım (mobil uyumlu).
 - Türkçe karakter desteği (UTF-8).
-- **Her yeni çeviri yapıldığında `index.html` de güncellenmelidir**:
+
+- **İki Aşamalı Sayfa Durumu**:
+  - **EN-only (Önbellek)**: Sayfa, bir başka sayfanın bağlamı okunurken PDF'den alınmış ve kaydedilmiştir. Yalnızca İngilizce (EN) kısmı doludur; TR kısmı henüz çevrilmemiştir. `index.html`'e eklenmez.
+  - **Tam Çeviri**: Hem EN hem TR kısımları dolu, kavram butonları ve navigasyon tamamlanmış. `index.html`'e eklenir.
+
+- **Her yeni TAM ÇEVİRİ tamamlandığında `index.html` de güncellenmelidir**:
   - `TRANSLATED_PAGES` JavaScript objesine yeni sayfa eklenir
   - Sayfa kartı (page-card) HTML'e eklenir
   - Badge sayısı ve input-hint güncellenir
@@ -116,7 +130,7 @@ Bu proje, Joshua Bloch'un "Effective Java (3rd Edition)" kitabını sayfa sayfa 
 
 5. **Sayfa Navigasyonu**:
    - Sayfanın alt kısmında "Önceki Sayfa" ve "Sonraki Sayfa" butonları
-   - Bu butonlar sadece görsel navigasyon içindir (kullanıcıya hangi sayfaya geçebileceğini gösterir)
+   - Bu butonlar sadece görsel navigasyon içindir
    - Butonlarda sayfa numarası ve varsa bölüm/başlık bilgisi yazar
    - Butonlara basıldığında kullanıcıya "Bu sayfayı çevirmem için '/cevir X' yazın veya 'sıradaki sayfa' deyin" şeklinde bir bilgi gösterilir
 
@@ -134,22 +148,25 @@ Bu proje, Joshua Bloch'un "Effective Java (3rd Edition)" kitabını sayfa sayfa 
 Kullanıcı bir sayfa çevirisi istediğinde şu adımları takip et:
 
 1. **Glossary'yi oku**: `.claude/skills/cevir/glossary.md` dosyasını oku, mevcut terimleri öğren.
-2. **PDF'den sayfaları oku**: İstenilen sayfa + önceki sayfa + sonraki sayfa (bağlam için). Sayfa numarasına offset ekleyerek PDF sayfa numarasını bul.
+2. **Bağlam sayfalarını kontrol et ve oku**: N-1 ve N+1 için önce `pages/page-X.html` dosyası var mı kontrol et.
+   - **Varsa** → dosyadan EN içeriğini oku (PDF okuma YOK).
+   - **Yoksa** → PDF'den oku (sayfa numarası + 19 = PDF sayfası) ve dosyayı **EN-only** olarak kaydet.
+   - Hedef sayfa N her zaman PDF'den okunur.
 3. **Bölüm/başlık bilgisini belirle**: Sayfanın hangi Chapter ve Item altında olduğunu tespit et.
 4. **Çeviriyi yap**: Kurallara uygun şekilde hem EN hem TR metinleri hazırla.
 5. **Kavram butonlarını hazırla**: Sayfadaki önemli kavramlar için few-shot örnekler oluştur.
 6. **Sayfa HTML dosyasını oluştur**: `pages/page-X.html` olarak tüm bileşen kurallarına uygun HTML dosyasını yaz.
-7. **js/common.js'deki PAGES_MAP'i güncelle**: Yeni eklenen sayfayı `js/common.js` dosyasındaki `PAGES_MAP` objesine ekle. Tek dosya güncellemesi yeterlidir, sayfa dosyalarına dokunmaya gerek yoktur.
+7. **js/common.js'deki PAGES_MAP'i güncelle**: Yeni eklenen sayfayı `js/common.js` dosyasındaki `PAGES_MAP` objesine ekle.
 8. **index.html'i güncelle**: `TRANSLATED_PAGES` objesine, sayfa kartına, badge ve input-hint'e yeni sayfayı ekle.
 9. **Glossary'yi güncelle**: Yeni terimler varsa glossary'ye ekle.
-10. **last_translated_page değerini güncelle**: Bu dosyadaki (CLAUDE.md) değeri güncelle.
+10. **last_translated_page değerini güncelle**: Bu dosyadaki (AGENTS.md) ve CLAUDE.md'deki değeri güncelle (her ikisi senkronize tutulur).
 11. **GitHub'a push et**: Tüm değişiklikleri commit'le ve GitHub'a push et. Commit mesajı `Sayfa X çevirisi eklendi` formatında olsun. Bu adım her çeviri sonunda otomatik yapılır.
 
 ## Önemli Notlar
 
 - Bu proje eğitim amaçlıdır. Kitabın tamamını bir seferde çevirme gibi bir amaç yoktur.
 - Kullanıcı sayfa sayfa ilerler, kendi hızında okur.
-- Her sohbette CLAUDE.md otomatik okunacağı için, kullanıcının uzun açıklamalar yapmasına gerek yoktur.
+- Her sohbette AGENTS.md otomatik okunacağı için, kullanıcının uzun açıklamalar yapmasına gerek yoktur.
 - Kullanıcı sadece `/cevir 5` veya "sıradaki sayfa" demesi yeterlidir.
 
 ## Git Commit Kuralı
@@ -170,7 +187,7 @@ Kullanıcı bir sayfa çevirisi istediğinde şu adımları takip et:
 
 ## AI Agent Team Kullanımı
 
-- Bu projede Claude Code'un **Task (subagent)** özelliği aktif olarak kullanılmalıdır.
+- Bu projede **Task (subagent)** özelliği aktif olarak kullanılmalıdır.
 - Uygun durumlarda birden fazla agent paralel çalıştırılarak verimlilik artırılmalıdır.
 - Agent kullanım senaryoları:
   - **Explore agent**: Kod tabanı araştırması, dosya arama, bağlam toplama için

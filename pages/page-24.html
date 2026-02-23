@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 24</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7;
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623;
+        }
+
+        .topbar-sub {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+            margin-top: 0.1rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all .2s;
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700;
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            position: relative;
+        }
+
+        .page-nav-input-wrap label {
+            font-size: 0.78rem;
+            color: #a0b4c8;
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: 0.22rem 0.4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s;
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1;
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        .item-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0d2137;
+            margin: 2rem 0 0.5rem;
+            line-height: 1.3;
+        }
+
+        .item-title-en {
+            font-size: 1.1rem;
+            color: #6c757d;
+            font-weight: 400;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+
+        .page-label {
+            font-size: 0.78rem;
+            color: #6c757d;
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem;
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: 0.7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #7a5c00;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: 0.88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66;
+        }
+
+        .kw {
+            color: #79b8ff;
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic;
+        }
+
+        .cl {
+            color: #b392f0;
+        }
+
+        .st {
+            color: #9ecbff;
+        }
+
+        .an {
+            color: #85e89d;
+        }
+
+        .num {
+            color: #f8c555;
+        }
+
+        .info-box {
+            background: #e8f4fd;
+            border-left: 4px solid #0d6efd;
+            padding: 0.9rem 1.2rem;
+            border-radius: 0 6px 6px 0;
+            margin: 1.2rem 0;
+            font-size: 0.93rem;
+            color: #0a3d6b;
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0.3rem 0.3rem 0.3rem 0;
+            transition: background .2s, transform .1s;
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px);
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 1.4rem;
+        }
+
+        .modal-body p {
+            font-size: 0.93rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .example-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin: 1rem 0 0.3rem;
+        }
+
+        .bad {
+            color: #c0392b;
+        }
+
+        .good {
+            color: #27ae60;
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: 0.6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.88rem;
+            margin-top: 1rem;
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px;
+        }
+
+        .nav-btn:hover {
+            background: #163a5f;
+        }
+
+        .nav-btn .nav-direction {
+            font-size: 0.7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem 1rem 3rem;
+            }
+
+            .topbar {
+                padding: 0.6rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 2: Creating and Destroying Objects &nbsp;›&nbsp; Item 6: Autoboxing
+                pitfalls / Item 7: Obsolete references</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="24" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 24 / Page 24</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 6 Autoboxing sorunu girişi</em></div>
+
+        <div class="tr-text">
+            <p>...ihtiyaç durulduğunda boks etme (boxing) veya tam tersi kutudan çıkarma (unboxing) işlemlerini otomatik
+                olarak yerine getirir. Otomatik boks (autoboxing) etme mekanizması, ilkel (primitive) tiplerle
+                nesneleştirilmiş boks (boxed primitive) tipler arasındaki çizgiyi biraz bulanıklaştırsa da, aradaki
+                belirgin sınırı veya ayrımı katiyen ortadan kaldırmaz (erasure). Üstelik aralarında çok ince anlam
+                farklılıkları (semantic distinctions) ve hiç de hafife alınmayacak kadar belirgin performans
+                farklılıkları bulunur (Madde 61). Tüm pozitif <code>int</code> değerlerinin toplamını basitçe hesaplayan
+                aşağıdaki metoda bir göz atalım. Bunu yapabilmek için program uzun aritmetik, yani int yerine
+                <code>long</code> tipi aritmetik kullanmak zorunda bırakılmıştır çünkü <code>int</code>'in
+                taşıyabileceği kapasite, bütün mevcut pozitif int'lerin matematiksel toplamını sırtlanıp tutmak için
+                asla yeterli büyüklükte değildir:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>...automatically as needed. Autoboxing blurs but does not erase the distinction between primitive and
+                boxed primitive types. There are subtle semantic distinctions and not-so-subtle performance differences
+                (Item 61). Consider the following method, which calculates the sum of all the positive int values. To do
+                this, the program has to use long arithmetic because an int is not big enough to hold the sum of all the
+                positive int values:</p>
+        </div>
+
+        <!-- Code Block for Hideously slow autoboxing trap -->
+        <div class="code-block">
+            <span class="cm">// İğrenç derecede yavaş (Hideously slow)! Gereksiz nesne yaratımını fark edebildiniz
+                mi?</span>
+            <span class="kw">private static long</span> sum() {
+            <span class="cl">Long</span> sum = 0L;
+            <span class="kw">for</span> (<span class="kw">long</span> i = 0; i &lt;= <span
+                class="cl">Integer</span>.MAX_VALUE; i++)
+            sum += i;
+            <span class="kw">return</span> sum;
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Bu program beklenen doğru yanıtı başarıyla üretir ancak içerisindeki feci bir tek karakterlik tipografi
+                atlamasından (typographical error) dolayı, olması gerektiğinden şaşırtıcı şekilde çok ama çok daha
+                yavaştır. Program içinde <code>sum</code> değişkeni basit bir <code>long</code> olarak değil, büyük 'L'
+                harfine sahip kutu/nesne (Wrapper class) formatında olan <code>Long</code> şeklinde ifade/deklare
+                (declared) edilmiştir, ve bu küçük nüans yüzünden program tamamen gereksiz yere yaklaşık 2<sup>31</sup>
+                adet fuzuli fırlatıp atılacak yeni <code>Long</code> nesnesi var eder veya çöp havuzuna salıverir
+                (kabaca buradaki her döngüde küçük primitif bir <code>long i</code> değeri eldeki diğer obje sınıfına
+                (<code>Long sum</code>) eklendikçe Java gizliden gizliye arkaplanda <code>Long.valueOf(sum + i)</code>
+                işlemini koşturarak yepyeni bir kutulu obje yaratmıştır). Koddaki <code>sum</code> bildiriminin
+                başındaki sinsi (Long) verisini sadece basit <code>long</code>'a kırpmak bile benim cihazımda tüm bu
+                aritmetiği işlem süresini bir çırpıda 6.3 devasa saniyeden yalnızca 0.59 saniyeye çekmeye yeterli oldu.
+                <b>Alınması gereken ders gayet açıktır: Kutu tiplerine (boxed primitives) kıyasla ilkel (primitive)
+                    serileri her daim daha çok tercih edin ve farkında dahi olmadan tetiklenen otoyüksek-kutu
+                    (unintentional autoboxing) işlemlerine karşı çok ciddi dikkat sarf edin.</b></p>
+
+            <p>Tabii ki bu maddedeki öğüt, ucu açık okunup nesne yaratımının "bütünüyle pahalı (expensive) veya tamamen
+                defedilmesi gereken (avoided)" acımasız bir bela olduğunu ima ediyormuş gibi <b>yanlış anlaşılmamalıdır
+                    (misconstrued)</b>. Tam aksine, kurucuları (constructors) bariz eylemlerde bulunmayan kısa ömürlü ve
+                ufak ebatlı nesneleri cömertçe oluşturmak, o nesneyi derlemek ve ardından çöp toplayıcısınca yutulmak
+                bilhassa günümüz modern JVM uyarlamalarında adeta bedavadır (cheap). Hatta yazılan bir programın estetik
+                okunabilirliğini (clarity), yalınlığını (simplicity) veya beceri yelpazesini (power) artırmak gayesi ile
+                makul ölçeklerde ekstra birtakım nesneleri gönül rahatlığıyla harmanlamak genelde şiddetle tavsiye
+                edilen (gerçekleştiren) iyi bir erdemdir.</p>
+
+            <p>Bunun zıttı olarak, sırf Java nesne üretimini kısmak adına kendi el emeği "nesne havuzu (object pool)"
+                yönetim sisteminizi icat etmeniz ise havuzda tuttuğunuz bu nesneler <b>gerçekten devasa düzeyde hantal
+                    veya ağır sikletli (extremely heavyweight) nesneler olmadıkça tam anlamıyla kötü bir fikirdir.</b>
+                Bir nesne havuzu yaratıp sürdürmeyi hakkıyla meşrulaştıran o ebedi ve klasikleşmiş yegane misal herhalde
+                "Veritabanı bağlantısı" (database connection) örnekleridir. Bir ağ tabanlı veri tabanıyla bağlantı
+                kurabilmenin meşakkatli maliyeti o kadar ciddi ölçülerdedir ki (TCP vs), bağlandıktan sonra bu nesneleri
+                defalarca tekrardan (reuse) kullanmak açıkça çok mantıklı gelir. Ancak genellemek gerekirse; kendi inşa
+                ettiğiniz ve zorla sürdürdüğünüz el yordamı nesne havuzları projenizin kaynak kodunu karman çorman
+                edecek (clutters), hafızadaki alan ayakizinizi (memory footprint) fuzuli biçimde büyütecek ve
+                performansı bir tık daha iyi hale getirmek yerine bizzat sabote edecektir (harms performance).
+                Günümüzdeki çoğu modern JVM altyapıları, kendi donanımsal optimizasyonlarına dayalı olan Çöp
+                Toplayıcılar (Garbage Collectors) ihtiva ederler ki bu otomatik dostlarımız halihazırda böylesi basit
+                tasarımlı, el yordamı sahte veya zorlama havuz yapılarına tur bindirecek şekilde işlerini harikalar
+                seviyesinde yaparlar.</p>
+
+            <p>Bu maddenin dengeleyici tam bir zıt/karşıt görüşü ise (counterpoint), "Defansif Kopyalama (defensive
+                copying)" temasını tartışacağımız (Madde 50)'dir. Bu elde incelediğimiz şimdiki madde size açıkça:
+                <i>"Mevcut duran bir nesneyi kopyalayıp aynen tekrar kullanabileceğin senaryolarda sakın sıfırdan yepeni
+                    bir nesne fırlatma,"</i> derken; sözünü ettiğim ilerideki Madde 50 ise: <i>"Yeni ve temiz bir nesne
+                    üretip kopyalamanı gerektiren güvenlikli (defansif) anlarda asla eskiden kalan mevcut nesneni tekrar
+                    kullanmaya kalkışma,"</i> der. Üstelik dikkatinizi celp ederim, defansif bir kopyalamanın (defensive
+                copying) tam anlamıyla mecburi çağrıldığı bir olayda kopyalamayı atlayıp mevcut nesneyi fuzuli yere
+                deşmenin (reusing an object) size yaşatacağı hezimetin cezası veya bedeli, (işbu 6. maddede bahsedilen)
+                sırf bedavaya çöpe gideceğini bilseniz bile defalarca fuzuli nesne üretmenin sizi yoracağı kopyalama
+                cezasından çok, ama inanın çok daha büyüktür. Defansif bir kopya bırakmayı gerektiren o kritik mecburi
+                virajlarda kopyalamayı iptal edip becerememek sizi acımasız sinsi/bela buglara, akıl yitirmenize yol
+                açacak sistem hatalarına veya güvenlik zafiyetlerine sevk eder; hâlbuki gereksiz (ama zararsız) objeler
+                yaratabilmek yalnızca tarzınızı azıcık sarsar ve hafiften CPU maliyeti getirir (affects style and
+                performance).</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>This program gets the right answer, but it is much slower than it should be, due to a one-character
+                typographical error. The variable <code>sum</code> is declared as a <code>Long</code> instead of a
+                <code>long</code>, which means that the program constructs about 2<sup>31</sup> unnecessary
+                <code>Long</code> instances (roughly one for each time the <code>long i</code> is added to the
+                <code>Long sum</code>). Changing the declaration of <code>sum</code> from <code>Long</code> to
+                <code>long</code> reduces the runtime from 6.3 seconds to 0.59 seconds on my machine. The lesson is
+                clear: <b>prefer primitives to boxed primitives, and watch out for unintentional autoboxing.</b></p>
+
+            <p>This item should not be misconstrued to imply that object creation is expensive and should be avoided. On
+                the contrary, the creation and reclamation of small objects whose constructors do little explicit work
+                is cheap, especially on modern JVM implementations. Creating additional objects to enhance the clarity,
+                simplicity, or power of a program is generally a good thing.</p>
+
+            <p>Conversely, avoiding object creation by maintaining your own object pool is a bad idea unless the objects
+                in the pool are extremely heavyweight. The classic example of an object that does justify an object pool
+                is a database connection. The cost of establishing the connection is sufficiently high that it makes
+                sense to reuse these objects. Generally speaking, however, maintaining your own object pools clutters
+                your code, increases memory footprint, and harms performance. Modern JVM implementations have highly
+                optimized garbage collectors that easily outperform such object pools on lightweight objects.</p>
+
+            <p>The counterpoint to this item is Item 50 on defensive copying. The present item says, “Don’t create a new
+                object when you should reuse an existing one,” while Item 50 says, “Don’t reuse an existing object when
+                you should create a new one.” Note that the penalty for reusing an object when defensive copying is
+                called for is far greater than the penalty for needlessly creating a duplicate object. Failing to make
+                defensive copies where required can lead to insidious bugs and security holes; creating objects
+                unnecessarily merely affects style and performance.</p>
+        </div>
+
+        <hr style="border:0; border-top:1px solid #dee2e6; margin: 2rem 0;">
+
+        <!-- Start of Item 7 -->
+        <div class="chapter-badge">Chapter 2 — Item 7</div>
+        <h1 class="item-title tr-text">Madde 7: Artık zamanını doldurmuş eski(ölü) nesne referanslarını tamamen
+            silkeleyip temizleyin (Eliminate obsolete object references)</h1>
+        <div class="item-title-en en-text" style="display:none">Item 7: Eliminate obsolete object references</div>
+
+        <div class="tr-text">
+            <p>Eğer ki C. . . (Devamı sonraki sayfada)</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>If you switched from a language with manual memory management, such as C... (Continued on next page)</p>
+        </div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('autoboxing-perf')">Autoboxing Çöküşü</button>
+            <button class="concept-btn" onclick="openModal('object-pool')">Object Pooling (Havuzlama)</button>
+            <button class="concept-btn" onclick="openModal('defensive-copying')">Defensive Copy (Savunma Kopya)</button>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 7 sonraki sayfada devam ediyor.</div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-23.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 23 — String.matches() & Regex önbellekleme</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-25.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 25 — Stack pop & memory leak başlangıcı</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Autoboxing perf -->
+    <div class="modal-overlay" id="modal-autoboxing-perf">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Autoboxing Performans Çöküşü</h3>
+                <button class="modal-close" onclick="closeModal('autoboxing-perf')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Autoboxing kullanıldığında arka planda tam olarak ne olur?</p>
+                    <p><code>Long sum = 0L; sum += i;</code> kod satırı aslında sizin bilginiz dışında şuna dönüşür:
+                        <code>sum = Long.valueOf(sum.longValue() + i)</code>.<br>Yani her döngüde bir miktar primitif
+                        işlem yapılır, ama sonra bu sonuç sırf <code>sum</code> nesnesi kutulu olduğu için yeniden
+                        kutuya sarılmak üzere HER SEFERİNDE yeni bir <code>new Long(...)</code> tetikler. Milyarlarca
+                        gereksiz referans üretilir.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>What really happens behind the scenes of Autoboxing loop?</p>
+                    <p>The code <code>Long sum = 0L; sum += i;</code> is implicitly decompiled to:
+                        <code>sum = Long.valueOf(sum.longValue() + i)</code>. Doing this in a tight loop forces the
+                        allocation of billions of throw-away <code>Long</code> objects, making your app stutter and GC
+                        to run frequently.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Object Pool -->
+    <div class="modal-overlay" id="modal-object-pool">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Object Pooling (Nesne Havuzlama) Nedir?</h3>
+                <button class="modal-close" onclick="closeModal('object-pool')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Objeleri ürettikten sonra işi bitince GC (Çöp Toplayıcı) ile yok olmaya bırakmak yerine bir
+                        dizide veya haritada ("Havuz") tutup daha sonra lazım olduğunda "new" demek yerine bu havuzdan
+                        hazırda çekmek tekniğidir.</p>
+                    <p><b>Ne zaman İYİ?</b> Sadece oluşturulması donanımsal ya da ağsal olarak çok ağırsa (Veritabanı
+                        Connection Pool, Thread Pool vb.).</p>
+                    <p><b>Ne zaman KÖTÜ?</b> Kendiniz düz veri objeleri (örn: ArrayList parçaları, POJOlar vs.) için
+                        havuz yaparsanız, Java'nın kendi hiper-optimize edilmiş GC donanımından yavaş, çok daha buglı ve
+                        memory-leak e (hafıza kaçağı) açık bir kod yazmış olursunuz.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Object Pooling is retaining instantiated objects in a collection to be reused later instead of
+                        allowing the Garbage Collector to destroy them, avoiding the overhead of "new". It is extremely
+                        useful for VERY heavy objects like DB connections but catastrophic for light POJOs, where modern
+                        JVM GC runs circles around custom pooling logic.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Defensive Copy -->
+    <div class="modal-overlay" id="modal-defensive-copying">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Defensive Copying (Madde 50'ye Atıf) / Savunmacı Kopyalama</h3>
+                <button class="modal-close" onclick="closeModal('defensive-copying')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Elinizdeki bir nesne referansını başkasına (örneğin sistem dışına dönen bir metoda) verirken; o
+                        kişinin o referansı kullanarak orijinal değerinizi kalıcı olarak bozmasını engellemek için,
+                        nesnenin o anki derin bir <i>kopyasını (klonunu)</i> verip yollamak yöntemidir.</p>
+                    <p>Eğer Madde 6'yı saplantı haline getirip her durumda "aman obje üretmeyeyim, tasarruf edeyim"
+                        derseniz bu sefer dışarıya anahtarınızın kopyasını vereceğinize orijinalini verirsiniz. Ev
+                        soyulunca tasarruf etmiş olmazsınız.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Defensive Copying refers to returning a deep clone or identical copy of an internal object rather
+                        than handing over the direct reference. This prevents malicious or careless modification of the
+                        internal state. Obsessing over "avoid object creation" (Item 6) can lead you to skip Defensive
+                        Copying (Item 50), which causes severe logic errors and security vulnerabilities.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 24;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

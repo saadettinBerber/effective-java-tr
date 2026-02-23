@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 38</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 3: Methods Common to All Objects &nbsp;›&nbsp; Item 10: Obey the general
+                contract when overriding equals</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="38" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 38 / Page 38</div>
+        <div class="chapter-badge">Chapter 3 — Item 10: equals'ı Ezerken Genel Sözleşmeye Uyun / Obey the general
+            contract when overriding equals</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 10: equals sözleşmesinin özellikleri</em></div>
+
+        <div class="tr-text">
+            <p>...<code>x.equals(y)</code>, yalnızca ve yalnızca (if and only if) <code>y.equals(x)</code>
+                <code>true</code> döndürdüğünde <code>true</code> döndürmelidir.</p>
+
+            <p>• <strong>Geçişli (Transitive):</strong> Herhangi bir null olmayan referans değerleri <code>x</code>,
+                <code>y</code>, <code>z</code> için, eğer <code>x.equals(y)</code> <code>true</code> döndürüyorsa ve
+                <code>y.equals(z)</code> <code>true</code> döndürüyorsa, o zaman <code>x.equals(z)</code> de
+                <code>true</code> döndürmelidir.</p>
+
+            <p>• <strong>Tutarlı (Consistent):</strong> Herhangi bir null olmayan referans değerleri <code>x</code> ve
+                <code>y</code> için, <code>equals</code> karşılaştırmalarında kullanılan hiçbir bilgi değiştirilmediği
+                sürece, <code>x.equals(y)</code>'nin birden fazla çağrılması sürekli olarak <code>true</code> veya
+                sürekli olarak <code>false</code> döndürmelidir.</p>
+
+            <p>• Herhangi bir null olmayan referans değeri <code>x</code> için, <code>x.equals(null)</code>
+                <code>false</code> döndürmelidir.</p>
+
+            <p>Matematiğe eğilimli (mathematically inclined) değilseniz, bu biraz korkutucu görünebilir; ama onu
+                görmezden gelmeyin! İhlal ederseniz, programınızın düzensiz davrandığını (behaves erratically) veya
+                çöktüğünü görebilirsiniz ve başarısızlığın kaynağını tespit etmek (pin down) çok zor olabilir. John
+                Donne'u alıntılamak gerekirse, <i>hiçbir sınıf bir ada değildir</i> (no class is an island). Bir sınıfın
+                örnekleri sık sık başka bir sınıfa aktarılır. Tüm koleksiyon sınıfları dahil olmak üzere birçok sınıf,
+                kendilerine aktarılan nesnelerin <code>equals</code> sözleşmesine uymasına bağımlıdır.</p>
+
+            <p>Artık <code>equals</code> sözleşmesini ihlal etmenin tehlikelerinin farkında olduğunuza göre, sözleşmeyi
+                detaylıca gözden geçirelim. İyi haber şu ki, görünüşün aksine, aslında o kadar karmaşık değildir. Bir
+                kez anladığınızda, ona uymak zor değildir.</p>
+
+            <p>Peki bir <b>denklik ilişkisi (equivalence relation)</b> nedir? Kabaca söylemek gerekirse, bir eleman
+                kümesini, elemanları birbirine eşit sayılan alt kümelere (subsets) bölen bir operatördür. Bu alt
+                kümelere <b>denklik sınıfları (equivalence classes)</b> denir. Bir <code>equals</code> metodunun yararlı
+                olması için, her denklik sınıfındaki tüm elemanlar kullanıcının bakış açısından birbirleriyle
+                değiştirilebilir (interchangeable) olmalıdır. Şimdi beş gereksinimi sırasıyla inceleyelim:</p>
+
+            <p><strong>Dönüşlülük (Reflexivity)</strong> — İlk gereksinim basitçe bir nesnenin kendisine eşit olması
+                gerektiğini söyler. Bunu yanlışlıkla ihlal etmeyi hayal etmek zordur. İhlal edip sonra sınıfınızın bir
+                örneğini bir koleksiyona eklerseniz, <code>contains</code> metodu yeni eklediğiniz örneğin koleksiyonda
+                olmadığını söyleyebilir.</p>
+
+            <p><strong>Simetri (Symmetry)</strong> — İkinci gereksinim, herhangi iki nesnenin eşit olup olmadıkları
+                konusunda hemfikir olması gerektiğini söyler. İlk gereksinimin aksine, bunu yanlışlıkla ihlal etmeyi
+                hayal etmek zor değildir. Örneğin, büyük/küçük harfe duyarsız (case-insensitive) bir string uygulayan şu
+                sınıfı düşünün. String'in harfleri <code>toString</code> tarafından korunur ancak <code>equals</code>
+                karşılaştırmalarında göz ardı edilir:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>...<code>x.equals(y)</code> must return <code>true</code> if and only if <code>y.equals(x)</code> returns
+                <code>true</code>.</p>
+
+            <p>• <strong>Transitive:</strong> For any non-null reference values <code>x</code>, <code>y</code>,
+                <code>z</code>, if <code>x.equals(y)</code> returns <code>true</code> and <code>y.equals(z)</code>
+                returns <code>true</code>, then <code>x.equals(z)</code> must return <code>true</code>.</p>
+
+            <p>• <strong>Consistent:</strong> For any non-null reference values <code>x</code> and <code>y</code>,
+                multiple invocations of <code>x.equals(y)</code> must consistently return <code>true</code> or
+                consistently return <code>false</code>, provided no information used in <code>equals</code> comparisons
+                is modified.</p>
+
+            <p>• For any non-null reference value <code>x</code>, <code>x.equals(null)</code> must return
+                <code>false</code>.</p>
+
+            <p>Unless you are mathematically inclined, this might look a bit scary, but do not ignore it! If you violate
+                it, you may well find that your program behaves erratically or crashes, and it can be very difficult to
+                pin down the source of the failure. To paraphrase John Donne, no class is an island. Instances of one
+                class are frequently passed to another. Many classes, including all collections classes, depend on the
+                objects passed to them obeying the <code>equals</code> contract.</p>
+
+            <p>Now that you are aware of the dangers of violating the <code>equals</code> contract, let's go over the
+                contract in detail. The good news is that, appearances notwithstanding, it really isn't very
+                complicated. Once you understand it, it's not hard to adhere to it.</p>
+
+            <p>So what is an equivalence relation? Loosely speaking, it's an operator that partitions a set of elements
+                into subsets whose elements are deemed equal to one another. These subsets are known as equivalence
+                classes. For an <code>equals</code> method to be useful, all of the elements in each equivalence class
+                must be interchangeable from the perspective of the user. Now let's examine the five requirements in
+                turn:</p>
+
+            <p><strong>Reflexivity</strong> — The first requirement says merely that an object must be equal to itself.
+                It's hard to imagine violating this one unintentionally. If you were to violate it and then add an
+                instance of your class to a collection, the <code>contains</code> method might well say that the
+                collection didn't contain the instance that you just added.</p>
+
+            <p><strong>Symmetry</strong> — The second requirement says that any two objects must agree on whether they
+                are equal. Unlike the first requirement, it's not hard to imagine violating this one unintentionally.
+                For example, consider the following class, which implements a case-insensitive string. The case of the
+                string is preserved by <code>toString</code> but ignored in <code>equals</code> comparisons:</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 10 devamı: CaseInsensitiveString simetri ihlali örneği ve
+            geçişlilik sorunları sonraki sayfada.</div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('reflexivity')">Dönüşlülük (Reflexivity)</button>
+            <button class="concept-btn" onclick="openModal('symmetry')">Simetri (Symmetry)</button>
+            <button class="concept-btn" onclick="openModal('equivalence-class')">Denklik Sınıfı (Equivalence
+                Class)</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-37.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 37 — Değer sınıfları, equals koşulları</span>
+            </button>
+            <button class="nav-btn" style="opacity:0.5;cursor:default;">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Henüz çevrilmedi</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Reflexivity -->
+    <div class="modal-overlay" id="modal-reflexivity">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Dönüşlülük (Reflexivity)</h3>
+                <button class="modal-close" onclick="closeModal('reflexivity')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Bir nesne kendisine eşit olmalıdır: <code>x.equals(x) == true</code>. Bu en temel gereksinimdir
+                        ve kasıtlı olarak ihlal edilmezse genellikle doğal olarak sağlanır. Ancak ihlal edilirse,
+                        koleksiyonların <code>contains()</code> metodu az önce eklediğiniz nesneyi bile bulamaz!</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>An object must equal itself: <code>x.equals(x) == true</code>. This is the most basic requirement
+                        and usually holds naturally unless intentionally violated. If violated, a collection's
+                        <code>contains()</code> won't find an object you just added!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Symmetry -->
+    <div class="modal-overlay" id="modal-symmetry">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Simetri (Symmetry)</h3>
+                <button class="modal-close" onclick="closeModal('symmetry')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>x.equals(y) == true</code> ise <code>y.equals(x) == true</code> olmalıdır. Simetri ihlali,
+                        genellikle kendi sınıfınızın <code>equals</code>'ında başka bir türle karşılaştırma yapmaya
+                        çalıştığınızda ortaya çıkar. Örneğin, <code>CaseInsensitiveString</code> sınıfı
+                        <code>String</code> ile eşitlik karşılaştırabileceğini düşünür, ancak <code>String</code> ise
+                        <code>CaseInsensitiveString</code>'i tanımaz.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>If <code>x.equals(y) == true</code> then <code>y.equals(x) == true</code>. Symmetry violations
+                        typically arise when your class's <code>equals</code> tries to interoperate with a different
+                        type. E.g., <code>CaseInsensitiveString</code> thinks it equals a <code>String</code>, but
+                        <code>String</code> doesn't know about <code>CaseInsensitiveString</code>.</p>
+                </div>
+                <div class="tip-box tr-text">💡 Altın kural: <code>equals</code> metodu yalnızca kendi türünün
+                    nesneleriyle karşılaştırmalıdır. Farklı türlerle (cross-type) eşitlik sağlamaya çalışmak neredeyse
+                    her zaman simetrinin ihlaline yol açar.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Equivalence Class -->
+    <div class="modal-overlay" id="modal-equivalence-class">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Denklik Sınıfı (Equivalence Class)</h3>
+                <button class="modal-close" onclick="closeModal('equivalence-class')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Denklik sınıfı, bir denklik ilişkisi tarafından "eşit" sayılan elemanların oluşturduğu alt
+                        kümedir. Örneğin, <code>Integer</code> sınıfının <code>equals</code> metodu ile,
+                        <code>new Integer(42)</code> ve <code>Integer.valueOf(42)</code> aynı denklik sınıfına aittir
+                        çünkü aynı değeri temsil ederler.</p>
+                    <p>Bir <code>equals</code> metodunun yararlı olabilmesi için, aynı denklik sınıfındaki tüm nesneler
+                        kullanıcı açısından birbirleriyle değiştirilebilir (interchangeable) olmalıdır.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>An equivalence class is a subset of elements deemed "equal" by an equivalence relation. For
+                        example, with <code>Integer</code>'s <code>equals</code>, <code>new Integer(42)</code> and
+                        <code>Integer.valueOf(42)</code> belong to the same equivalence class because they represent the
+                        same value.</p>
+                    <p>For an <code>equals</code> method to be useful, all objects in the same equivalence class must be
+                        interchangeable from the user's perspective.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 38;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

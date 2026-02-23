@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 33</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .example-label {
+            font-size: .75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin: 1rem 0 .3rem
+        }
+
+        .bad {
+            color: #c0392b
+        }
+
+        .good {
+            color: #27ae60
+        }
+
+        .tip-box {
+            background: #f0faf0;
+            border-left: 3px solid #27ae60;
+            padding: .6rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: .88rem;
+            margin-top: 1rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 2: Creating and Destroying Objects &nbsp;›&nbsp; Item 9: Prefer
+                try-with-resources to try-finally</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="33" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 33 / Page 33</div>
+        <div class="chapter-badge">Chapter 2 — Item 9: try-finally Yerine try-with-resources'ı Tercih Edin / Prefer
+            try-with-resources to try-finally</div>
+
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 9: İki kaynaklı try-finally sorunu</em></div>
+
+        <div class="tr-text">
+            <p>Bu kod fena görünmeyebilir, ancak ikinci bir kaynak eklediğinizde durum kötüleşir:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>This may not look bad, but it gets worse when you add a second resource:</p>
+        </div>
+
+        <!-- Two-resource try-finally -->
+        <div class="code-block">
+            <span class="cm">// try-finally birden fazla kaynakla kullanıldığında çirkinleşir!</span>
+            <span class="cm">// try-finally is ugly when used with more than one resource!</span>
+            <span class="kw">static void</span> copy(<span class="cl">String</span> src, <span class="cl">String</span>
+            dst) <span class="kw">throws</span> <span class="cl">IOException</span> {
+            <span class="cl">InputStream</span> in = <span class="kw">new</span> <span
+                class="cl">FileInputStream</span>(src);
+            <span class="kw">try</span> {
+            <span class="cl">OutputStream</span> out = <span class="kw">new</span> <span
+                class="cl">FileOutputStream</span>(dst);
+            <span class="kw">try</span> {
+            <span class="kw">byte</span>[] buf = <span class="kw">new byte</span>[BUFFER_SIZE];
+            <span class="kw">int</span> n;
+            <span class="kw">while</span> ((n = in.read(buf)) &gt;= <span class="num">0</span>)
+            out.write(buf, <span class="num">0</span>, n);
+            } <span class="kw">finally</span> {
+            out.close();
+            }
+            } <span class="kw">finally</span> {
+            in.close();
+            }
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>İnanması zor olabilir; ancak iyi programcılar bile çoğu zaman bunu yanlış yapmıştır. Her şeyden önce, ben
+                bunu <i>Java Puzzlers</i> [Bloch05] kitabının 88. sayfasında yanlış yapmıştım ve kimse yıllarca fark
+                etmedi. Aslında, 2007'de Java kütüphanelerindeki <code>close</code> metodu kullanımlarının <b>üçte
+                    ikisi</b> hatalıydı.</p>
+
+            <p>Önceki iki kod örneğinde gösterildiği gibi, <code>try-finally</code> ifadeleriyle kaynakları kapatmak
+                için doğru yazılmış kodun bile ince bir eksikliği (subtle deficiency) vardır. Hem <code>try</code>
+                bloğundaki hem de <code>finally</code> bloğundaki kod istisna fırlatabilir niteliktedir. Örneğin,
+                <code>firstLineOfFile</code> metodunda <code>readLine</code> çağrısı, alttaki fiziksel aygıttaki
+                (physical device) bir arıza nedeniyle bir istisna fırlatabilir ve ardından <code>close</code> çağrısı da
+                aynı nedenle başarısız olabilir. Bu koşullar altında, <b>ikinci istisna birincisini tamamen yok eder
+                    (obliterates)</b>. İstisna yığın izinde (exception stack trace) birinci istisnanın hiçbir kaydı
+                kalmaz; bu durum, gerçek sistemlerde hata ayıklamayı büyük ölçüde zorlaştırabilir — çünkü genellikle
+                sorunu teşhis etmek için görmek isteyeceğiniz istisna birincisidir. İkinci istisnayı birincisi lehine
+                bastırmak (suppress) üzere kod yazmak mümkün olsa da, bunu neredeyse hiç kimse yapmadı çünkü fazla
+                ayrıntılı (verbose) idi.</p>
+
+            <p>Tüm bu sorunlar, Java 7'nin <code>try-with-resources</code> ifadesini [JLS, 14.20.3] tanıtmasıyla <b>tek
+                    seferde çözüldü (solved in one fell swoop)</b>. Bu yapıyla kullanılabilmek için, bir kaynağın
+                <code>AutoCloseable</code> arayüzünü uygulaması gerekir; bu arayüz, <code>void</code> döndüren tek bir
+                <code>close</code> metodundan oluşur. Java kütüphanelerindeki ve üçüncü parti kütüphanelerdeki birçok
+                sınıf ve arayüz artık <code>AutoCloseable</code>'ı uygular veya genişletir. Eğer kapatılması gereken bir
+                kaynağı temsil eden bir sınıf yazıyorsanız, sınıfınız da <code>AutoCloseable</code>'ı uygulamalıdır.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>It may be hard to believe, but even good programmers got this wrong most of the time. For starters, I got
+                it wrong on page 88 of <i>Java Puzzlers</i> [Bloch05], and no one noticed for years. In fact, two-thirds
+                of the uses of the <code>close</code> method in the Java libraries were wrong in 2007.</p>
+
+            <p>Even the correct code for closing resources with <code>try-finally</code> statements, as illustrated in
+                the previous two code examples, has a subtle deficiency. The code in both the <code>try</code> block and
+                the <code>finally</code> block is capable of throwing exceptions. For example, in the
+                <code>firstLineOfFile</code> method, the call to <code>readLine</code> could throw an exception due to a
+                failure in the underlying physical device, and the call to <code>close</code> could then fail for the
+                same reason. Under these circumstances, the second exception completely obliterates the first one. There
+                is no record of the first exception in the exception stack trace, which can greatly complicate debugging
+                in real systems—usually it's the first exception that you want to see in order to diagnose the problem.
+                While it is possible to write code to suppress the second exception in favor of the first, virtually no
+                one did because it's just too verbose.</p>
+
+            <p>All of these problems were solved in one fell swoop when Java 7 introduced the
+                <code>try-with-resources</code> statement [JLS, 14.20.3]. To be usable with this construct, a resource
+                must implement the <code>AutoCloseable</code> interface, which consists of a single void-returning
+                <code>close</code> method. Many classes and interfaces in the Java libraries and in third-party
+                libraries now implement or extend <code>AutoCloseable</code>. If you write a class that represents a
+                resource that must be closed, your class should implement <code>AutoCloseable</code> too.</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 9 devamı: try-with-resources ile yeniden yazılmış
+            örnekler ve bastırılmış istisnalar (suppressed exceptions) sonraki sayfada.</div>
+
+        <!-- Concept buttons -->
+        <div class="concepts-row">
+            <strong class="tr-text">🔍 Kavramlar:</strong>
+            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
+            <button class="concept-btn" onclick="openModal('exception-obliteration')">İstisna Yutma (Exception
+                Obliteration)</button>
+            <button class="concept-btn" onclick="openModal('try-finally-pitfall')">try-finally Tuzakları</button>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-32.html'">
+                <span class="nav-direction">← Önceki Sayfa</span>
+                <span class="nav-info">Sayfa 32 — Madde 8 sonu, Madde 9 başlangıcı</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='page-34.html'">
+                <span class="nav-direction">Sonraki Sayfa →</span>
+                <span class="nav-info">Sayfa 34 — try-with-resources örnekleri</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Exception Obliteration -->
+    <div class="modal-overlay" id="modal-exception-obliteration">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>İstisna Yutma (Exception Obliteration)</h3>
+                <button class="modal-close" onclick="closeModal('exception-obliteration')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><code>try-finally</code> bloğunda hem <code>try</code> hem <code>finally</code> istisna
+                        fırlatırsa, <code>finally</code>'deki istisna <code>try</code>'dakini tamamen yok eder. Yığın
+                        izinde (stack trace) yalnızca <code>finally</code> istisnası görünür; asıl hatanın
+                        (<code>try</code> bloğundaki) izi kaybolur.</p>
+                    <p><code>try-with-resources</code> ise bu sorunu çözer: <code>close()</code> istisnası "bastırılmış
+                        (suppressed)" olarak işaretlenir ve asıl istisna korunur. <code>Throwable.getSuppressed()</code>
+                        ile bastırılmış istisnalara erişilebilir.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>In a <code>try-finally</code>, if both blocks throw, the <code>finally</code> exception
+                        obliterates the <code>try</code> exception completely. Only the <code>finally</code> exception
+                        appears in the stack trace; the root cause is lost.</p>
+                    <p><code>try-with-resources</code> fixes this: the <code>close()</code> exception is marked
+                        "suppressed" and the primary exception is preserved. Access suppressed exceptions via
+                        <code>Throwable.getSuppressed()</code>.</p>
+                </div>
+                <p class="example-label bad">❌ try-finally — asıl istisna kaybolur</p>
+                <div class="code-block">
+                    <span class="kw">try</span> {
+                    reader.readLine(); <span class="cm">// → IOException (asıl hata)</span>
+                    } <span class="kw">finally</span> {
+                    reader.close(); <span class="cm">// → IOException (asıl hatayı YOK EDER!)</span>
+                    }
+                    <span class="cm">// Stack trace'de yalnızca close() istisnası görünür 😱</span>
+                </div>
+                <p class="example-label good">✅ try-with-resources — asıl istisna korunur</p>
+                <div class="code-block">
+                    <span class="kw">try</span> (<span class="cl">BufferedReader</span> reader = ...) {
+                    reader.readLine(); <span class="cm">// → IOException (asıl hata — KORUNUR)</span>
+                    }
+                    <span class="cm">// close() istisnası "Suppressed" olarak eklenir</span>
+                    <span class="cm">// Stack trace: asıl hata + [Suppressed: close hatası]</span>
+                </div>
+                <div class="tip-box tr-text">💡 Bastırılmış istisnalar sayesinde hem asıl hatayı hem de kaynak kapatma
+                    hatasını görebilirsiniz — hata ayıklama çok daha kolaylaşır.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: try-finally Pitfalls -->
+    <div class="modal-overlay" id="modal-try-finally-pitfall">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>try-finally Tuzakları</h3>
+                <button class="modal-close" onclick="closeModal('try-finally-pitfall')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><b>Tuzak 1:</b> İki kaynak → iç içe geçmiş (nested) try-finally blokları. Kod okunmaz hale gelir.
+                    </p>
+                    <p><b>Tuzak 2:</b> <code>finally</code> bloğundaki istisna, <code>try</code> bloğundakini yok eder.
+                    </p>
+                    <p><b>Tuzak 3:</b> Joshua Bloch bile Java Puzzlers kitabında bunu yanlış yapmış ve kimse yıllarca
+                        fark etmemiş! 2007'de JDK'daki <code>close()</code> çağrılarının 2/3'ü hatalıydı.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p><b>Pitfall 1:</b> Two resources → nested try-finally blocks. Code becomes unreadable.</p>
+                    <p><b>Pitfall 2:</b> <code>finally</code> exception obliterates <code>try</code> exception.</p>
+                    <p><b>Pitfall 3:</b> Even Joshua Bloch got this wrong in Java Puzzlers, and no one noticed for
+                        years! In 2007, 2/3 of <code>close()</code> calls in the JDK were wrong.</p>
+                </div>
+                <div class="tip-box tr-text">💡 <code>try-with-resources</code> bu tuzakların hepsini ortadan kaldırır.
+                    Java 7+ kullanan her projede, hiçbir istisna olmaksızın (pun intended),
+                    <code>try-with-resources</code> tercih edin.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 33;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>
