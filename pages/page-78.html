@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 78</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        .summary-box {
+            background: #e8f4e8;
+            border-left: 4px solid #27ae60;
+            padding: 1rem 1.2rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+            font-size: .93rem;
+            color: #1a5c1a
+        }
+
+        .chapter-end-box {
+            background: #e3f2fd;
+            border: 2px solid #1976d2;
+            padding: 1.2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            text-align: center;
+            color: #0d2137
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        h2.item-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0d2137;
+            margin: 2rem 0 .3rem;
+            border-bottom: 2px solid #f5a623;
+            padding-bottom: .3rem;
+            display: inline-block
+        }
+
+        p.item-title-en {
+            font-size: .85rem;
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 7 &nbsp;›&nbsp; Item 45-48 / Bölüm 7 Sonu</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="78" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 78 / Page 78</div>
+        <div class="chapter-badge">Chapter 7 — Item 45-48 / Bölüm 7 Sonu</div>
+
+        <h2 class="item-title">Madde 45: Streamleri Dikkatli Kullanın</h2>
+        <p class="item-title-en">Item 45: Use streams judiciously</p>
+
+        <div class="tr-text">
+            <p>Stream API, toplu (bulk) işlemleri sıralı veya paralel olarak gerçekleştirmek için iki temel soyutlama
+                sunar: <b>stream</b> (sonlu veya sonsuz bir veri öğeleri dizisi) ve <b>stream hattı</b> (pipeline — bu
+                öğeler üzerinde çok aşamalı hesaplama).</p>
+
+            <p><b>Stream'leri aşırı kullanmayın!</b> Her şeyi stream'e dönüştürmek okunabilirliği azaltır. Stream'ler
+                bazı görevler için mükemmeldir:</p>
+            <p>• Koleksiyonları dönüştürme • Filtreleme • Birleştirme (tek işlem) • Gruplama • Arama</p>
+
+            <p><b>Stream'lerin yapamadıkları:</b> Lambda'dan çevreleyen kapsamdaki yerel değişkenleri değiştiremezsiniz.
+                <code>return</code>, <code>break</code>, <code>continue</code> veya checked exception fırlatma
+                yapılamaz.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Streams: don't overuse! Good for: transform, filter, combine, group, search. Can't: modify local
+                variables, return/break/continue, throw checked exceptions.</p>
+        </div>
+
+        <h2 class="item-title">Madde 46: Stream'lerde Yan Etkisiz Fonksiyonları Tercih Edin</h2>
+        <p class="item-title-en">Item 46: Prefer side-effect-free functions in streams</p>
+
+        <div class="tr-text">
+            <p>Stream paradigmasının en önemli kısmı: hesaplamayı <b>dönüşümler dizisi</b> olarak yapılandırmak — her
+                aşama önceki aşamanın sonucunun <b>saf bir fonksiyonudur</b> (pure function). <code>forEach</code>'i
+                yalnızca sonuçları raporlamak için kullanın, <b>hesaplama yapmak için asla</b>!</p>
+
+            <p>En önemli toplayıcılar (collectors): <code>toList()</code>, <code>toSet()</code>, <code>toMap()</code>,
+                <code>groupingBy()</code> ve <code>joining()</code>.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Structure computations as pure function transformations. Use <code>forEach</code> only for reporting. Key
+                collectors: <code>toList</code>, <code>toSet</code>, <code>toMap</code>, <code>groupingBy</code>,
+                <code>joining</code>.</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// KÖTÜ — forEach'i hesaplama için kullanmayın</span>
+            <span class="cl">Map</span>&lt;<span class="cl">String</span>, <span class="cl">Long</span>&gt; freq = <span
+                class="kw">new</span> <span class="cl">HashMap</span>&lt;&gt;();
+            words.forEach(w -&gt; freq.merge(w.toLowerCase(), <span class="num">1L</span>, <span
+                class="cl">Long</span>::sum));
+
+            <span class="cm">// İYİ — toplayıcı kullanın</span>
+            <span class="cl">Map</span>&lt;<span class="cl">String</span>, <span class="cl">Long</span>&gt; freq =
+            words.stream()
+            .collect(groupingBy(<span class="cl">String</span>::toLowerCase, counting()));
+        </div>
+
+        <h2 class="item-title">Madde 47: Dönüş Türü Olarak Stream Yerine Collection'ı Tercih Edin</h2>
+        <p class="item-title-en">Item 47: Prefer Collection to Stream as a return type</p>
+
+        <div class="tr-text">
+            <p><code>Collection</code>, hem for-each döngüsünü hem de <code>stream()</code> metodu ile stream erişimini
+                destekler. Dönüş değeri hem yineleme hem de stream işleme için kullanılabiliyorsa,
+                <b><code>Collection</code></b> veya uygun alt türü tercih edin. Bellekte sığmayan sonuçlar için özel
+                koleksiyon düşünün.</p>
+        </div>
+
+        <h2 class="item-title">Madde 48: Paralel Stream'leri Dikkatli Kullanın</h2>
+        <p class="item-title-en">Item 48: Use caution when making streams parallel</p>
+
+        <div class="tr-text">
+            <p><code>parallel()</code> çağırmak kolaydır ama sonuçlar felaketle sonuçlanabilir! Paralel stream'ler şu
+                veri kaynaklarıyla en iyi çalışır: <code>ArrayList</code>, <code>HashMap</code>, <code>HashSet</code>,
+                <code>ConcurrentHashMap</code>, diziler, <code>IntRange</code> ve <code>LongRange</code>. Tüm bu veri
+                yapıları verimli bir şekilde <b>bölünebilir</b>.</p>
+
+            <p><b>Kullanmayın:</b> <code>Stream.iterate</code> veya <code>limit()</code> ile kaynaklar,
+                <code>LinkedList</code>, veya sonlu olmayan stream'ler.</p>
+
+            <p>Paralel stream'i yalnızca <b>performansı ölçtükten</b> sonra ve önemli bir iyileşme gördüğünüzde koruyun!
+            </p>
+
+            <div class="summary-box">
+                <strong>Bölüm 7 — Genel Özet:</strong><br>
+                • <b>Madde 42:</b> Lambdalar anonim sınıfların yerine<br>
+                • <b>Madde 43:</b> Metot referansları genellikle lambdalardan iyi<br>
+                • <b>Madde 44:</b> 6 temel fonksiyonel arayüz<br>
+                • <b>Madde 45:</b> Stream'leri aşırı kullanmayın<br>
+                • <b>Madde 46:</b> Yan etkisiz fonksiyonlar, forEach ile hesaplama yapmayın<br>
+                • <b>Madde 47:</b> Dönüş türü olarak Collection tercih edin<br>
+                • <b>Madde 48:</b> Paralel stream'ler dikkatli — ölçün
+            </div>
+
+            <div class="chapter-end-box">
+                <strong>🎉 Bölüm 7 Tamamlandı!</strong><br>
+                <em>Chapter 7: Lambdas and Streams</em><br>
+                <span style="font-size:.88rem;color:#555;">Madde 42-48 • 7 Madde</span>
+            </div>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <div class="chapter-end-box">
+                <strong>🎉 Chapter 7 Complete!</strong><br>
+                <em>Chapter 7: Lambdas and Streams — Items 42-48</em>
+            </div>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-77.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 77 — Lambda, metot referansı</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-79.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 79 — Chapter 8: Metotlar</span></button>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 78;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>
