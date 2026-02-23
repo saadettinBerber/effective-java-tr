@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Effective Java — Sayfa 68</title>
+    <title>Effective Java — Sayfa 73</title>
     <style>
         *,
         *::before,
@@ -55,8 +55,7 @@
         .topbar-right {
             display: flex;
             align-items: center;
-            gap: .75rem;
-            flex-wrap: wrap
+            gap: .75rem
         }
 
         .lang-btn {
@@ -240,10 +239,6 @@
             color: #85e89d
         }
 
-        .num {
-            color: #f8c555
-        }
-
         .concept-btn {
             display: inline-block;
             background: #f5a623;
@@ -378,15 +373,14 @@
     <div class="topbar">
         <div class="topbar-left">
             <span class="topbar-title">Effective Java — Joshua Bloch</span>
-            <span class="topbar-sub">Chapter 4 &nbsp;›&nbsp; Item 24-25: İç Sınıflar &amp; Tek Üst Düzey Sınıf / Bölüm 4
-                Sonu</span>
+            <span class="topbar-sub">Chapter 5 &nbsp;›&nbsp; Item 32-33 / Bölüm 5 Sonu</span>
         </div>
         <div class="topbar-right">
             <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
             <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
             <div class="page-nav-input-wrap">
                 <label for="pageNumInput">Sayfa</label>
-                <input type="text" id="pageNumInput" value="68" inputmode="numeric"
+                <input type="text" id="pageNumInput" value="73" inputmode="numeric"
                     onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
                 <div id="pageNavTooltip"></div>
             </div>
@@ -394,150 +388,149 @@
     </div>
 
     <div class="container">
-        <div class="page-label">Sayfa 68 / Page 68</div>
-        <div class="chapter-badge">Chapter 4 — Item 24-25 / Bölüm 4 Sonu</div>
+        <div class="page-label">Sayfa 73 / Page 73</div>
+        <div class="chapter-badge">Chapter 5 — Item 32-33 / Bölüm 5 Sonu</div>
 
-        <h2 class="item-title">Madde 24: Statik Üye Sınıflarını Statik Olmayanlara Tercih Edin</h2>
-        <p class="item-title-en">Item 24: Favor static member classes over nonstatic</p>
+        <h2 class="item-title">Madde 32: Jenerikleri ve Varargs'ı Dikkatli Birleştirin</h2>
+        <p class="item-title-en">Item 32: Combine generics and varargs judiciously</p>
 
         <div class="tr-text">
-            <p>İç sınıfların (nested classes) <b>dört çeşidi</b> vardır:</p>
+            <p>Varargs metotları ve jenerikler birlikte iyi çalışmaz çünkü varargs jenerik veya parametreli türde bir
+                varargs parametresi bildirildiğinde <b>yığın kirliliği</b> (heap pollution) riski oluşur. Tür güvenliği
+                ihlal edilebilir ve <code>ClassCastException</code> beklenmedik bir noktada atılabilir.</p>
 
-            <p><b>1. Statik üye sınıfları (static member classes):</b> En yaygın tür. Dış sınıfın bir yardımcısı olarak
-                düşünün. Dış sınıfa başvuru tutmazlar. <code>Map</code> uygulamalarındaki <code>Entry</code> nesneleri
-                güzel bir örnektir — her giriş bir harita ile ilişkilidir ama <code>Entry</code> metotlarının haritanın
-                kendisine erişmesi gerekmez.</p>
+            <p>Java 7'de eklenen <code>@SafeVarargs</code> notasyonu, yazar tarafından metodu güvenli olarak onaylanan
+                jenerik varargs metotlarında uyarıyı bastırır. Bir metodu <code>@SafeVarargs</code> ile işaretlemek için
+                iki koşulun sağlanması gerekir:</p>
 
-            <p><b>2. Statik olmayan üye sınıfları (nonstatic member classes):</b> Her örnek, çevreleyen sınıfın bir
-                örneğiyle örtük olarak ilişkilidir. İç örnek, dış örneğin metotlarını çağırabilir ve
-                <code>OuterClass.this</code> ile ona referans alabilir. <b>Dikkat:</b> Çevreleyen örneğe referans
-                fazladan bellek tüketir ve çöp toplayıcının (GC) dış örneği toplamasını engelleyebilir — gizli bellek
-                sızıntısı!
+            <p><b>1.</b> Metot varargs dizisine <b>hiçbir şey kaydetmemelidir</b>.<br>
+                <b>2.</b> Dizinin (veya bir kopyasının) <b>referansı güvenilmeyen koda kaçmamalıdır</b>.
             </p>
 
-            <p><b>3. Anonim sınıflar (anonymous classes):</b> Adı olmayan, bildirildikleri yerde anlık olarak
-                oluşturulan sınıflar. Lambda'lardan önce küçük işlev nesneleri (function objects) için kullanılırdı.
-                Artık lambda ifadeleri her zaman tercih edilmelidir (Madde 42).</p>
-
-            <p><b>4. Yerel sınıflar (local classes):</b> Bir blok içinde bildirilen, en az kullanılan çeşit.</p>
-
-            <p><b>Kural:</b> İç sınıfın dış örneğe erişmesi <b>gerekmiyorsa</b>, <code>static</code> yapın. Aksi halde
-                her iç sınıf örneği dış örneğe gizli bir referans taşır — bellek ve performans maliyeti!</p>
+            <p><b>Kural:</b> Jenerik veya parametreli türde varargs parametresi alan her metoda
+                <code>@SafeVarargs</code> ekleyin — bu, kullanıcılarının gereksiz uyarılarla uğraşmasını önler.
+                Alternatif olarak varargs yerine <code>List</code> parametresi kullanın.</p>
         </div>
 
         <div class="en-text" style="display:none">
-            <p>Four kinds: 1) Static member classes (no enclosing instance ref). 2) Nonstatic member classes (hidden ref
-                to enclosing instance — memory leak risk!). 3) Anonymous classes (prefer lambdas). 4) Local classes
-                (rare). Rule: if no access to enclosing instance needed, make it <code>static</code>.</p>
+            <p>Varargs + generics = heap pollution risk. Use <code>@SafeVarargs</code> when: 1) Method doesn't store
+                into the varargs array, and 2) No reference to the array escapes. Alternative: use <code>List</code>
+                instead of varargs.</p>
         </div>
 
-        <!-- Item 25 -->
-        <h2 class="item-title">Madde 25: Kaynak Dosyalarını Tek Bir Üst Düzey Sınıfla Sınırlayın</h2>
-        <p class="item-title-en">Item 25: Limit source files to a single top-level class</p>
+        <h2 class="item-title">Madde 33: Tür Güvenli Heterojen Kapsayıcıları Düşünün</h2>
+        <p class="item-title-en">Item 33: Consider typesafe heterogeneous containers</p>
 
         <div class="tr-text">
-            <p>Java derleyicisi tek bir kaynak dosyada birden çok üst düzey sınıf tanımlamanıza izin verse de, bunu
-                yapmanın <b>hiçbir faydası yoktur ve ciddi riskleri vardır</b>. Risk, bir sınıfa birden çok tanım
-                sağlama olasılığından kaynaklanır — hangi tanımın kullanılacağı dosyaların derleyiciye verilme
-                <b>sırasına</b> bağlıdır.
-            </p>
+            <p>Jeneriklerin yaygın kullanımlarında (<code>Set&lt;E&gt;</code>, <code>Map&lt;K,V&gt;</code>) kapsayıcı
+                başına sabit sayıda tür parametresi vardır. Ancak bazen daha fazla esnekliğe ihtiyaç duyarsınız —
+                kapsayıcı yerine <b>anahtarı parametreleştirerek</b> bunu başarabilirsiniz. Bu kalıba <b>tür güvenli
+                    heterojen kapsayıcı</b> (typesafe heterogeneous container) denir:</p>
         </div>
+
         <div class="en-text" style="display:none">
-            <p>Java allows multiple top-level classes in one file, but it's risky — which definition is used depends on
-                compilation order.</p>
+            <p>Instead of parameterizing the container, parameterize the key. This is the <b>typesafe heterogeneous
+                    container</b> pattern:</p>
         </div>
 
         <div class="code-block">
-            <span class="cm">// Main.java</span>
-            <span class="kw">public class</span> <span class="cl">Main</span> {
-            <span class="kw">public static void</span> main(<span class="cl">String</span>[] args) {
-            <span class="cl">System</span>.out.println(<span class="cl">Utensil</span>.NAME + <span
-                class="cl">Dessert</span>.NAME);
+            <span class="cm">// Tür güvenli heterojen kapsayıcı — API</span>
+            <span class="kw">public class</span> <span class="cl">Favorites</span> {
+            <span class="kw">private</span> <span class="cl">Map</span>&lt;<span class="cl">Class</span>&lt;?&gt;, <span
+                class="cl">Object</span>&gt; favorites = <span class="kw">new</span> <span
+                class="cl">HashMap</span>&lt;&gt;();
+
+            <span class="kw">public</span> &lt;<span class="cl">T</span>&gt; <span class="kw">void</span>
+            putFavorite(<span class="cl">Class</span>&lt;<span class="cl">T</span>&gt; type, <span class="cl">T</span>
+            instance) {
+            favorites.put(<span class="cl">Objects</span>.requireNonNull(type), instance);
+            }
+            <span class="kw">public</span> &lt;<span class="cl">T</span>&gt; <span class="cl">T</span> getFavorite(<span
+                class="cl">Class</span>&lt;<span class="cl">T</span>&gt; type) {
+            <span class="kw">return</span> type.cast(favorites.get(type));
             }
             }
-            <span class="cm">// Utensil.java — her sınıf kendi dosyasında olmalı!</span>
-            <span class="kw">class</span> <span class="cl">Utensil</span> { <span class="kw">static final</span> <span
-                class="cl">String</span> NAME = <span class="st">"pot"</span>; }
-            <span class="kw">class</span> <span class="cl">Dessert</span> { <span class="kw">static final</span> <span
-                class="cl">String</span> NAME = <span class="st">"pie"</span>; }
+
+            <span class="cm">// Kullanım</span>
+            <span class="cl">Favorites</span> f = <span class="kw">new</span> <span class="cl">Favorites</span>();
+            f.putFavorite(<span class="cl">String</span>.<span class="kw">class</span>, <span class="st">"Java"</span>);
+            f.putFavorite(<span class="cl">Integer</span>.<span class="kw">class</span>, <span
+                class="num">0xcafebabe</span>);
+            <span class="cl">String</span> s = f.getFavorite(<span class="cl">String</span>.<span
+                class="kw">class</span>); <span class="cm">// Dönüşüm yok!</span>
         </div>
 
         <div class="tr-text">
-            <p><b>Çözüm basittir:</b> Asla tek bir kaynak dosyaya birden fazla üst düzey sınıf koymayın. Alternatif
-                olarak, statik üye sınıflarını kullanabilirsiniz. Bu, programınızın derleme sırasından bağımsız olarak
-                aynı davranacağını garanti eder.</p>
+            <p><code>Class&lt;T&gt;</code> nesnesi burada <b>tür belirteci</b> (type token) rolü oynar.
+                <code>Favorites</code> sınıfı dahili olarak <code>Map&lt;Class&lt;?&gt;, Object&gt;</code> kullanır —
+                joker tür anahtar tarafında olduğundan farklı türler aynı haritada saklanabilir.</p>
 
             <div class="summary-box">
-                <strong>Bölüm 4 — Genel Özet:</strong><br>
-                • <b>Madde 15:</b> Erişilebilirliği en aza indirin<br>
-                • <b>Madde 16:</b> Genel sınıflarda erişimci metotlar kullanın<br>
-                • <b>Madde 17:</b> Değişmezliği en aza indirin<br>
-                • <b>Madde 18:</b> Kalıtım yerine bileşimi tercih edin<br>
-                • <b>Madde 19:</b> Kalıtım için tasarlayın veya yasaklayın<br>
-                • <b>Madde 20:</b> Soyut sınıflar yerine arayüzleri tercih edin<br>
-                • <b>Madde 21:</b> Arayüzleri sonrası için dikkatle tasarlayın<br>
-                • <b>Madde 22:</b> Arayüzleri yalnızca tür tanımlamak için kullanın<br>
-                • <b>Madde 23:</b> Etiketli sınıflar yerine sınıf hiyerarşileri<br>
-                • <b>Madde 24:</b> Statik üye sınıflarını tercih edin<br>
-                • <b>Madde 25:</b> Kaynak dosyasına tek üst düzey sınıf
+                <strong>Bölüm 5 — Genel Özet:</strong><br>
+                • <b>Madde 26:</b> Ham türleri kullanmayın — <code>List&lt;?&gt;</code> veya
+                <code>List&lt;Object&gt;</code> kullanın<br>
+                • <b>Madde 27:</b> Denetimsiz uyarıları ortadan kaldırın — <code>@SuppressWarnings</code> dar
+                kapsamda<br>
+                • <b>Madde 28:</b> Diziler yerine listeleri tercih edin — derleme zamanı güvenliği<br>
+                • <b>Madde 29:</b> Jenerik türleri tercih edin — istemcide dönüşüm gerektirmeyin<br>
+                • <b>Madde 30:</b> Jenerik metotları tercih edin — özyinelemeli tür sınırları<br>
+                • <b>Madde 31:</b> Sınırlı joker türleri — PECS (Producer Extends, Consumer Super)<br>
+                • <b>Madde 32:</b> Jenerikler + varargs = <code>@SafeVarargs</code> veya List kullanın<br>
+                • <b>Madde 33:</b> Tür güvenli heterojen kapsayıcılar — tür belirteci (Class&lt;T&gt;)
             </div>
 
             <div class="chapter-end-box">
-                <strong>🎉 Bölüm 4 Tamamlandı!</strong><br>
-                <em>Chapter 4: Classes and Interfaces</em><br>
-                <span style="font-size:.88rem;color:#555;">Madde 15-25 • 11 Madde</span>
+                <strong>🎉 Bölüm 5 Tamamlandı!</strong><br>
+                <em>Chapter 5: Generics</em><br>
+                <span style="font-size:.88rem;color:#555;">Madde 26-33 • 8 Madde</span>
             </div>
         </div>
 
         <div class="en-text" style="display:none">
             <div class="chapter-end-box">
-                <strong>🎉 Chapter 4 Complete!</strong><br>
-                <em>Chapter 4: Classes and Interfaces</em><br>
-                <span style="font-size:.88rem;color:#555;">Items 15-25 • 11 Items</span>
+                <strong>🎉 Chapter 5 Complete!</strong><br>
+                <em>Chapter 5: Generics — Items 26-33</em>
             </div>
         </div>
 
         <div class="concepts-row">
             <strong class="tr-text">🔍 Kavramlar:</strong>
             <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
-            <button class="concept-btn" onclick="openModal('nested-classes')">4 İç Sınıf Çeşidi</button>
+            <button class="concept-btn" onclick="openModal('type-token')">Tür Belirteci (Type Token)</button>
         </div>
 
         <div class="page-footer">
-            <button class="nav-btn" onclick="window.location.href='page-67.html'"><span class="nav-direction">← Önceki
-                    Sayfa</span><span class="nav-info">Sayfa 67 — Sabit arayüzü, etiketli sınıf</span></button>
-            <button class="nav-btn" onclick="window.location.href='page-69.html'">
-                <span class="nav-direction">Sonraki Sayfa →</span>
-                <span class="nav-info">Sayfa 69 — Chapter 5: Jenerikler</span>
-            </button>
+            <button class="nav-btn" onclick="window.location.href='page-72.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 72 — PECS kuralı</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-74.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 74 — Chapter 6: Enum &amp; Anotasyonlar</span></button>
         </div>
     </div>
 
-    <div class="modal-overlay" id="modal-nested-classes">
+    <div class="modal-overlay" id="modal-type-token">
         <div class="modal">
             <div class="modal-header">
-                <h3>4 İç Sınıf Çeşidi</h3><button class="modal-close" onclick="closeModal('nested-classes')">✕</button>
+                <h3>Tür Belirteci (Type Token)</h3><button class="modal-close"
+                    onclick="closeModal('type-token')">✕</button>
             </div>
             <div class="modal-body">
                 <div class="tr-text">
-                    <p><b>1. Statik üye sınıfı:</b> <code>static class Inner</code> — dış örneğe referansı yok. En
-                        güvenli ve en yaygın.<br>
-                        <b>2. Statik olmayan üye sınıfı:</b> <code>class Inner</code> — dış örneğe gizli referans taşır.
-                        Bellek sızıntısı riski!<br>
-                        <b>3. Anonim sınıf:</b> Artık lambda kullanın.<br>
-                        <b>4. Yerel sınıf:</b> Blok içinde tanımlı, nadiren kullanılır.
-                    </p>
-                    <p><b>Altın kural:</b> Dış örneğe erişim gerekmiyorsa → <code>static</code> yapın!</p>
+                    <p>Bir <code>Class&lt;T&gt;</code> nesnesi, çalışma zamanında tür bilgisini taşımak için <b>tür
+                            belirteci</b> olarak kullanılır. Bu, tür silmesini aşmanın bir yoludur:</p>
+                    <p>• <code>String.class</code> → <code>Class&lt;String&gt;</code> türünde<br>•
+                        <code>Integer.class</code> → <code>Class&lt;Integer&gt;</code> türünde</p>
+                    <p>Heterojen kapsayıcılarda anahtar olarak kullanılır. <code>type.cast()</code> ile güvenli dönüşüm
+                        yapılır.</p>
                 </div>
                 <div class="en-text" style="display:none">
-                    <p>1) Static member class — no enclosing ref. 2) Nonstatic — hidden ref, memory risk. 3) Anonymous —
-                        use lambdas. 4) Local — rare. Rule: if no enclosing access needed, use <code>static</code>.</p>
+                    <p>A <code>Class&lt;T&gt;</code> object used as a type token carries runtime type info, bypassing
+                        erasure. Used as keys in heterogeneous containers.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>const CURRENT_PAGE = 68;</script>
+    <script>const CURRENT_PAGE = 73;</script>
     <script src="../js/common.js"></script>
 </body>
 

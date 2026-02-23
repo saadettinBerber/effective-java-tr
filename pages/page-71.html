@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Effective Java — Sayfa 68</title>
+    <title>Effective Java — Sayfa 71</title>
     <style>
         *,
         *::before,
@@ -55,8 +55,7 @@
         .topbar-right {
             display: flex;
             align-items: center;
-            gap: .75rem;
-            flex-wrap: wrap
+            gap: .75rem
         }
 
         .lang-btn {
@@ -164,6 +163,16 @@
             margin-bottom: 1.2rem
         }
 
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
         .summary-box {
             background: #e8f4e8;
             border-left: 4px solid #27ae60;
@@ -172,16 +181,6 @@
             margin: 1.5rem 0;
             font-size: .93rem;
             color: #1a5c1a
-        }
-
-        .chapter-end-box {
-            background: #e3f2fd;
-            border: 2px solid #1976d2;
-            padding: 1.2rem;
-            border-radius: 8px;
-            margin: 2rem 0;
-            text-align: center;
-            color: #0d2137
         }
 
         p {
@@ -378,15 +377,14 @@
     <div class="topbar">
         <div class="topbar-left">
             <span class="topbar-title">Effective Java — Joshua Bloch</span>
-            <span class="topbar-sub">Chapter 4 &nbsp;›&nbsp; Item 24-25: İç Sınıflar &amp; Tek Üst Düzey Sınıf / Bölüm 4
-                Sonu</span>
+            <span class="topbar-sub">Chapter 5 &nbsp;›&nbsp; Item 29-30: Jenerik Türler &amp; Jenerik Metotlar</span>
         </div>
         <div class="topbar-right">
             <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
             <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
             <div class="page-nav-input-wrap">
                 <label for="pageNumInput">Sayfa</label>
-                <input type="text" id="pageNumInput" value="68" inputmode="numeric"
+                <input type="text" id="pageNumInput" value="71" inputmode="numeric"
                     onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
                 <div id="pageNavTooltip"></div>
             </div>
@@ -394,150 +392,102 @@
     </div>
 
     <div class="container">
-        <div class="page-label">Sayfa 68 / Page 68</div>
-        <div class="chapter-badge">Chapter 4 — Item 24-25 / Bölüm 4 Sonu</div>
+        <div class="page-label">Sayfa 71 / Page 71</div>
+        <div class="chapter-badge">Chapter 5 — Item 29-30</div>
 
-        <h2 class="item-title">Madde 24: Statik Üye Sınıflarını Statik Olmayanlara Tercih Edin</h2>
-        <p class="item-title-en">Item 24: Favor static member classes over nonstatic</p>
+        <h2 class="item-title">Madde 29: Jenerik Türleri Tercih Edin</h2>
+        <p class="item-title-en">Item 29: Favor generic types</p>
 
         <div class="tr-text">
-            <p>İç sınıfların (nested classes) <b>dört çeşidi</b> vardır:</p>
+            <p>Jenerik türler yazmak, istemci kodunda dönüşüm (cast) gerektiren türlere göre hem <b>daha güvenli</b> hem
+                de <b>kullanımı daha kolaydır</b>. Yeni bir tür tasarladığınızda, olası istemcilerin dönüşüm yapmasını
+                gerektirmeyen bir tür sağlayın. Bu genellikle türü jenerikleştirmek anlamına gelir.</p>
 
-            <p><b>1. Statik üye sınıfları (static member classes):</b> En yaygın tür. Dış sınıfın bir yardımcısı olarak
-                düşünün. Dış sınıfa başvuru tutmazlar. <code>Map</code> uygulamalarındaki <code>Entry</code> nesneleri
-                güzel bir örnektir — her giriş bir harita ile ilişkilidir ama <code>Entry</code> metotlarının haritanın
-                kendisine erişmesi gerekmez.</p>
+            <p>Madde 7'deki basit yığın (stack) uygulamasını ele alalım — <code>Object[]</code> tabanlı versiyondu. Bunu
+                jenerikleştirmek için iki yaklaşım vardır:</p>
 
-            <p><b>2. Statik olmayan üye sınıfları (nonstatic member classes):</b> Her örnek, çevreleyen sınıfın bir
-                örneğiyle örtük olarak ilişkilidir. İç örnek, dış örneğin metotlarını çağırabilir ve
-                <code>OuterClass.this</code> ile ona referans alabilir. <b>Dikkat:</b> Çevreleyen örneğe referans
-                fazladan bellek tüketir ve çöp toplayıcının (GC) dış örneği toplamasını engelleyebilir — gizli bellek
-                sızıntısı!
-            </p>
+            <p><b>Yaklaşım 1:</b> <code>Object[]</code>'i <code>E[]</code>'ye dönüştürün ve
+                <code>@SuppressWarnings</code> ile bastırın. Daha okunabilir, daha kısa, daha yaygın.</p>
 
-            <p><b>3. Anonim sınıflar (anonymous classes):</b> Adı olmayan, bildirildikleri yerde anlık olarak
-                oluşturulan sınıflar. Lambda'lardan önce küçük işlev nesneleri (function objects) için kullanılırdı.
-                Artık lambda ifadeleri her zaman tercih edilmelidir (Madde 42).</p>
-
-            <p><b>4. Yerel sınıflar (local classes):</b> Bir blok içinde bildirilen, en az kullanılan çeşit.</p>
-
-            <p><b>Kural:</b> İç sınıfın dış örneğe erişmesi <b>gerekmiyorsa</b>, <code>static</code> yapın. Aksi halde
-                her iç sınıf örneği dış örneğe gizli bir referans taşır — bellek ve performans maliyeti!</p>
+            <p><b>Yaklaşım 2:</b> Alanı <code>Object[]</code> olarak bırakın, her <code>pop</code> işleminde
+                <code>(E)</code> dönüşümü yapın. Tür silme ile <code>E</code> çalışma zamanında <code>Object</code>
+                olduğundan dönüşüm güvenlidir — ancak her erişimde dönüşüm gerekir.</p>
         </div>
 
         <div class="en-text" style="display:none">
-            <p>Four kinds: 1) Static member classes (no enclosing instance ref). 2) Nonstatic member classes (hidden ref
-                to enclosing instance — memory leak risk!). 3) Anonymous classes (prefer lambdas). 4) Local classes
-                (rare). Rule: if no access to enclosing instance needed, make it <code>static</code>.</p>
-        </div>
-
-        <!-- Item 25 -->
-        <h2 class="item-title">Madde 25: Kaynak Dosyalarını Tek Bir Üst Düzey Sınıfla Sınırlayın</h2>
-        <p class="item-title-en">Item 25: Limit source files to a single top-level class</p>
-
-        <div class="tr-text">
-            <p>Java derleyicisi tek bir kaynak dosyada birden çok üst düzey sınıf tanımlamanıza izin verse de, bunu
-                yapmanın <b>hiçbir faydası yoktur ve ciddi riskleri vardır</b>. Risk, bir sınıfa birden çok tanım
-                sağlama olasılığından kaynaklanır — hangi tanımın kullanılacağı dosyaların derleyiciye verilme
-                <b>sırasına</b> bağlıdır.
-            </p>
-        </div>
-        <div class="en-text" style="display:none">
-            <p>Java allows multiple top-level classes in one file, but it's risky — which definition is used depends on
-                compilation order.</p>
+            <p>Generic types are safer and easier than types requiring casts. Two approaches to generify a Stack: 1)
+                Cast the array to <code>E[]</code> with SuppressWarnings. 2) Keep <code>Object[]</code> and cast on each
+                pop.</p>
         </div>
 
         <div class="code-block">
-            <span class="cm">// Main.java</span>
-            <span class="kw">public class</span> <span class="cl">Main</span> {
-            <span class="kw">public static void</span> main(<span class="cl">String</span>[] args) {
-            <span class="cl">System</span>.out.println(<span class="cl">Utensil</span>.NAME + <span
-                class="cl">Dessert</span>.NAME);
+            <span class="cm">// Jenerikleştirilmiş Stack — Yaklaşım 1</span>
+            <span class="kw">public class</span> <span class="cl">Stack</span>&lt;<span class="cl">E</span>&gt; {
+            <span class="kw">private</span> <span class="cl">E</span>[] elements;
+
+            <span class="an">@SuppressWarnings</span>(<span class="st">"unchecked"</span>)
+            <span class="kw">public</span> Stack() {
+            elements = (<span class="cl">E</span>[]) <span class="kw">new</span> <span
+                class="cl">Object</span>[DEFAULT_CAPACITY];
             }
+            <span class="kw">public void</span> push(<span class="cl">E</span> e) { ... }
+            <span class="kw">public</span> <span class="cl">E</span> pop() { ... }
             }
-            <span class="cm">// Utensil.java — her sınıf kendi dosyasında olmalı!</span>
-            <span class="kw">class</span> <span class="cl">Utensil</span> { <span class="kw">static final</span> <span
-                class="cl">String</span> NAME = <span class="st">"pot"</span>; }
-            <span class="kw">class</span> <span class="cl">Dessert</span> { <span class="kw">static final</span> <span
-                class="cl">String</span> NAME = <span class="st">"pie"</span>; }
         </div>
 
+        <!-- Item 30 -->
+        <h2 class="item-title">Madde 30: Jenerik Metotları Tercih Edin</h2>
+        <p class="item-title-en">Item 30: Favor generic methods</p>
+
         <div class="tr-text">
-            <p><b>Çözüm basittir:</b> Asla tek bir kaynak dosyaya birden fazla üst düzey sınıf koymayın. Alternatif
-                olarak, statik üye sınıflarını kullanabilirsiniz. Bu, programınızın derleme sırasından bağımsız olarak
-                aynı davranacağını garanti eder.</p>
-
-            <div class="summary-box">
-                <strong>Bölüm 4 — Genel Özet:</strong><br>
-                • <b>Madde 15:</b> Erişilebilirliği en aza indirin<br>
-                • <b>Madde 16:</b> Genel sınıflarda erişimci metotlar kullanın<br>
-                • <b>Madde 17:</b> Değişmezliği en aza indirin<br>
-                • <b>Madde 18:</b> Kalıtım yerine bileşimi tercih edin<br>
-                • <b>Madde 19:</b> Kalıtım için tasarlayın veya yasaklayın<br>
-                • <b>Madde 20:</b> Soyut sınıflar yerine arayüzleri tercih edin<br>
-                • <b>Madde 21:</b> Arayüzleri sonrası için dikkatle tasarlayın<br>
-                • <b>Madde 22:</b> Arayüzleri yalnızca tür tanımlamak için kullanın<br>
-                • <b>Madde 23:</b> Etiketli sınıflar yerine sınıf hiyerarşileri<br>
-                • <b>Madde 24:</b> Statik üye sınıflarını tercih edin<br>
-                • <b>Madde 25:</b> Kaynak dosyasına tek üst düzey sınıf
-            </div>
-
-            <div class="chapter-end-box">
-                <strong>🎉 Bölüm 4 Tamamlandı!</strong><br>
-                <em>Chapter 4: Classes and Interfaces</em><br>
-                <span style="font-size:.88rem;color:#555;">Madde 15-25 • 11 Madde</span>
-            </div>
+            <p>Sınıflar jenerik olabildiği gibi, <b>metotlar da jenerik olabilir</b>. Statik yardımcı metotlar
+                jenerikleştirmeye özellikle uygundur. <code>Collections</code>'daki tüm "algoritma" metotları
+                (<code>binarySearch</code>, <code>sort</code>) jeneriktir.</p>
         </div>
 
         <div class="en-text" style="display:none">
-            <div class="chapter-end-box">
-                <strong>🎉 Chapter 4 Complete!</strong><br>
-                <em>Chapter 4: Classes and Interfaces</em><br>
-                <span style="font-size:.88rem;color:#555;">Items 15-25 • 11 Items</span>
-            </div>
+            <p>Methods can also be generic. Static utility methods are especially good candidates.</p>
         </div>
 
-        <div class="concepts-row">
-            <strong class="tr-text">🔍 Kavramlar:</strong>
-            <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
-            <button class="concept-btn" onclick="openModal('nested-classes')">4 İç Sınıf Çeşidi</button>
+        <div class="code-block">
+            <span class="cm">// Jenerik metot — iki kümenin birleşimi</span>
+            <span class="kw">public static</span> &lt;<span class="cl">E</span>&gt; <span class="cl">Set</span>&lt;<span
+                class="cl">E</span>&gt; union(<span class="cl">Set</span>&lt;<span class="cl">E</span>&gt; s1, <span
+                class="cl">Set</span>&lt;<span class="cl">E</span>&gt; s2) {
+            <span class="cl">Set</span>&lt;<span class="cl">E</span>&gt; result = <span class="kw">new</span> <span
+                class="cl">HashSet</span>&lt;&gt;(s1);
+            result.addAll(s2);
+            <span class="kw">return</span> result;
+            }
         </div>
+
+        <div class="tr-text">
+            <p><b>Özyinelemeli tür sınırı</b> (recursive type bound): <code>&lt;E extends Comparable&lt;E&gt;&gt;</code>
+                — "Kendisiyle karşılaştırılabilir herhangi bir E türü." Her <code>Comparable</code> kullanan metotta
+                yaygındır:</p>
+        </div>
+        <div class="en-text" style="display:none">
+            <p>Recursive type bound: <code>&lt;E extends Comparable&lt;E&gt;&gt;</code> — "any type E that is comparable
+                to itself."</p>
+        </div>
+
+        <div class="code-block">
+            <span class="kw">public static</span> &lt;<span class="cl">E</span> <span class="kw">extends</span> <span
+                class="cl">Comparable</span>&lt;<span class="cl">E</span>&gt;&gt; <span class="cl">E</span> max(<span
+                class="cl">Collection</span>&lt;<span class="cl">E</span>&gt; c) { ... }
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 31 (sınırlı joker türleri) sonraki sayfada.</div>
 
         <div class="page-footer">
-            <button class="nav-btn" onclick="window.location.href='page-67.html'"><span class="nav-direction">← Önceki
-                    Sayfa</span><span class="nav-info">Sayfa 67 — Sabit arayüzü, etiketli sınıf</span></button>
-            <button class="nav-btn" onclick="window.location.href='page-69.html'">
-                <span class="nav-direction">Sonraki Sayfa →</span>
-                <span class="nav-info">Sayfa 69 — Chapter 5: Jenerikler</span>
-            </button>
+            <button class="nav-btn" onclick="window.location.href='page-70.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 70 — unchecked, listeler vs diziler</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-72.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 72 — Sınırlı joker türleri</span></button>
         </div>
     </div>
 
-    <div class="modal-overlay" id="modal-nested-classes">
-        <div class="modal">
-            <div class="modal-header">
-                <h3>4 İç Sınıf Çeşidi</h3><button class="modal-close" onclick="closeModal('nested-classes')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="tr-text">
-                    <p><b>1. Statik üye sınıfı:</b> <code>static class Inner</code> — dış örneğe referansı yok. En
-                        güvenli ve en yaygın.<br>
-                        <b>2. Statik olmayan üye sınıfı:</b> <code>class Inner</code> — dış örneğe gizli referans taşır.
-                        Bellek sızıntısı riski!<br>
-                        <b>3. Anonim sınıf:</b> Artık lambda kullanın.<br>
-                        <b>4. Yerel sınıf:</b> Blok içinde tanımlı, nadiren kullanılır.
-                    </p>
-                    <p><b>Altın kural:</b> Dış örneğe erişim gerekmiyorsa → <code>static</code> yapın!</p>
-                </div>
-                <div class="en-text" style="display:none">
-                    <p>1) Static member class — no enclosing ref. 2) Nonstatic — hidden ref, memory risk. 3) Anonymous —
-                        use lambdas. 4) Local — rare. Rule: if no enclosing access needed, use <code>static</code>.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>const CURRENT_PAGE = 68;</script>
+    <script>const CURRENT_PAGE = 71;</script>
     <script src="../js/common.js"></script>
 </body>
 

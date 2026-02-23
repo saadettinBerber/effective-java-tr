@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Effective Java — Sayfa 68</title>
+    <title>Effective Java — Sayfa 70</title>
     <style>
         *,
         *::before,
@@ -164,6 +164,16 @@
             margin-bottom: 1.2rem
         }
 
+        .continued-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
         .summary-box {
             background: #e8f4e8;
             border-left: 4px solid #27ae60;
@@ -174,14 +184,14 @@
             color: #1a5c1a
         }
 
-        .chapter-end-box {
-            background: #e3f2fd;
-            border: 2px solid #1976d2;
-            padding: 1.2rem;
-            border-radius: 8px;
-            margin: 2rem 0;
-            text-align: center;
-            color: #0d2137
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
         }
 
         p {
@@ -378,15 +388,14 @@
     <div class="topbar">
         <div class="topbar-left">
             <span class="topbar-title">Effective Java — Joshua Bloch</span>
-            <span class="topbar-sub">Chapter 4 &nbsp;›&nbsp; Item 24-25: İç Sınıflar &amp; Tek Üst Düzey Sınıf / Bölüm 4
-                Sonu</span>
+            <span class="topbar-sub">Chapter 5 &nbsp;›&nbsp; Item 27-28: Uyarılar &amp; Listeler vs Diziler</span>
         </div>
         <div class="topbar-right">
             <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
             <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
             <div class="page-nav-input-wrap">
                 <label for="pageNumInput">Sayfa</label>
-                <input type="text" id="pageNumInput" value="68" inputmode="numeric"
+                <input type="text" id="pageNumInput" value="70" inputmode="numeric"
                     onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
                 <div id="pageNavTooltip"></div>
             </div>
@@ -394,150 +403,157 @@
     </div>
 
     <div class="container">
-        <div class="page-label">Sayfa 68 / Page 68</div>
-        <div class="chapter-badge">Chapter 4 — Item 24-25 / Bölüm 4 Sonu</div>
+        <div class="page-label">Sayfa 70 / Page 70</div>
+        <div class="chapter-badge">Chapter 5 — Item 27-28</div>
 
-        <h2 class="item-title">Madde 24: Statik Üye Sınıflarını Statik Olmayanlara Tercih Edin</h2>
-        <p class="item-title-en">Item 24: Favor static member classes over nonstatic</p>
+        <h2 class="item-title">Madde 27: Denetimsiz Uyarıları Ortadan Kaldırın</h2>
+        <p class="item-title-en">Item 27: Eliminate unchecked warnings</p>
 
         <div class="tr-text">
-            <p>İç sınıfların (nested classes) <b>dört çeşidi</b> vardır:</p>
+            <p>Jeneriklerle programladığınızda birçok derleyici uyarısı göreceksiniz: <b>denetimsiz dönüşüm</b>
+                (unchecked cast), <b>denetimsiz metot çağrısı</b>, <b>denetimsiz parametreli vararg türü</b> ve
+                <b>denetimsiz tür dönüşümü</b> uyarıları. Ortadan kaldırabildiğiniz <b>her denetimsiz uyarıyı ortadan
+                    kaldırın</b> — kodunuzun tür güvenli (typesafe) olduğundan emin olun.</p>
 
-            <p><b>1. Statik üye sınıfları (static member classes):</b> En yaygın tür. Dış sınıfın bir yardımcısı olarak
-                düşünün. Dış sınıfa başvuru tutmazlar. <code>Map</code> uygulamalarındaki <code>Entry</code> nesneleri
-                güzel bir örnektir — her giriş bir harita ile ilişkilidir ama <code>Entry</code> metotlarının haritanın
-                kendisine erişmesi gerekmez.</p>
-
-            <p><b>2. Statik olmayan üye sınıfları (nonstatic member classes):</b> Her örnek, çevreleyen sınıfın bir
-                örneğiyle örtük olarak ilişkilidir. İç örnek, dış örneğin metotlarını çağırabilir ve
-                <code>OuterClass.this</code> ile ona referans alabilir. <b>Dikkat:</b> Çevreleyen örneğe referans
-                fazladan bellek tüketir ve çöp toplayıcının (GC) dış örneği toplamasını engelleyebilir — gizli bellek
-                sızıntısı!
-            </p>
-
-            <p><b>3. Anonim sınıflar (anonymous classes):</b> Adı olmayan, bildirildikleri yerde anlık olarak
-                oluşturulan sınıflar. Lambda'lardan önce küçük işlev nesneleri (function objects) için kullanılırdı.
-                Artık lambda ifadeleri her zaman tercih edilmelidir (Madde 42).</p>
-
-            <p><b>4. Yerel sınıflar (local classes):</b> Bir blok içinde bildirilen, en az kullanılan çeşit.</p>
-
-            <p><b>Kural:</b> İç sınıfın dış örneğe erişmesi <b>gerekmiyorsa</b>, <code>static</code> yapın. Aksi halde
-                her iç sınıf örneği dış örneğe gizli bir referans taşır — bellek ve performans maliyeti!</p>
+            <p>Bir uyarıyı ortadan kaldıramıyorsanız ama kodun güvenli olduğunu <b>kanıtlayabiliyorsanız</b>, o zaman
+                (ve ancak o zaman) <code>@SuppressWarnings("unchecked")</code> ile bastırın. Bastırma notasyonunu her
+                zaman <b>mümkün olan en dar kapsamda</b> kullanın — hiçbir zaman sınıf düzeyinde değil!</p>
         </div>
 
         <div class="en-text" style="display:none">
-            <p>Four kinds: 1) Static member classes (no enclosing instance ref). 2) Nonstatic member classes (hidden ref
-                to enclosing instance — memory leak risk!). 3) Anonymous classes (prefer lambdas). 4) Local classes
-                (rare). Rule: if no access to enclosing instance needed, make it <code>static</code>.</p>
-        </div>
-
-        <!-- Item 25 -->
-        <h2 class="item-title">Madde 25: Kaynak Dosyalarını Tek Bir Üst Düzey Sınıfla Sınırlayın</h2>
-        <p class="item-title-en">Item 25: Limit source files to a single top-level class</p>
-
-        <div class="tr-text">
-            <p>Java derleyicisi tek bir kaynak dosyada birden çok üst düzey sınıf tanımlamanıza izin verse de, bunu
-                yapmanın <b>hiçbir faydası yoktur ve ciddi riskleri vardır</b>. Risk, bir sınıfa birden çok tanım
-                sağlama olasılığından kaynaklanır — hangi tanımın kullanılacağı dosyaların derleyiciye verilme
-                <b>sırasına</b> bağlıdır.
+            <p>Eliminate every unchecked warning you can. If you can prove code is typesafe, suppress with
+                <code>@SuppressWarnings("unchecked")</code> on the narrowest possible scope. Never on an entire class.
             </p>
-        </div>
-        <div class="en-text" style="display:none">
-            <p>Java allows multiple top-level classes in one file, but it's risky — which definition is used depends on
-                compilation order.</p>
         </div>
 
         <div class="code-block">
-            <span class="cm">// Main.java</span>
-            <span class="kw">public class</span> <span class="cl">Main</span> {
-            <span class="kw">public static void</span> main(<span class="cl">String</span>[] args) {
-            <span class="cl">System</span>.out.println(<span class="cl">Utensil</span>.NAME + <span
-                class="cl">Dessert</span>.NAME);
+            <span class="cm">// Kapsam daraltma — yerel değişkene taşıyın</span>
+            <span class="kw">public</span> &lt;<span class="cl">T</span>&gt; <span class="cl">T</span>[] toArray(<span
+                class="cl">T</span>[] a) {
+            <span class="kw">if</span> (a.length &lt; size) {
+            <span class="an">@SuppressWarnings</span>(<span class="st">"unchecked"</span>) <span class="cl">T</span>[]
+            result =
+            (<span class="cl">T</span>[]) <span class="cl">Arrays</span>.copyOf(elements, size, a.getClass());
+            <span class="kw">return</span> result; <span class="cm">// Bastırma sadece bu satırda</span>
             }
+            ...
             }
-            <span class="cm">// Utensil.java — her sınıf kendi dosyasında olmalı!</span>
-            <span class="kw">class</span> <span class="cl">Utensil</span> { <span class="kw">static final</span> <span
-                class="cl">String</span> NAME = <span class="st">"pot"</span>; }
-            <span class="kw">class</span> <span class="cl">Dessert</span> { <span class="kw">static final</span> <span
-                class="cl">String</span> NAME = <span class="st">"pie"</span>; }
         </div>
 
         <div class="tr-text">
-            <p><b>Çözüm basittir:</b> Asla tek bir kaynak dosyaya birden fazla üst düzey sınıf koymayın. Alternatif
-                olarak, statik üye sınıflarını kullanabilirsiniz. Bu, programınızın derleme sırasından bağımsız olarak
-                aynı davranacağını garanti eder.</p>
+            <p><code>@SuppressWarnings</code> kullandığınız her yerde <b>neden güvenli olduğunu açıklayan bir yorum
+                    ekleyin</b>.</p>
+        </div>
 
-            <div class="summary-box">
-                <strong>Bölüm 4 — Genel Özet:</strong><br>
-                • <b>Madde 15:</b> Erişilebilirliği en aza indirin<br>
-                • <b>Madde 16:</b> Genel sınıflarda erişimci metotlar kullanın<br>
-                • <b>Madde 17:</b> Değişmezliği en aza indirin<br>
-                • <b>Madde 18:</b> Kalıtım yerine bileşimi tercih edin<br>
-                • <b>Madde 19:</b> Kalıtım için tasarlayın veya yasaklayın<br>
-                • <b>Madde 20:</b> Soyut sınıflar yerine arayüzleri tercih edin<br>
-                • <b>Madde 21:</b> Arayüzleri sonrası için dikkatle tasarlayın<br>
-                • <b>Madde 22:</b> Arayüzleri yalnızca tür tanımlamak için kullanın<br>
-                • <b>Madde 23:</b> Etiketli sınıflar yerine sınıf hiyerarşileri<br>
-                • <b>Madde 24:</b> Statik üye sınıflarını tercih edin<br>
-                • <b>Madde 25:</b> Kaynak dosyasına tek üst düzey sınıf
-            </div>
+        <h2 class="item-title">Madde 28: Diziler Yerine Listeleri Tercih Edin</h2>
+        <p class="item-title-en">Item 28: Prefer lists to arrays</p>
 
-            <div class="chapter-end-box">
-                <strong>🎉 Bölüm 4 Tamamlandı!</strong><br>
-                <em>Chapter 4: Classes and Interfaces</em><br>
-                <span style="font-size:.88rem;color:#555;">Madde 15-25 • 11 Madde</span>
-            </div>
+        <div class="tr-text">
+            <p>Diziler jeneriklerden iki önemli şekilde ayrılır:</p>
+
+            <p><b>1. Diziler kovaryant (covariant):</b> <code>Sub</code>, <code>Super</code>'in alt türüyse,
+                <code>Sub[]</code> de <code>Super[]</code>'in alt türüdür. Jenerikler <b>değişmez (invariant):</b>
+                <code>List&lt;Sub&gt;</code>, <code>List&lt;Super&gt;</code>'in ne alt türü ne de üst türüdür.</p>
         </div>
 
         <div class="en-text" style="display:none">
-            <div class="chapter-end-box">
-                <strong>🎉 Chapter 4 Complete!</strong><br>
-                <em>Chapter 4: Classes and Interfaces</em><br>
-                <span style="font-size:.88rem;color:#555;">Items 15-25 • 11 Items</span>
-            </div>
+            <p>Arrays are covariant (Sub[] is subtype of Super[]). Generics are invariant (List&lt;Sub&gt; is unrelated
+                to List&lt;Super&gt;).</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Çalışma zamanında başarısız olur!</span>
+            <span class="cl">Object</span>[] objectArray = <span class="kw">new</span> <span
+                class="cl">Long</span>[<span class="num">1</span>];
+            objectArray[<span class="num">0</span>] = <span class="st">"Sığmam!"</span>; <span class="cm">//
+                ArrayStoreException!</span>
+
+            <span class="cm">// Derleme zamanında yakalar — tercih edin!</span>
+            <span class="cl">List</span>&lt;<span class="cl">Object</span>&gt; ol = <span class="kw">new</span> <span
+                class="cl">ArrayList</span>&lt;<span class="cl">Long</span>&gt;(); <span class="cm">// Derleme
+                HATASI</span>
+        </div>
+
+        <div class="tr-text">
+            <p><b>2. Diziler somutlaştırılır (reified):</b> Çalışma zamanında eleman türünü bilir ve zorunlu kılar.
+                Jenerikler <b>tür silme (erasure)</b> ile uygulanır — tür bilgisi yalnızca derleme zamanında ve çalışma
+                zamanında silinir. Bu nedenle <b>jenerik diziler</b> (örn. <code>new List&lt;String&gt;[]</code>)
+                <b>oluşturulamaz</b>!</p>
+
+            <p>Bir jenerik dizi oluşturma hatası aldığınızda çözüm genellikle <code>E[]</code> yerine
+                <code>List&lt;E&gt;</code> kullanmaktır. Biraz performans veya kısalık kaybedebilirsiniz, ama tür
+                güvenliği ve birlikte çalışabilirlik kazanırsınız.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Arrays are reified (enforce type at runtime). Generics use erasure (types erased at runtime). You can't
+                create generic arrays (<code>new List&lt;String&gt;[]</code>). When you get generic array creation
+                errors, use <code>List&lt;E&gt;</code> instead of <code>E[]</code>.</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 29-30 (jenerik türler, jenerik metotlar) sonraki sayfada.
         </div>
 
         <div class="concepts-row">
             <strong class="tr-text">🔍 Kavramlar:</strong>
             <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
-            <button class="concept-btn" onclick="openModal('nested-classes')">4 İç Sınıf Çeşidi</button>
+            <button class="concept-btn" onclick="openModal('covariant')">Kovaryans vs Değişmezlik</button>
+            <button class="concept-btn" onclick="openModal('erasure')">Tür Silme (Erasure)</button>
         </div>
 
         <div class="page-footer">
-            <button class="nav-btn" onclick="window.location.href='page-67.html'"><span class="nav-direction">← Önceki
-                    Sayfa</span><span class="nav-info">Sayfa 67 — Sabit arayüzü, etiketli sınıf</span></button>
-            <button class="nav-btn" onclick="window.location.href='page-69.html'">
-                <span class="nav-direction">Sonraki Sayfa →</span>
-                <span class="nav-info">Sayfa 69 — Chapter 5: Jenerikler</span>
-            </button>
+            <button class="nav-btn" onclick="window.location.href='page-69.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 69 — Ham türler, jenerik terminoloji</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-71.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 71 — Jenerik türler ve metotlar</span></button>
         </div>
     </div>
 
-    <div class="modal-overlay" id="modal-nested-classes">
+    <div class="modal-overlay" id="modal-covariant">
         <div class="modal">
             <div class="modal-header">
-                <h3>4 İç Sınıf Çeşidi</h3><button class="modal-close" onclick="closeModal('nested-classes')">✕</button>
+                <h3>Kovaryans vs Değişmezlik</h3><button class="modal-close"
+                    onclick="closeModal('covariant')">✕</button>
             </div>
             <div class="modal-body">
                 <div class="tr-text">
-                    <p><b>1. Statik üye sınıfı:</b> <code>static class Inner</code> — dış örneğe referansı yok. En
-                        güvenli ve en yaygın.<br>
-                        <b>2. Statik olmayan üye sınıfı:</b> <code>class Inner</code> — dış örneğe gizli referans taşır.
-                        Bellek sızıntısı riski!<br>
-                        <b>3. Anonim sınıf:</b> Artık lambda kullanın.<br>
-                        <b>4. Yerel sınıf:</b> Blok içinde tanımlı, nadiren kullanılır.
-                    </p>
-                    <p><b>Altın kural:</b> Dış örneğe erişim gerekmiyorsa → <code>static</code> yapın!</p>
+                    <p><b>Kovaryant (covariant):</b> <code>Integer[]</code>, <code>Number[]</code>'in alt türüdür.
+                        Çalışma zamanında yanlış tür atanırsa <code>ArrayStoreException</code> fırlatılır.</p>
+                    <p><b>Değişmez (invariant):</b> <code>List&lt;Integer&gt;</code>, <code>List&lt;Number&gt;</code>
+                        ile ilişkisizdir. Yanlış kullanım derleme zamanında yakalanır — daha güvenli.</p>
                 </div>
                 <div class="en-text" style="display:none">
-                    <p>1) Static member class — no enclosing ref. 2) Nonstatic — hidden ref, memory risk. 3) Anonymous —
-                        use lambdas. 4) Local — rare. Rule: if no enclosing access needed, use <code>static</code>.</p>
+                    <p>Covariant: <code>Integer[]</code> is subtype of <code>Number[]</code> — runtime errors.
+                        Invariant: <code>List&lt;Integer&gt;</code> unrelated to <code>List&lt;Number&gt;</code> —
+                        compile-time safety.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>const CURRENT_PAGE = 68;</script>
+    <div class="modal-overlay" id="modal-erasure">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Tür Silme (Type Erasure)</h3><button class="modal-close" onclick="closeModal('erasure')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Jenerikler <b>tür silme</b> ile uygulanır: Derleme zamanında tür kontrolü yapılır, çalışma
+                        zamanında tür parametreleri silinir. <code>List&lt;String&gt;</code> çalışma zamanında sadece
+                        <code>List</code>'tir. Bu nedenle:</p>
+                    <p>• <code>new T()</code> yazamazsınız<br>• <code>new List&lt;String&gt;[]</code>
+                        oluşturamazsınız<br>• <code>instanceof List&lt;String&gt;</code> test edemezsiniz</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Generics use erasure: type info exists at compile time, erased at runtime. Can't:
+                        <code>new T()</code>, <code>new List&lt;String&gt;[]</code>,
+                        <code>instanceof List&lt;String&gt;</code>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 70;</script>
     <script src="../js/common.js"></script>
 </body>
 
