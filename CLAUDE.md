@@ -29,7 +29,7 @@ Bu proje, Joshua Bloch'un "Effective Java (3rd Edition)" kitabını sayfa sayfa 
 ## Son Çevrilen Sayfa Takibi
 
 - **KRİTİK KURAL**: Her çeviri tamamlandığında, bu dosyadaki `last_translated_page` değerini güncelle.
-- **last_translated_page**: 78
+- **last_translated_page**: 84
 - Kullanıcı "sıradaki sayfa", "sonraki sayfa", "next", "devam" gibi ifadeler kullandığında veya `/cevir next` yazdığında, `last_translated_page + 1` sayfasını çevir.
 - Eğer `last_translated_page` değeri 0 ise ve kullanıcı "sıradaki" derse, sayfa 1'den başla.
 

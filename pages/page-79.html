@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 79</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        h2.item-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0d2137;
+            margin: 2rem 0 .3rem;
+            border-bottom: 2px solid #f5a623;
+            padding-bottom: .3rem;
+            display: inline-block
+        }
+
+        h2.chapter-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0d2137;
+            margin: 1rem 0 .5rem;
+            border-bottom: 3px solid #f5a623;
+            padding-bottom: .4rem
+        }
+
+        p.item-title-en {
+            font-size: .85rem;
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .summary-box {
+            background: #e8f4e8;
+            border-left: 4px solid #27ae60;
+            padding: 1rem 1.2rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+            font-size: .93rem;
+            color: #1a5c1a
+        }
+
+        .chapter-end-box {
+            background: #e3f2fd;
+            border: 2px solid #1976d2;
+            padding: 1.2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            text-align: center;
+            color: #0d2137
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 8 &nbsp;›&nbsp; Metotlar — Item 49-52</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="79" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 79 / Page 79</div>
+        <div class="chapter-badge">Chapter 8 — Metotlar (Methods)</div>
+
+        <h2 class="chapter-title">Bölüm 8: Metotlar</h2>
+
+        <div class="tr-text">
+            <p>Bu bölüm metot tasarımının çeşitli yönlerini ele alır: parametreleri ve dönüş değerlerini nasıl ele
+                almalı, metot imzalarını nasıl tasarlamalı ve metotları nasıl belgelemelisiniz.</p>
+        </div>
+        <div class="en-text" style="display:none">
+            <p>This chapter covers method design: parameters, return values, signatures, and documentation.</p>
+        </div>
+
+        <h2 class="item-title">Madde 49: Parametrelerin Geçerliliğini Kontrol Edin</h2>
+        <p class="item-title-en">Item 49: Check parameters for validity</p>
+
+        <div class="tr-text">
+            <p>Metotların ve yapıcıların çoğu, parametre değerleri üzerinde kısıtlamalar gerektirir. Bu kısıtlamaları
+                <b>metodun başında kontrol edin</b> — hatayı mümkün olan en erken noktada yakalayın. Genel (public)
+                metotlar için <code>@throws</code> Javadoc etiketi ile belgelendirin.</p>
+
+            <p>Java 7'den itibaren <code>Objects.requireNonNull</code> kullanarak <code>null</code> kontrolü
+                yapabilirsiniz. Java 9'da <code>checkFromIndexSize</code>, <code>checkFromToIndex</code> ve
+                <code>checkIndex</code> eklendi.</p>
+
+            <p><b>Özel metotlarda</b> parametreleri <code>assert</code> (iddia) ile kontrol edin — başarısız olduğunda
+                <code>AssertionError</code> fırlatır ve performans maliyeti yoktur (devre dışı bırakılabilir).</p>
+        </div>
+
+        <h2 class="item-title">Madde 50: Gerektiğinde Savunmacı Kopyalar Yapın</h2>
+        <p class="item-title-en">Item 50: Make defensive copies when needed</p>
+
+        <div class="tr-text">
+            <p>Java güvenli bir dildir, ama <b>istemcilerinizin sınıfınızın değişmezlerini (invariants) bozmaya
+                    çalışacağını varsayın</b>. Değiştirilebilir nesneleri parametre olarak alıyorsanız, bunların
+                <b>savunmacı kopyalarını</b> (defensive copies) yapın:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Savunmacı kopya — değişmezliği korumak için</span>
+            <span class="kw">public</span> Period(<span class="cl">Date</span> start, <span class="cl">Date</span> end)
+            {
+            <span class="kw">this</span>.start = <span class="kw">new</span> <span
+                class="cl">Date</span>(start.getTime()); <span class="cm">// Kopya</span>
+            <span class="kw">this</span>.end = <span class="kw">new</span> <span class="cl">Date</span>(end.getTime());
+            <span class="cm">// Kopya</span>
+            <span class="kw">if</span> (<span class="kw">this</span>.start.compareTo(<span class="kw">this</span>.end)
+            &gt; <span class="num">0</span>)
+            <span class="kw">throw new</span> <span class="cl">IllegalArgumentException</span>(...);
+            }
+        </div>
+
+        <div class="tr-text">
+            <p><b>Önemli:</b> Kopya <b>önce</b> yapılır, doğrulama <b>sonra</b> — TOCTOU (time-of-check / time-of-use)
+                saldırısını önlemek için. Erişimcilerde de savunmacı kopyalar döndürün.</p>
+        </div>
+
+        <h2 class="item-title">Madde 51: Metot İmzalarını Dikkatli Tasarlayın</h2>
+        <p class="item-title-en">Item 51: Design method signatures carefully</p>
+
+        <div class="tr-text">
+            <p><b>Kurallar:</b> Dikkatli isimler seçin, kolaylık metotları aşırıya kaçmayın, uzun parametre
+                listelerinden kaçının (≤4), parametre türleri için sınıflar yerine arayüzleri tercih edin
+                (<code>Map</code> > <code>HashMap</code>), <code>boolean</code> yerine iki elemanlı enum tercih edin.
+            </p>
+        </div>
+
+        <h2 class="item-title">Madde 52: Aşırı Yüklemeyi Dikkatli Kullanın</h2>
+        <p class="item-title-en">Item 52: Use overloading judiciously</p>
+
+        <div class="tr-text">
+            <p><b>Aşırı yükleme</b> (overloading) derleme zamanında, <b>ezme</b> (overriding) çalışma zamanında çözülür!
+                Bu fark kafa karıştırıcıdır. Güvenli kural: <b>Aynı parametre sayısıyla iki aşırı yükleme
+                    sağlamayın</b>. Varargs metotları hiç aşırı yüklemeyin. İstemciler hangi aşırı yüklemenin
+                çağrılacağını bilmek zorunda kalmamalıdır.</p>
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 53-56 (varargs, boş koleksiyonlar, Optional, Javadoc)
+            sonraki sayfada.</div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-78.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 78 — Chapter 7 sonu</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-80.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 80 — varargs, Optional, Javadoc</span></button>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 79;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

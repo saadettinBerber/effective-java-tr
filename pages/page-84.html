@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 84</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .summary-box {
+            background: #e8f4e8;
+            border-left: 4px solid #27ae60;
+            padding: 1rem 1.2rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+            font-size: .93rem;
+            color: #1a5c1a
+        }
+
+        .chapter-end-box {
+            background: #e3f2fd;
+            border: 2px solid #1976d2;
+            padding: 1.2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            text-align: center;
+            color: #0d2137
+        }
+
+        .book-end-box {
+            background: linear-gradient(135deg, #0d2137, #1a3a5c);
+            color: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            text-align: center
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        h2.chapter-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0d2137;
+            margin: 1rem 0 .5rem;
+            border-bottom: 3px solid #f5a623;
+            padding-bottom: .4rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="topbar-left"><span class="topbar-title">Effective Java — Joshua Bloch</span><span
+                class="topbar-sub">Chapter 12 — Serileştirme (Item 85-90) / KİTAP SONU</span></div>
+        <div class="topbar-right"><button class="lang-btn active" data-lang="tr"
+                onclick="setLang('tr')">TR</button><button class="lang-btn" data-lang="en"
+                onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap"><label for="pageNumInput">Sayfa</label><input type="text" id="pageNumInput"
+                    value="84" inputmode="numeric" onkeydown="if(event.key==='Enter')goToPageNum()"
+                    onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="page-label">Sayfa 84 / Page 84</div>
+        <div class="chapter-badge">Chapter 12 — Serileştirme / KİTAP SONU</div>
+        <h2 class="chapter-title">Bölüm 12: Serileştirme</h2>
+        <div class="tr-text">
+            <p><b>Madde 85 — Java serileştirmesine alternatifler tercih edin:</b> Java serileştirmesi ciddi <b>güvenlik
+                    açıkları</b> içerir — saldırganlar kötü amaçlı nesneler oluşturarak uzaktan kod çalıştırabilir.
+                <b>Asla güvenilmeyen verileri Java serileştirme ile deserialize etmeyin!</b> Bunun yerine <b>JSON</b>
+                veya <b>protobuf</b> gibi platformlar arası yapılandırılmış veri gösterimlerini kullanın.</p>
+
+            <p><b>Madde 86 — Serializable'ı büyük dikkatle uygulayın:</b> <code>Serializable</code> uygulamak,
+                sınıfınızı piyasaya sürüldükten sonra değiştirmeyi zorlaştırır, hata ve güvenlik açığı olasılığını
+                artırır ve yeni sürüm yayınlama yükünü çoğaltır. Kalıtım için tasarlanmış sınıflar <b>nadiren</b>
+                <code>Serializable</code> uygulamalıdır.</p>
+
+            <p><b>Madde 87 — Özel serileştirilmiş biçim kullanmayı düşünün:</b> Varsayılan serileştirilmiş biçim
+                (<code>defaultWriteObject</code>) yalnızca nesnenin fiziksel gösterimi mantıksal içeriğiyle aynıysa
+                uygundur. Aksi halde <code>writeObject</code>/<code>readObject</code> ile özel biçim yazın.
+                <code>transient</code> alanları dikkatli işaretleyin.</p>
+
+            <p><b>Madde 88 — readObject metotlarını savunmacı yazın:</b> <code>readObject</code> aslında bir
+                <b>yapıcıdır</b> — aynı kurallara uymalıdır: parametre doğrulama ve gerektiğinde savunmacı kopya. Tüm
+                değişmezleri (invariants) kontrol edin, aksi halde saldırgan bayt akışını manipüle ederek geçersiz
+                nesneler oluşturabilir.</p>
+
+            <p><b>Madde 89 — Örnek kontrolü için readResolve yerine enum türlerini tercih edin:</b> Tekil (singleton)
+                deseni gibi örnek kontrolü gerektiren sınıflarda <code>readResolve</code> kullanılabilir ancak <b>tüm
+                    örnek alanları <code>transient</code> olmalıdır</b>. Daha iyi çözüm: tek elemanlı <code>enum</code>
+                kullanın — <b>otomatik serileştirme garantisi</b> sağlar.</p>
+
+            <p><b>Madde 90 — Serileştirilmiş örnekler yerine serileştirme vekillerini düşünün:</b> <b>Serileştirme
+                    vekili (serialization proxy)</b> deseni: Çevreleyen sınıf için özel bir iç sınıf yazın;
+                <code>writeReplace</code> ile vekili, <code>readResolve</code> ile gerçek nesneyi döndürün. Bu desen
+                hataları ve güvenlik açıklarını büyük ölçüde azaltır.</p>
+
+            <div class="summary-box"><strong>Bölüm 12 — Özet:</strong> 6 kural — JSON/protobuf tercih edin, Serializable
+                dikkatli, özel biçim, savunmacı readObject, tekiller için enum, serileştirme vekili deseni.</div>
+            <div class="chapter-end-box"><strong>🎉 Bölüm 12 Tamamlandı!</strong><br><em>Chapter 12: Serialization —
+                    Madde 85-90 • 6 Madde</em></div>
+
+            <div class="book-end-box">
+                <div style="font-size:2.5rem;margin-bottom:.5rem">🏆</div>
+                <div style="font-size:1.5rem;font-weight:800;margin-bottom:.3rem">Effective Java — Tüm Kitap Tamamlandı!
+                </div>
+                <div style="font-size:1rem;opacity:.9">12 Bölüm • 90 Madde • 84 Çeviri Sayfası</div>
+                <div style="font-size:.85rem;opacity:.7;margin-top:.5rem">Joshua Bloch — 3rd Edition</div>
+            </div>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <div class="book-end-box">
+                <div style="font-size:2.5rem;margin-bottom:.5rem">🏆</div>
+                <div style="font-size:1.5rem;font-weight:800;margin-bottom:.3rem">Effective Java — Complete Translation!
+                </div>
+                <div style="font-size:1rem;opacity:.9">12 Chapters • 90 Items • 84 Pages</div>
+            </div>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-83.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 83 — Chapter 11 sonu</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-1.html'"><span class="nav-direction">Başa Dön
+                    →</span><span class="nav-info">Sayfa 1 — Giriş</span></button>
+        </div>
+    </div>
+    <script>const CURRENT_PAGE = 84;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>

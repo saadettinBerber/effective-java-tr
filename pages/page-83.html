@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 83</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .summary-box {
+            background: #e8f4e8;
+            border-left: 4px solid #27ae60;
+            padding: 1rem 1.2rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+            font-size: .93rem;
+            color: #1a5c1a
+        }
+
+        .chapter-end-box {
+            background: #e3f2fd;
+            border: 2px solid #1976d2;
+            padding: 1.2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            text-align: center;
+            color: #0d2137
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        h2.chapter-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0d2137;
+            margin: 1rem 0 .5rem;
+            border-bottom: 3px solid #f5a623;
+            padding-bottom: .4rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="topbar-left"><span class="topbar-title">Effective Java — Joshua Bloch</span><span
+                class="topbar-sub">Chapter 11 — Eşzamanlılık (Item 78-84)</span></div>
+        <div class="topbar-right"><button class="lang-btn active" data-lang="tr"
+                onclick="setLang('tr')">TR</button><button class="lang-btn" data-lang="en"
+                onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap"><label for="pageNumInput">Sayfa</label><input type="text" id="pageNumInput"
+                    value="83" inputmode="numeric" onkeydown="if(event.key==='Enter')goToPageNum()"
+                    onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="page-label">Sayfa 83 / Page 83</div>
+        <div class="chapter-badge">Chapter 11 — Eşzamanlılık (Concurrency)</div>
+        <h2 class="chapter-title">Bölüm 11: Eşzamanlılık</h2>
+        <div class="tr-text">
+            <p><b>Madde 78 — Paylaşılan değiştirilebilir veriye erişimi senkronize edin:</b> <code>synchronized</code>
+                yalnızca karşılıklı dışlama (mutual exclusion) sağlamaz, aynı zamanda <b>iş parçacıkları arası güvenilir
+                    iletişim</b> garantisi verir. Bir iş parçacığının yaptığı değişiklikler senkronizasyon olmadan diğer
+                iş parçacıklarına <b>görünmeyebilir</b>. En basit çözüm: paylaşılan değiştirilebilir veriyi paylaşmama.
+                Değişmez (immutable) veriyi paylaşın. Verilecekse <code>volatile</code> veya <code>AtomicLong</code>
+                kullanın.</p>
+
+            <p><b>Madde 79 — Aşırı senkronizasyondan kaçının:</b> Senkronize blok içinde asla <b>yabancı metot</b>
+                (alien method) çağırmayın — kilitlenme (deadlock) veya veri bozulması riski!
+                <code>CopyOnWriteArrayList</code> gibi eşzamanlı koleksiyonlar kullanarak kilit içinden dışarı taşıyın.
+            </p>
+
+            <p><b>Madde 80 — İş parçacıkları yerine yürütücüleri, görevleri ve stream'leri tercih edin:</b>
+                <code>ExecutorService</code> kullanın. Doğrudan <code>Thread</code> oluşturmak yerine
+                <code>Executors.newFixedThreadPool()</code>, <code>newCachedThreadPool()</code> veya
+                <code>newSingleThreadExecutor()</code> tercih edin.</p>
+
+            <p><b>Madde 81 — wait/notify yerine eşzamanlılık yardımcılarını tercih edin:</b>
+                <code>ConcurrentHashMap</code>, <code>BlockingQueue</code>, <code>CountDownLatch</code>,
+                <code>Semaphore</code> gibi yüksek düzeyli yardımcıları kullanın. <code>wait</code>/<code>notify</code>
+                kullanmak zorunda kalırsanız, <code>wait</code>'i her zaman bir <b>döngü içinde</b> çağırın.</p>
+
+            <div class="code-block">
+                <span class="cm">// wait her zaman döngü içinde!</span>
+                <span class="kw">synchronized</span> (obj) {
+                <span class="kw">while</span> (!condition)
+                obj.wait();
+                }
+            </div>
+
+            <p><b>Madde 82 — İş parçacığı güvenliğini belgeleyin:</b> Beş düzey: değişmez (immutable), koşulsuz iş
+                parçacığı güvenli, koşullu iş parçacığı güvenli, iş parçacığı güvenli değil, iş parçacığı düşman.
+                <code>Lock</code> alanlarını <code>private final</code> yapın — istemcinin senkronizasyonu bozmasını
+                engelleyin.</p>
+
+            <p><b>Madde 83 — Tembel başlatmayı dikkatli kullanın:</b> Çoğu alan tembel başlatma gerektirmez.
+                Gerekiyorsa: statik alanlar için <b>tembel başlatma tutucu sınıfı idiom'u</b>, örnek alanlar için
+                <b>çift kontrollü kilitleme</b> (double-check locking) kullanın:</p>
+
+            <div class="code-block">
+                <span class="cm">// Tembel başlatma tutucu sınıfı (statik alanlar için)</span>
+                <span class="kw">private static class</span> <span class="cl">FieldHolder</span> {
+                <span class="kw">static final</span> <span class="cl">FieldType</span> field = computeFieldValue();
+                }
+                <span class="kw">private static</span> <span class="cl">FieldType</span> getField() {
+                <span class="kw">return</span> <span class="cl">FieldHolder</span>.field;
+                }
+            </div>
+
+            <p><b>Madde 84 — İş parçacığı zamanlayıcısına bağımlı olmayın:</b> <code>Thread.yield()</code> veya iş
+                parçacığı öncelikleri güvenilir değildir. <code>Thread.yield</code>'in test dışında kullanımı yoktur.
+                Programınızın doğruluğu zamanlayıcıya bağlı olmamalıdır.</p>
+
+            <div class="summary-box"><strong>Bölüm 11 — Özet:</strong> 7 kural — senkronizasyon, aşırı senkronizasyondan
+                kaçınma, yürütücüler, eşzamanlılık yardımcıları, belgeleme, tembel başlatma ve zamanlayıcı bağımsızlığı.
+            </div>
+            <div class="chapter-end-box"><strong>🎉 Bölüm 11 Tamamlandı!</strong><br><em>Chapter 11: Concurrency — Madde
+                    78-84 • 7 Madde</em></div>
+        </div>
+        <div class="en-text" style="display:none">
+            <div class="chapter-end-box"><strong>🎉 Chapter 11 Complete!</strong><br><em>Concurrency — Items 78-84</em>
+            </div>
+        </div>
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-82.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 82 — Chapter 10 sonu</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-84.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 84 — Chapter 12: Serileştirme (Son Bölüm)</span></button>
+        </div>
+    </div>
+    <script>const CURRENT_PAGE = 83;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>
