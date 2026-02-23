@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Effective Java — Sayfa 58</title>
+    <title>Effective Java — Sayfa 62</title>
     <style>
         *,
         *::before,
@@ -174,24 +174,14 @@
             color: #7a5c00
         }
 
-        .summary-box {
-            background: #e8f4e8;
-            border-left: 4px solid #27ae60;
-            padding: 1rem 1.2rem;
-            border-radius: 0 8px 8px 0;
-            margin: 1.5rem 0;
-            font-size: .93rem;
-            color: #1a5c1a
-        }
-
-        .chapter-end-box {
-            background: #e3f2fd;
-            border: 2px solid #1976d2;
-            padding: 1.2rem;
-            border-radius: 8px;
-            margin: 2rem 0;
-            text-align: center;
-            color: #0d2137
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
         }
 
         p {
@@ -380,15 +370,15 @@
     <div class="topbar">
         <div class="topbar-left">
             <span class="topbar-title">Effective Java — Joshua Bloch</span>
-            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 14: Comparable — Tuzaklar &amp; Özet / Bölüm 3
-                Sonu</span>
+            <span class="topbar-sub">Chapter 4 &nbsp;›&nbsp; Item 17: Değişmezlik — Complex &amp; Fonksiyonel
+                Yaklaşım</span>
         </div>
         <div class="topbar-right">
             <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
             <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
             <div class="page-nav-input-wrap">
                 <label for="pageNumInput">Sayfa</label>
-                <input type="text" id="pageNumInput" value="58" inputmode="numeric"
+                <input type="text" id="pageNumInput" value="62" inputmode="numeric"
                     onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
                 <div id="pageNavTooltip"></div>
             </div>
@@ -396,136 +386,112 @@
     </div>
 
     <div class="container">
-        <div class="page-label">Sayfa 58 / Page 58</div>
-        <div class="chapter-badge">Chapter 3 — Item 14 sonu / Bölüm 3 Sonu</div>
+        <div class="page-label">Sayfa 62 / Page 62</div>
+        <div class="chapter-badge">Chapter 4 — Item 17: Değişmezlik — Complex Sınıfı</div>
 
-        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 14: Fark tabanlı karşılaştırma tuzağı ve son
-                sözler</em></div>
-
-        <div class="tr-text">
-            <p>Zaman zaman birinci değer ikinciden küçükse negatif, eşitse sıfır, büyükse pozitif olan <b>fark
-                    (difference)</b> kullanan <code>compareTo</code> veya <code>compare</code> metotları görebilirsiniz:
-            </p>
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 17: Complex sınıfı ve fonksiyonel yaklaşım</em>
         </div>
 
+        <div class="tr-text">
+            <p>İşte değişmez bir karmaşık sayı (complex number) sınıfı örneği:</p>
+        </div>
         <div class="en-text" style="display:none">
-            <p>Occasionally you may see <code>compareTo</code> or <code>compare</code> methods that rely on the
-                difference between two values:</p>
+            <p>Here's an example immutable complex number class:</p>
         </div>
 
         <div class="code-block">
-            <span class="cm">// BOZUK — fark tabanlı karşılaştırıcı — geçişliliği ihlal eder!</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder = <span class="kw">new</span> <span class="cl">Comparator</span>&lt;&gt;() {
-            <span class="kw">public int</span> compare(<span class="cl">Object</span> o1, <span class="cl">Object</span>
-            o2) {
-            <span class="kw">return</span> o1.hashCode() - o2.hashCode(); <span class="cm">// TEHLİKE!</span>
+            <span class="kw">public final class</span> <span class="cl">Complex</span> {
+            <span class="kw">private final double</span> re;
+            <span class="kw">private final double</span> im;
+
+            <span class="kw">public</span> Complex(<span class="kw">double</span> re, <span class="kw">double</span> im)
+            {
+            <span class="kw">this</span>.re = re; <span class="kw">this</span>.im = im;
             }
-            };
+            <span class="kw">public double</span> realPart() { <span class="kw">return</span> re; }
+            <span class="kw">public double</span> imaginaryPart() { <span class="kw">return</span> im; }
+
+            <span class="kw">public</span> <span class="cl">Complex</span> plus(<span class="cl">Complex</span> c) {
+            <span class="kw">return new</span> <span class="cl">Complex</span>(re + c.re, im + c.im);
+            }
+            <span class="kw">public</span> <span class="cl">Complex</span> minus(<span class="cl">Complex</span> c) {
+            <span class="kw">return new</span> <span class="cl">Complex</span>(re - c.re, im - c.im);
+            }
+            <span class="kw">public</span> <span class="cl">Complex</span> times(<span class="cl">Complex</span> c) {
+            <span class="kw">return new</span> <span class="cl">Complex</span>(re * c.re - im * c.im,
+            re * c.im + im * c.re);
+            }
+            <span class="cm">// equals, hashCode, toString çıkarıldı...</span>
+            }
         </div>
 
         <div class="tr-text">
-            <p><b>Bu tekniği kullanmayın.</b> Tamsayı taşması (integer overflow) ve IEEE 754 kayan nokta aritmetik
-                artefaktları nedeniyle tehlikelerle doludur. Bunun yerine şu iki yaklaşımdan birini kullanın:</p>
+            <p>Aritmetik işlemlerin <code>this</code> örneğini değiştirmek yerine <b>yeni bir <code>Complex</code>
+                    örneği</b> oluşturduğuna dikkat edin. Bu kalıp <b>fonksiyonel yaklaşım</b> (functional approach)
+                olarak bilinir — metotlar, işlenen (operand) nesneyi değiştirmeden, bir fonksiyonu uygulamanın sonucunu
+                döndürür. Yöntem adlarının fiiller (<code>add</code>) yerine <b>edatlar</b> (<code>plus</code>) olduğuna
+                dikkat edin — bu, metotların nesnenin durumunu değiştirmediği gerçeğini vurgular.</p>
+
+            <p><b>Değişmez nesnelerin avantajları:</b></p>
+
+            <p><b>1. Basittirler.</b> Bir değişmez nesne tam olarak bir durumda bulunabilir: oluşturulduğu durumda. Tüm
+                yapıcıların sınıf değişmezlerini oluşturduğundan emin olursanız, bu değişmezlerin her zaman geçerli
+                kaldığı garantidir.</p>
+
+            <p><b>2. Doğası gereği iş parçacığı güvenlidirler (thread-safe).</b> Senkronizasyon gerektirmezler. Birden
+                çok iş parçacığı tarafından eşzamanlı olarak erişildiğinde bozulamazlar. Bu, iş parçacığı güvenliğini
+                başarmanın açık ara en kolay yoludur. Değişmez nesneler özgürce paylaşılabilir.</p>
+
+            <p><b>3. Savunmacı kopyalarına gerek yoktur.</b> Bir kopya orijinalden sonsuza kadar farksız olacaksa neden
+                kopyalasın?</p>
         </div>
 
         <div class="en-text" style="display:none">
-            <p><b>Do not use this technique.</b> It is fraught with danger from integer overflow and IEEE 754 floating
-                point artifacts. Use one of these instead:</p>
+            <p>The arithmetic methods return new instances — the <b>functional approach</b>. Immutable advantages: 1)
+                Simple — single state, 2) Thread-safe — no synchronization needed, 3) No defensive copies needed.</p>
         </div>
 
-        <div class="code-block">
-            <span class="cm">// Statik compare metodu kullanan karşılaştırıcı</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder = <span class="kw">new</span> <span class="cl">Comparator</span>&lt;&gt;() {
-            <span class="kw">public int</span> compare(<span class="cl">Object</span> o1, <span class="cl">Object</span>
-            o2) {
-            <span class="kw">return</span> <span class="cl">Integer</span>.compare(o1.hashCode(), o2.hashCode());
-            }
-            };
-
-            <span class="cm">// Comparator construction method kullanan karşılaştırıcı</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder =
-            <span class="cl">Comparator</span>.comparingInt(o -> o.hashCode());
-        </div>
-
-        <div class="tr-text">
-            <div class="summary-box">
-                <strong>Madde 14 — Özet:</strong> Anlamlı bir sıralamaya sahip bir değer sınıfı uyguladığınızda, sınıfın
-                <code>Comparable</code> arayüzünü uygulamasını sağlayın. Böylece örnekleri kolayca sıralanabilir,
-                aranabilir ve karşılaştırma tabanlı koleksiyonlarda kullanılabilir. <code>compareTo</code>
-                metotlarındaki alan değerlerini karşılaştırırken <code>&lt;</code> ve <code>&gt;</code> operatörlerini
-                kullanmaktan kaçının. Bunun yerine, sarmalayıcı ilkel sınıflardaki statik <code>compare</code>
-                metotlarını veya <code>Comparator</code> arayüzündeki karşılaştırıcı oluşturma metotlarını kullanın.
-            </div>
-
-            <div class="chapter-end-box">
-                <strong>🎉 Bölüm 3 Tamamlandı!</strong><br>
-                <em>Chapter 3: Methods Common to All Objects</em><br>
-                <span style="font-size:.88rem;color:#555;">Madde 10 (equals) • Madde 11 (hashCode) • Madde 12 (toString)
-                    • Madde 13 (clone) • Madde 14 (Comparable)</span>
-            </div>
-        </div>
-
-        <div class="en-text" style="display:none">
-            <div class="summary-box">
-                <strong>Item 14 — Summary:</strong> Implement <code>Comparable</code> for value classes with sensible
-                ordering. Use static <code>compare</code> methods or comparator construction methods instead of
-                <code>&lt;</code> and <code>&gt;</code> operators.
-            </div>
-
-            <div class="chapter-end-box">
-                <strong>🎉 Chapter 3 Complete!</strong><br>
-                <em>Chapter 3: Methods Common to All Objects</em><br>
-                <span style="font-size:.88rem;color:#555;">Item 10 (equals) • Item 11 (hashCode) • Item 12 (toString) •
-                    Item 13 (clone) • Item 14 (Comparable)</span>
-            </div>
-        </div>
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 17 devamı: Daha fazla avantaj, dezavantajlar ve çözüm
+            stratejileri sonraki sayfada.</div>
 
         <div class="concepts-row">
             <strong class="tr-text">🔍 Kavramlar:</strong>
             <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
-            <button class="concept-btn" onclick="openModal('diff-trap')">Fark Tabanlı Karşılaştırma Tuzağı</button>
+            <button class="concept-btn" onclick="openModal('functional-approach')">Fonksiyonel Yaklaşım</button>
         </div>
 
         <div class="page-footer">
-            <button class="nav-btn" onclick="window.location.href='page-57.html'"><span class="nav-direction">← Önceki
-                    Sayfa</span><span class="nav-info">Sayfa 57 — PhoneNumber compareTo</span></button>
-            <button class="nav-btn" onclick="window.location.href='page-59.html'">
-                <span class="nav-direction">Sonraki Sayfa →</span>
-                <span class="nav-info">Sayfa 59 — Chapter 4: Sınıflar ve Arayüzler</span>
-            </button>
+            <button class="nav-btn" onclick="window.location.href='page-61.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 61 — Madde 16 özet, 5 kural</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-63.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 63 — Dezavantajlar, stratejiler</span></button>
         </div>
     </div>
 
-    <div class="modal-overlay" id="modal-diff-trap">
+    <div class="modal-overlay" id="modal-functional-approach">
         <div class="modal">
             <div class="modal-header">
-                <h3>Fark Tabanlı Karşılaştırma Tuzağı</h3><button class="modal-close"
-                    onclick="closeModal('diff-trap')">✕</button>
+                <h3>Fonksiyonel Yaklaşım</h3><button class="modal-close"
+                    onclick="closeModal('functional-approach')">✕</button>
             </div>
             <div class="modal-body">
                 <div class="tr-text">
-                    <p><code>return a - b;</code> yaklaşımı ilk bakışta doğru gibi görünür, ancak iki sorun barındırır:
-                    </p>
-                    <p><b>1. Tamsayı taşması:</b> <code>a = Integer.MAX_VALUE</code> ve <code>b = -1</code> olduğunda,
-                        <code>a - b</code> taşar ve negatif bir değer döndürür — yanlış sonuç!
-                    </p>
-                    <p><b>2. Kayan nokta artefaktları:</b> <code>float</code> ve <code>double</code> için IEEE 754
-                        kuralları nedeniyle beklenmeyen sonuçlar oluşabilir.</p>
-                    <p><b>Çözüm:</b> Her zaman <code>Integer.compare(a, b)</code>, <code>Double.compare(a, b)</code>
-                        veya <code>Comparator.comparingInt()</code> kullanın.</p>
+                    <p>Fonksiyonel yaklaşımda (functional approach) metotlar mevcut nesneyi değiştirmez, bunun yerine
+                        sonucu yeni bir nesne olarak döndürür. Bu kalıp:</p>
+                    <p>• İş parçacığı güvenliğini garanti eder<br>• Nesnenin tutarlılığını korur<br>• Yan etkisi (side
+                        effect) olmayan kodlar üretir</p>
+                    <p><b>İsimlendirme:</b> <code>add</code> (fiil, değiştirir) yerine <code>plus</code> (edat,
+                        değiştirmez) kullanılır.</p>
                 </div>
                 <div class="en-text" style="display:none">
-                    <p><code>return a - b</code> can overflow for integers and has IEEE 754 artifacts for floats. Always
-                        use <code>Integer.compare(a, b)</code> or comparator construction methods.</p>
+                    <p>Functional approach: methods return new objects instead of modifying <code>this</code>. Use
+                        prepositions (plus) not verbs (add) to signal immutability.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>const CURRENT_PAGE = 58;</script>
+    <script>const CURRENT_PAGE = 62;</script>
     <script src="../js/common.js"></script>
 </body>
 

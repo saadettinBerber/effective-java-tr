@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Effective Java — Sayfa 58</title>
+    <title>Effective Java — Sayfa 63</title>
     <style>
         *,
         *::before,
@@ -184,19 +184,36 @@
             color: #1a5c1a
         }
 
-        .chapter-end-box {
-            background: #e3f2fd;
-            border: 2px solid #1976d2;
-            padding: 1.2rem;
-            border-radius: 8px;
-            margin: 2rem 0;
-            text-align: center;
-            color: #0d2137
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
         }
 
         p {
             margin-bottom: 1rem;
             font-size: 1rem
+        }
+
+        h2.item-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0d2137;
+            margin: 2rem 0 .3rem;
+            border-bottom: 2px solid #f5a623;
+            padding-bottom: .3rem;
+            display: inline-block
+        }
+
+        p.item-title-en {
+            font-size: .85rem;
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 1rem
         }
 
         .code-block {
@@ -380,15 +397,15 @@
     <div class="topbar">
         <div class="topbar-left">
             <span class="topbar-title">Effective Java — Joshua Bloch</span>
-            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 14: Comparable — Tuzaklar &amp; Özet / Bölüm 3
-                Sonu</span>
+            <span class="topbar-sub">Chapter 4 &nbsp;›&nbsp; Item 17: Değişmezlik — Avantajlar, Dezavantajlar &amp;
+                Özet</span>
         </div>
         <div class="topbar-right">
             <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
             <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
             <div class="page-nav-input-wrap">
                 <label for="pageNumInput">Sayfa</label>
-                <input type="text" id="pageNumInput" value="58" inputmode="numeric"
+                <input type="text" id="pageNumInput" value="63" inputmode="numeric"
                     onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
                 <div id="pageNavTooltip"></div>
             </div>
@@ -396,136 +413,125 @@
     </div>
 
     <div class="container">
-        <div class="page-label">Sayfa 58 / Page 58</div>
-        <div class="chapter-badge">Chapter 3 — Item 14 sonu / Bölüm 3 Sonu</div>
+        <div class="page-label">Sayfa 63 / Page 63</div>
+        <div class="chapter-badge">Chapter 4 — Item 17: Değişmezlik Özet</div>
 
-        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 14: Fark tabanlı karşılaştırma tuzağı ve son
-                sözler</em></div>
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 17: Değişmezlik dezavantajları, çözüm
+                stratejileri ve özet</em></div>
 
         <div class="tr-text">
-            <p>Zaman zaman birinci değer ikinciden küçükse negatif, eşitse sıfır, büyükse pozitif olan <b>fark
-                    (difference)</b> kullanan <code>compareTo</code> veya <code>compare</code> metotları görebilirsiniz:
-            </p>
+            <p><b>4. Değişmez nesneler harika yapı taşlarıdır.</b> İster diğer nesnelerin bileşenleri ister
+                <code>Map</code> anahtarları veya <code>Set</code> elemanları olsun — hiç değişmeyeceklerini bildiğiniz
+                için durumun bozulması konusunda endişelenmenize gerek yoktur.</p>
+
+            <p><b>5. Atomik hata güvenliği (failure atomicity) sağlarlar.</b> Durumları asla değişmez, bu nedenle geçici
+                tutarsızlık olasılığı yoktur.</p>
+
+            <p><b>Değişmez sınıfların ana dezavantajı</b>, her farklı değer için ayrı bir nesne gerektirmeleridir. Bu
+                nesnelerin oluşturulması maliyetli olabilir, özellikle büyük nesneler söz konusuysa. Örneğin,
+                milyonlarca bitlik bir <code>BigInteger</code>'ın tek bir bitini değiştirmek istiyorsanız:</p>
         </div>
 
         <div class="en-text" style="display:none">
-            <p>Occasionally you may see <code>compareTo</code> or <code>compare</code> methods that rely on the
-                difference between two values:</p>
+            <p>4) Great building blocks for maps/sets. 5) Failure atomicity for free. Main disadvantage: every distinct
+                value requires a separate object — expensive for large objects.</p>
         </div>
 
         <div class="code-block">
-            <span class="cm">// BOZUK — fark tabanlı karşılaştırıcı — geçişliliği ihlal eder!</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder = <span class="kw">new</span> <span class="cl">Comparator</span>&lt;&gt;() {
-            <span class="kw">public int</span> compare(<span class="cl">Object</span> o1, <span class="cl">Object</span>
-            o2) {
-            <span class="kw">return</span> o1.hashCode() - o2.hashCode(); <span class="cm">// TEHLİKE!</span>
-            }
-            };
+            <span class="cl">BigInteger</span> moby = ...;
+            moby = moby.flipBit(<span class="num">0</span>); <span class="cm">// Yeni milyonlarca bitlik nesne
+                oluşturur!</span>
         </div>
 
         <div class="tr-text">
-            <p><b>Bu tekniği kullanmayın.</b> Tamsayı taşması (integer overflow) ve IEEE 754 kayan nokta aritmetik
-                artefaktları nedeniyle tehlikelerle doludur. Bunun yerine şu iki yaklaşımdan birini kullanın:</p>
+            <p>İki çözüm stratejisi vardır: <b>(1)</b> Sık kullanılan çok adımlı işlemler için bir <b>değişebilir eşlik
+                    sınıfı</b> (companion class) sağlayın — <code>String</code> için <code>StringBuilder</code> gibi.
+                <b>(2)</b> Değişmez sınıfları <code>final</code> yerine <b>özel yapıcılarla</b> kapatın — bu, statik
+                fabrika metotları aracılığıyla önbellekleme esnekliği verir.</p>
         </div>
 
         <div class="en-text" style="display:none">
-            <p><b>Do not use this technique.</b> It is fraught with danger from integer overflow and IEEE 754 floating
-                point artifacts. Use one of these instead:</p>
+            <p>Two strategies: (1) Provide a mutable companion class (like <code>StringBuilder</code> for
+                <code>String</code>). (2) Use private constructors with static factories instead of making the class
+                final.</p>
         </div>
 
         <div class="code-block">
-            <span class="cm">// Statik compare metodu kullanan karşılaştırıcı</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder = <span class="kw">new</span> <span class="cl">Comparator</span>&lt;&gt;() {
-            <span class="kw">public int</span> compare(<span class="cl">Object</span> o1, <span class="cl">Object</span>
-            o2) {
-            <span class="kw">return</span> <span class="cl">Integer</span>.compare(o1.hashCode(), o2.hashCode());
-            }
-            };
+            <span class="cm">// final yerine özel yapıcılarla değişmezlik</span>
+            <span class="kw">public class</span> <span class="cl">Complex</span> {
+            <span class="kw">private final double</span> re;
+            <span class="kw">private final double</span> im;
 
-            <span class="cm">// Comparator construction method kullanan karşılaştırıcı</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder =
-            <span class="cl">Comparator</span>.comparingInt(o -> o.hashCode());
+            <span class="kw">private</span> Complex(<span class="kw">double</span> re, <span class="kw">double</span>
+            im) {
+            <span class="kw">this</span>.re = re; <span class="kw">this</span>.im = im;
+            }
+            <span class="kw">public static</span> <span class="cl">Complex</span> valueOf(<span class="kw">double</span>
+            re, <span class="kw">double</span> im) {
+            <span class="kw">return new</span> <span class="cl">Complex</span>(re, im);
+            }
+            ...
+            }
         </div>
 
         <div class="tr-text">
             <div class="summary-box">
-                <strong>Madde 14 — Özet:</strong> Anlamlı bir sıralamaya sahip bir değer sınıfı uyguladığınızda, sınıfın
-                <code>Comparable</code> arayüzünü uygulamasını sağlayın. Böylece örnekleri kolayca sıralanabilir,
-                aranabilir ve karşılaştırma tabanlı koleksiyonlarda kullanılabilir. <code>compareTo</code>
-                metotlarındaki alan değerlerini karşılaştırırken <code>&lt;</code> ve <code>&gt;</code> operatörlerini
-                kullanmaktan kaçının. Bunun yerine, sarmalayıcı ilkel sınıflardaki statik <code>compare</code>
-                metotlarını veya <code>Comparator</code> arayüzündeki karşılaştırıcı oluşturma metotlarını kullanın.
-            </div>
-
-            <div class="chapter-end-box">
-                <strong>🎉 Bölüm 3 Tamamlandı!</strong><br>
-                <em>Chapter 3: Methods Common to All Objects</em><br>
-                <span style="font-size:.88rem;color:#555;">Madde 10 (equals) • Madde 11 (hashCode) • Madde 12 (toString)
-                    • Madde 13 (clone) • Madde 14 (Comparable)</span>
+                <strong>Madde 17 — Özet:</strong> Sınıfları değişmez yapmak için <b>küçük bir çaba harcayın</b>. Sınıfı
+                değişmez yapamıyorsanız, mümkün olduğunca <b>değişmezliğini sınırlayın</b>. Her alanı
+                <code>private final</code> yapın — mutlak bir nedeni olmadıkça. Yapıcılar, tüm değişmezleri belirlenmiş,
+                tamamen başlatılmış nesneler oluşturmalıdır. Geçerli bir neden olmadan "yeniden başlatma" metotları
+                eklemeyin — karmaşıklık yaratır ama performans kazancı sağlamaz. <code>CountDownLatch</code> sınıfı bu
+                ilkeyi somutlaştırır: değişebilirdir ama durum alanı küçüktür ve örnek yaratılınca yalnızca bir geçiş
+                yapılabilir — sayaç sıfıra ulaştığında latch bir daha kullanılamaz.
             </div>
         </div>
 
         <div class="en-text" style="display:none">
-            <div class="summary-box">
-                <strong>Item 14 — Summary:</strong> Implement <code>Comparable</code> for value classes with sensible
-                ordering. Use static <code>compare</code> methods or comparator construction methods instead of
-                <code>&lt;</code> and <code>&gt;</code> operators.
-            </div>
-
-            <div class="chapter-end-box">
-                <strong>🎉 Chapter 3 Complete!</strong><br>
-                <em>Chapter 3: Methods Common to All Objects</em><br>
-                <span style="font-size:.88rem;color:#555;">Item 10 (equals) • Item 11 (hashCode) • Item 12 (toString) •
-                    Item 13 (clone) • Item 14 (Comparable)</span>
-            </div>
+            <div class="summary-box"><strong>Item 17 — Summary:</strong> Make classes immutable when possible. Limit
+                mutability. Make every field <code>private final</code>. Constructors should create fully initialized
+                objects with all invariants established.</div>
         </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 18 (Kalıtım yerine bileşim) sonraki sayfada.</div>
 
         <div class="concepts-row">
             <strong class="tr-text">🔍 Kavramlar:</strong>
             <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
-            <button class="concept-btn" onclick="openModal('diff-trap')">Fark Tabanlı Karşılaştırma Tuzağı</button>
+            <button class="concept-btn" onclick="openModal('companion-class')">Değişebilir Eşlik Sınıfı</button>
         </div>
 
         <div class="page-footer">
-            <button class="nav-btn" onclick="window.location.href='page-57.html'"><span class="nav-direction">← Önceki
-                    Sayfa</span><span class="nav-info">Sayfa 57 — PhoneNumber compareTo</span></button>
-            <button class="nav-btn" onclick="window.location.href='page-59.html'">
-                <span class="nav-direction">Sonraki Sayfa →</span>
-                <span class="nav-info">Sayfa 59 — Chapter 4: Sınıflar ve Arayüzler</span>
-            </button>
+            <button class="nav-btn" onclick="window.location.href='page-62.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 62 — Complex, fonksiyonel yaklaşım</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-64.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 64 — Madde 18: Kalıtım vs Bileşim</span></button>
         </div>
     </div>
 
-    <div class="modal-overlay" id="modal-diff-trap">
+    <div class="modal-overlay" id="modal-companion-class">
         <div class="modal">
             <div class="modal-header">
-                <h3>Fark Tabanlı Karşılaştırma Tuzağı</h3><button class="modal-close"
-                    onclick="closeModal('diff-trap')">✕</button>
+                <h3>Değişebilir Eşlik Sınıfı</h3><button class="modal-close"
+                    onclick="closeModal('companion-class')">✕</button>
             </div>
             <div class="modal-body">
                 <div class="tr-text">
-                    <p><code>return a - b;</code> yaklaşımı ilk bakışta doğru gibi görünür, ancak iki sorun barındırır:
-                    </p>
-                    <p><b>1. Tamsayı taşması:</b> <code>a = Integer.MAX_VALUE</code> ve <code>b = -1</code> olduğunda,
-                        <code>a - b</code> taşar ve negatif bir değer döndürür — yanlış sonuç!
-                    </p>
-                    <p><b>2. Kayan nokta artefaktları:</b> <code>float</code> ve <code>double</code> için IEEE 754
-                        kuralları nedeniyle beklenmeyen sonuçlar oluşabilir.</p>
-                    <p><b>Çözüm:</b> Her zaman <code>Integer.compare(a, b)</code>, <code>Double.compare(a, b)</code>
-                        veya <code>Comparator.comparingInt()</code> kullanın.</p>
+                    <p>Değişmez sınıflar pahalı çok adımlı işlemler için bir <b>değişebilir eşlik sınıfı</b>
+                        sağlayabilir:</p>
+                    <p>• <code>String</code> → <code>StringBuilder</code> (veya <code>StringBuffer</code>)<br>•
+                        <code>BigInteger</code> → <code>MutableBigInteger</code> (paket-özel)</p>
+                    <p>İstemci hangi çok adımlı işlemleri yapacağını önceden tahmin edebiliyorsanız, eşlik sınıfını
+                        paket-özel tutup iç optimizasyonlarda kullanabilirsiniz.</p>
                 </div>
                 <div class="en-text" style="display:none">
-                    <p><code>return a - b</code> can overflow for integers and has IEEE 754 artifacts for floats. Always
-                        use <code>Integer.compare(a, b)</code> or comparator construction methods.</p>
+                    <p>Mutable companion classes like <code>StringBuilder</code> for <code>String</code> handle
+                        multi-step operations efficiently. Can be package-private for internal optimization.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>const CURRENT_PAGE = 58;</script>
+    <script>const CURRENT_PAGE = 63;</script>
     <script src="../js/common.js"></script>
 </body>
 

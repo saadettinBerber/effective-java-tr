@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Effective Java — Sayfa 58</title>
+    <title>Effective Java — Sayfa 61</title>
     <style>
         *,
         *::before,
@@ -184,19 +184,36 @@
             color: #1a5c1a
         }
 
-        .chapter-end-box {
-            background: #e3f2fd;
-            border: 2px solid #1976d2;
-            padding: 1.2rem;
-            border-radius: 8px;
-            margin: 2rem 0;
-            text-align: center;
-            color: #0d2137
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
         }
 
         p {
             margin-bottom: 1rem;
             font-size: 1rem
+        }
+
+        h2.item-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0d2137;
+            margin: 2rem 0 .3rem;
+            border-bottom: 2px solid #f5a623;
+            padding-bottom: .3rem;
+            display: inline-block
+        }
+
+        p.item-title-en {
+            font-size: .85rem;
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 1rem
         }
 
         .code-block {
@@ -231,10 +248,6 @@
 
         .an {
             color: #85e89d
-        }
-
-        .num {
-            color: #f8c555
         }
 
         .concept-btn {
@@ -380,15 +393,14 @@
     <div class="topbar">
         <div class="topbar-left">
             <span class="topbar-title">Effective Java — Joshua Bloch</span>
-            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 14: Comparable — Tuzaklar &amp; Özet / Bölüm 3
-                Sonu</span>
+            <span class="topbar-sub">Chapter 4 &nbsp;›&nbsp; Item 16 &amp; Item 17 Başlangıcı</span>
         </div>
         <div class="topbar-right">
             <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
             <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
             <div class="page-nav-input-wrap">
                 <label for="pageNumInput">Sayfa</label>
-                <input type="text" id="pageNumInput" value="58" inputmode="numeric"
+                <input type="text" id="pageNumInput" value="61" inputmode="numeric"
                     onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
                 <div id="pageNavTooltip"></div>
             </div>
@@ -396,136 +408,128 @@
     </div>
 
     <div class="container">
-        <div class="page-label">Sayfa 58 / Page 58</div>
-        <div class="chapter-badge">Chapter 3 — Item 14 sonu / Bölüm 3 Sonu</div>
+        <div class="page-label">Sayfa 61 / Page 61</div>
+        <div class="chapter-badge">Chapter 4 — Item 16 sonu &amp; Item 17 başlangıcı</div>
 
-        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 14: Fark tabanlı karşılaştırma tuzağı ve son
-                sözler</em></div>
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 16: Erişimci metotlar</em></div>
 
         <div class="tr-text">
-            <p>Zaman zaman birinci değer ikinciden küçükse negatif, eşitse sıfır, büyükse pozitif olan <b>fark
-                    (difference)</b> kullanan <code>compareTo</code> veya <code>compare</code> metotları görebilirsiniz:
+            <p>Bu tür veriye doğrudan erişim sağlayan sınıflar <b>kapsüllemenin faydalarını sunmaz</b> (Madde 15).
+                Temsili API'yi değiştirmeden değiştiremezsiniz, değişmezleri uygulayamazsınız ve bir alana erişildiğinde
+                yardımcı eylem alamazsınız. Katı nesne yönelimli programcılar, bu tür sınıfların her zaman <b>özel
+                    alanlar ve erişimci metotlar</b> (getters) ile değiştirilmesi gerektiğini savunurlar:</p>
+        </div>
+        <div class="en-text" style="display:none">
+            <p>These classes don't offer encapsulation. Replace with private fields and accessor methods:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Erişimci metotlarla veri kapsülleme</span>
+            <span class="kw">class</span> <span class="cl">Point</span> {
+            <span class="kw">private double</span> x;
+            <span class="kw">private double</span> y;
+
+            <span class="kw">public</span> Point(<span class="kw">double</span> x, <span class="kw">double</span> y) {
+            <span class="kw">this</span>.x = x; <span class="kw">this</span>.y = y;
+            }
+            <span class="kw">public double</span> getX() { <span class="kw">return</span> x; }
+            <span class="kw">public double</span> getY() { <span class="kw">return</span> y; }
+            <span class="kw">public void</span> setX(<span class="kw">double</span> x) { <span class="kw">this</span>.x
+            = x; }
+            <span class="kw">public void</span> setY(<span class="kw">double</span> y) { <span class="kw">this</span>.y
+            = y; }
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Genel sınıflar söz konusu olduğunda katılaşatılar kesinlikle haklıdır: Bir sınıf paketinin dışından
+                erişilebiliyorsa, sınıfın iç temsilini değiştirme esnekliğini korumak için <b>erişimci metotlar
+                    sağlayın</b>.</p>
+
+            <p>Ancak, bir sınıf <b>paket-özel (package-private)</b> veya <b>özel bir iç sınıf (private nested class)</b>
+                ise, veri alanlarını açığa çıkarmakta doğal olarak yanlış bir şey yoktur — soyutlamayı yeterince
+                tanımlıyorlarsa. Bu, sınıf tanımında ve istemci kodunda daha az görsel karmaşa üretir.</p>
+
+            <div class="summary-box">
+                <strong>Madde 16 — Özet:</strong> Genel sınıflar asla değişebilir alanları açığa çıkarmamalı. Değişmez
+                alanları açığa çıkarmak daha az zararlıdır ama yine de sorgulanabilir. Ancak, paket-özel veya özel iç
+                sınıfların alanları açığa çıkarması bazen (değişebilir veya değişmez) arzu edilir.
+            </div>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>For public classes, always use accessors. For package-private or private nested classes, exposing fields
+                is acceptable.</p>
+            <div class="summary-box"><strong>Item 16 — Summary:</strong> Public classes should never expose mutable
+                fields. Package-private/private nested classes can.</div>
+        </div>
+
+        <!-- Item 17 -->
+        <h2 class="item-title">Madde 17: Değişmezliği En Aza İndirin</h2>
+        <p class="item-title-en">Item 17: Minimize mutability</p>
+
+        <div class="tr-text">
+            <p><b>Değişmez (immutable) bir sınıf</b>, örnekleri değiştirilemeyen bir sınıftır. Her örnekte bulunan tüm
+                bilgiler oluşturma zamanında sabitlenir ve nesnenin ömrü boyunca asla değişmez. Java platformu
+                kütüphaneleri <code>String</code>, <code>BigInteger</code>, <code>BigDecimal</code> ve sarmalayıcı
+                sınıflar gibi birçok değişmez sınıf içerir. Bir sınıfı değişmez yapmak için şu <b>beş kurala</b> uyun:
+            </p>
+
+            <p><b>1.</b> Nesnenin durumunu değiştiren hiçbir metot sağlamayın (setter/mutator yok).<br>
+                <b>2.</b> Sınıfın genişletilemeyeceğinden emin olun (<code>final</code> sınıf veya özel yapıcılar).<br>
+                <b>3.</b> Tüm alanları <code>final</code> yapın.<br>
+                <b>4.</b> Tüm alanları <code>private</code> yapın.<br>
+                <b>5.</b> Değişebilir bileşenlere özel erişim sağlayın (savunmacı kopyalama).
             </p>
         </div>
 
         <div class="en-text" style="display:none">
-            <p>Occasionally you may see <code>compareTo</code> or <code>compare</code> methods that rely on the
-                difference between two values:</p>
+            <p>An immutable class has instances that cannot be modified. Five rules: 1) No mutators, 2) Can't be
+                extended, 3) All fields final, 4) All fields private, 5) Exclusive access to mutable components.</p>
         </div>
 
-        <div class="code-block">
-            <span class="cm">// BOZUK — fark tabanlı karşılaştırıcı — geçişliliği ihlal eder!</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder = <span class="kw">new</span> <span class="cl">Comparator</span>&lt;&gt;() {
-            <span class="kw">public int</span> compare(<span class="cl">Object</span> o1, <span class="cl">Object</span>
-            o2) {
-            <span class="kw">return</span> o1.hashCode() - o2.hashCode(); <span class="cm">// TEHLİKE!</span>
-            }
-            };
-        </div>
-
-        <div class="tr-text">
-            <p><b>Bu tekniği kullanmayın.</b> Tamsayı taşması (integer overflow) ve IEEE 754 kayan nokta aritmetik
-                artefaktları nedeniyle tehlikelerle doludur. Bunun yerine şu iki yaklaşımdan birini kullanın:</p>
-        </div>
-
-        <div class="en-text" style="display:none">
-            <p><b>Do not use this technique.</b> It is fraught with danger from integer overflow and IEEE 754 floating
-                point artifacts. Use one of these instead:</p>
-        </div>
-
-        <div class="code-block">
-            <span class="cm">// Statik compare metodu kullanan karşılaştırıcı</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder = <span class="kw">new</span> <span class="cl">Comparator</span>&lt;&gt;() {
-            <span class="kw">public int</span> compare(<span class="cl">Object</span> o1, <span class="cl">Object</span>
-            o2) {
-            <span class="kw">return</span> <span class="cl">Integer</span>.compare(o1.hashCode(), o2.hashCode());
-            }
-            };
-
-            <span class="cm">// Comparator construction method kullanan karşılaştırıcı</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder =
-            <span class="cl">Comparator</span>.comparingInt(o -> o.hashCode());
-        </div>
-
-        <div class="tr-text">
-            <div class="summary-box">
-                <strong>Madde 14 — Özet:</strong> Anlamlı bir sıralamaya sahip bir değer sınıfı uyguladığınızda, sınıfın
-                <code>Comparable</code> arayüzünü uygulamasını sağlayın. Böylece örnekleri kolayca sıralanabilir,
-                aranabilir ve karşılaştırma tabanlı koleksiyonlarda kullanılabilir. <code>compareTo</code>
-                metotlarındaki alan değerlerini karşılaştırırken <code>&lt;</code> ve <code>&gt;</code> operatörlerini
-                kullanmaktan kaçının. Bunun yerine, sarmalayıcı ilkel sınıflardaki statik <code>compare</code>
-                metotlarını veya <code>Comparator</code> arayüzündeki karşılaştırıcı oluşturma metotlarını kullanın.
-            </div>
-
-            <div class="chapter-end-box">
-                <strong>🎉 Bölüm 3 Tamamlandı!</strong><br>
-                <em>Chapter 3: Methods Common to All Objects</em><br>
-                <span style="font-size:.88rem;color:#555;">Madde 10 (equals) • Madde 11 (hashCode) • Madde 12 (toString)
-                    • Madde 13 (clone) • Madde 14 (Comparable)</span>
-            </div>
-        </div>
-
-        <div class="en-text" style="display:none">
-            <div class="summary-box">
-                <strong>Item 14 — Summary:</strong> Implement <code>Comparable</code> for value classes with sensible
-                ordering. Use static <code>compare</code> methods or comparator construction methods instead of
-                <code>&lt;</code> and <code>&gt;</code> operators.
-            </div>
-
-            <div class="chapter-end-box">
-                <strong>🎉 Chapter 3 Complete!</strong><br>
-                <em>Chapter 3: Methods Common to All Objects</em><br>
-                <span style="font-size:.88rem;color:#555;">Item 10 (equals) • Item 11 (hashCode) • Item 12 (toString) •
-                    Item 13 (clone) • Item 14 (Comparable)</span>
-            </div>
-        </div>
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 17 devamı: Complex sınıfı örneği, fonksiyonel yaklaşım ve
+            değişmezlik avantajları sonraki sayfada.</div>
 
         <div class="concepts-row">
             <strong class="tr-text">🔍 Kavramlar:</strong>
             <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
-            <button class="concept-btn" onclick="openModal('diff-trap')">Fark Tabanlı Karşılaştırma Tuzağı</button>
+            <button class="concept-btn" onclick="openModal('immutability-rules')">Değişmezliğin 5 Kuralı</button>
         </div>
 
         <div class="page-footer">
-            <button class="nav-btn" onclick="window.location.href='page-57.html'"><span class="nav-direction">← Önceki
-                    Sayfa</span><span class="nav-info">Sayfa 57 — PhoneNumber compareTo</span></button>
-            <button class="nav-btn" onclick="window.location.href='page-59.html'">
-                <span class="nav-direction">Sonraki Sayfa →</span>
-                <span class="nav-info">Sayfa 59 — Chapter 4: Sınıflar ve Arayüzler</span>
-            </button>
+            <button class="nav-btn" onclick="window.location.href='page-60.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 60 — Sabitler, dizi, Madde 15 özet</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-62.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 62 — Complex, fonksiyonel yaklaşım</span></button>
         </div>
     </div>
 
-    <div class="modal-overlay" id="modal-diff-trap">
+    <div class="modal-overlay" id="modal-immutability-rules">
         <div class="modal">
             <div class="modal-header">
-                <h3>Fark Tabanlı Karşılaştırma Tuzağı</h3><button class="modal-close"
-                    onclick="closeModal('diff-trap')">✕</button>
+                <h3>Değişmezliğin 5 Kuralı</h3><button class="modal-close"
+                    onclick="closeModal('immutability-rules')">✕</button>
             </div>
             <div class="modal-body">
                 <div class="tr-text">
-                    <p><code>return a - b;</code> yaklaşımı ilk bakışta doğru gibi görünür, ancak iki sorun barındırır:
+                    <p><b>1. Mutator yok:</b> Setter metotları veya durumu değiştiren hiçbir metot olmaz.<br>
+                        <b>2. Genişletilemez:</b> <code>final class</code> veya yapıcıları <code>private</code>
+                        yaparak.<br>
+                        <b>3. Alanlar final:</b> Tüm alanlar <code>final</code> — doğru yapım sinyali verir.<br>
+                        <b>4. Alanlar private:</b> İstemciler alanlara doğrudan erişemez.<br>
+                        <b>5. Savunmacı kopyalama:</b> Değişebilir iç bileşenlere dış kaynaklı referans bulunmaz.
                     </p>
-                    <p><b>1. Tamsayı taşması:</b> <code>a = Integer.MAX_VALUE</code> ve <code>b = -1</code> olduğunda,
-                        <code>a - b</code> taşar ve negatif bir değer döndürür — yanlış sonuç!
-                    </p>
-                    <p><b>2. Kayan nokta artefaktları:</b> <code>float</code> ve <code>double</code> için IEEE 754
-                        kuralları nedeniyle beklenmeyen sonuçlar oluşabilir.</p>
-                    <p><b>Çözüm:</b> Her zaman <code>Integer.compare(a, b)</code>, <code>Double.compare(a, b)</code>
-                        veya <code>Comparator.comparingInt()</code> kullanın.</p>
                 </div>
                 <div class="en-text" style="display:none">
-                    <p><code>return a - b</code> can overflow for integers and has IEEE 754 artifacts for floats. Always
-                        use <code>Integer.compare(a, b)</code> or comparator construction methods.</p>
+                    <p>1) No mutators, 2) Class can't be extended, 3) All fields final, 4) All fields private, 5)
+                        Defensive copying for mutable components.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>const CURRENT_PAGE = 58;</script>
+    <script>const CURRENT_PAGE = 61;</script>
     <script src="../js/common.js"></script>
 </body>
 

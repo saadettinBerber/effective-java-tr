@@ -14,7 +14,9 @@ const PAGES_MAP = {
     41: 'page-41.html', 42: 'page-42.html', 43: 'page-43.html', 44: 'page-44.html', 45: 'page-45.html',
     46: 'page-46.html', 47: 'page-47.html', 48: 'page-48.html', 49: 'page-49.html', 50: 'page-50.html',
     51: 'page-51.html', 52: 'page-52.html', 53: 'page-53.html', 54: 'page-54.html', 55: 'page-55.html',
-    56: 'page-56.html', 57: 'page-57.html', 58: 'page-58.html'
+    56: 'page-56.html', 57: 'page-57.html', 58: 'page-58.html', 59: 'page-59.html', 60: 'page-60.html',
+    61: 'page-61.html', 62: 'page-62.html', 63: 'page-63.html', 64: 'page-64.html', 65: 'page-65.html',
+    66: 'page-66.html', 67: 'page-67.html', 68: 'page-68.html'
 };
 
 function setLang(lang) {
@@ -23,18 +25,18 @@ function setLang(lang) {
 }
 
 function applyLang(lang) {
-    document.querySelectorAll('.lang-btn').forEach(function(btn) {
+    document.querySelectorAll('.lang-btn').forEach(function (btn) {
         btn.classList.toggle('active', btn.dataset.lang === lang);
     });
-    document.querySelectorAll('.tr-text').forEach(function(el) {
+    document.querySelectorAll('.tr-text').forEach(function (el) {
         el.style.display = lang === 'tr' ? '' : 'none';
     });
-    document.querySelectorAll('.en-text').forEach(function(el) {
+    document.querySelectorAll('.en-text').forEach(function (el) {
         el.style.display = lang === 'en' ? '' : 'none';
     });
 }
 
-(function() {
+(function () {
     var savedLang = localStorage.getItem('effectivejava-lang') || 'tr';
     applyLang(savedLang);
 })();
@@ -49,8 +51,8 @@ function closeModal(id) {
     document.body.style.overflow = '';
 }
 
-document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
-    overlay.addEventListener('click', function(e) {
+document.querySelectorAll('.modal-overlay').forEach(function (overlay) {
+    overlay.addEventListener('click', function (e) {
         if (e.target === this) {
             this.classList.remove('active');
             document.body.style.overflow = '';
@@ -58,9 +60,9 @@ document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
     });
 });
 
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
-        document.querySelectorAll('.modal-overlay.active').forEach(function(m) {
+        document.querySelectorAll('.modal-overlay.active').forEach(function (m) {
             m.classList.remove('active');
         });
         document.body.style.overflow = '';
@@ -85,14 +87,14 @@ function goToPageNum() {
 function shakeInput() {
     var input = document.getElementById('pageNumInput');
     input.classList.add('error');
-    setTimeout(function() { input.classList.remove('error'); }, 500);
+    setTimeout(function () { input.classList.remove('error'); }, 500);
 }
 
 function showNavTooltip(msg) {
     var tip = document.getElementById('pageNavTooltip');
     tip.textContent = msg;
     tip.classList.add('visible');
-    setTimeout(function() { tip.classList.remove('visible'); }, 2500);
+    setTimeout(function () { tip.classList.remove('visible'); }, 2500);
 }
 
 function resetPageInput() {
@@ -100,6 +102,6 @@ function resetPageInput() {
     document.getElementById('pageNavTooltip').classList.remove('visible');
 }
 
-document.getElementById('pageNumInput').addEventListener('input', function() {
+document.getElementById('pageNumInput').addEventListener('input', function () {
     this.value = this.value.replace(/[^0-9]/g, '');
 });

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Effective Java — Sayfa 58</title>
+    <title>Effective Java — Sayfa 67</title>
     <style>
         *,
         *::before,
@@ -184,19 +184,36 @@
             color: #1a5c1a
         }
 
-        .chapter-end-box {
-            background: #e3f2fd;
-            border: 2px solid #1976d2;
-            padding: 1.2rem;
-            border-radius: 8px;
-            margin: 2rem 0;
-            text-align: center;
-            color: #0d2137
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
         }
 
         p {
             margin-bottom: 1rem;
             font-size: 1rem
+        }
+
+        h2.item-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0d2137;
+            margin: 2rem 0 .3rem;
+            border-bottom: 2px solid #f5a623;
+            padding-bottom: .3rem;
+            display: inline-block
+        }
+
+        p.item-title-en {
+            font-size: .85rem;
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 1rem
         }
 
         .code-block {
@@ -317,15 +334,6 @@
             margin-bottom: .8rem
         }
 
-        .tip-box {
-            background: #f0faf0;
-            border-left: 3px solid #27ae60;
-            padding: .6rem 1rem;
-            border-radius: 0 4px 4px 0;
-            font-size: .88rem;
-            margin-top: 1rem
-        }
-
         .page-footer {
             display: flex;
             justify-content: space-between;
@@ -380,15 +388,14 @@
     <div class="topbar">
         <div class="topbar-left">
             <span class="topbar-title">Effective Java — Joshua Bloch</span>
-            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 14: Comparable — Tuzaklar &amp; Özet / Bölüm 3
-                Sonu</span>
+            <span class="topbar-sub">Chapter 4 &nbsp;›&nbsp; Item 22-23: Sabit Arayüzü &amp; Etiketli Sınıflar</span>
         </div>
         <div class="topbar-right">
             <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
             <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
             <div class="page-nav-input-wrap">
                 <label for="pageNumInput">Sayfa</label>
-                <input type="text" id="pageNumInput" value="58" inputmode="numeric"
+                <input type="text" id="pageNumInput" value="67" inputmode="numeric"
                     onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
                 <div id="pageNavTooltip"></div>
             </div>
@@ -396,136 +403,161 @@
     </div>
 
     <div class="container">
-        <div class="page-label">Sayfa 58 / Page 58</div>
-        <div class="chapter-badge">Chapter 3 — Item 14 sonu / Bölüm 3 Sonu</div>
+        <div class="page-label">Sayfa 67 / Page 67</div>
+        <div class="chapter-badge">Chapter 4 — Item 22-23: Sabitler &amp; Etiketler</div>
 
-        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 14: Fark tabanlı karşılaştırma tuzağı ve son
-                sözler</em></div>
+        <h2 class="item-title">Madde 22: Arayüzleri Yalnızca Tür Tanımlamak İçin Kullanın</h2>
+        <p class="item-title-en">Item 22: Use interfaces only to define types</p>
 
         <div class="tr-text">
-            <p>Zaman zaman birinci değer ikinciden küçükse negatif, eşitse sıfır, büyükse pozitif olan <b>fark
-                    (difference)</b> kullanan <code>compareTo</code> veya <code>compare</code> metotları görebilirsiniz:
+            <p>Bir sınıf bir arayüzü uyguladığında, arayüz sınıfın örnekleriyle neler yapılabileceğini söyleyen bir
+                <b>tür</b> (type) olarak hizmet eder. Bir arayüzü başka herhangi bir amaçla kullanmak uygunsuz olur.</p>
+
+            <p>Bu testte başarısız olan bir arayüz türü, <b>sabit arayüzüdür</b> (constant interface) — yalnızca
+                sabitler içeren, metot bulunmayan bir arayüz:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Interfaces serve as types. Using them for anything else is inappropriate. The <b>constant interface</b>
+                antipattern fails this test:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Sabit arayüzü anti-pattern — KULLANMAYIN!</span>
+            <span class="kw">public interface</span> <span class="cl">PhysicalConstants</span> {
+            <span class="kw">static final double</span> AVOGADROS_NUMBER = <span class="num">6.022_140_857e23</span>;
+            <span class="kw">static final double</span> BOLTZMANN_CONST = <span class="num">1.380_648_52e-23</span>;
+            ...
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Bu kötü bir kalıptır — sabitleri dışa aktarmak istiyorsanız, bunları bir <b>yardımcı sınıfa</b> (utility
+                class) veya ilgili sınıfa/arayüze <code>static final</code> alan olarak ekleyin.</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Use utility classes or add constants to relevant classes instead.</p>
+        </div>
+
+        <!-- Item 23 -->
+        <h2 class="item-title">Madde 23: Etiketli Sınıflar Yerine Sınıf Hiyerarşilerini Tercih Edin</h2>
+        <p class="item-title-en">Item 23: Prefer class hierarchies to tagged classes</p>
+
+        <div class="tr-text">
+            <p>Bazen örneklerinin iki veya daha fazla çeşidi olan bir sınıfla karşılaşabilirsiniz — bir <b>etiket
+                    alanı</b> (tag field) ile çeşidi belirtir:</p>
+        </div>
+        <div class="en-text" style="display:none">
+            <p>Sometimes you see a class with a tag field indicating its flavor:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Etiketli sınıf — sınıf hiyerarşisinden çok daha kötü!</span>
+            <span class="kw">class</span> <span class="cl">Figure</span> {
+            <span class="kw">enum</span> <span class="cl">Shape</span> { RECTANGLE, CIRCLE };
+            <span class="kw">final</span> <span class="cl">Shape</span> shape; <span class="cm">// Etiket alanı</span>
+
+            <span class="cm">// Yalnızca RECTANGLE için</span>
+            <span class="kw">double</span> length, width;
+            <span class="cm">// Yalnızca CIRCLE için</span>
+            <span class="kw">double</span> radius;
+
+            <span class="kw">double</span> area() {
+            <span class="kw">switch</span> (shape) {
+            <span class="kw">case</span> RECTANGLE: <span class="kw">return</span> length * width;
+            <span class="kw">case</span> CIRCLE: <span class="kw">return</span> <span class="cl">Math</span>.PI * radius
+            * radius;
+            <span class="kw">default</span>: <span class="kw">throw new</span> <span
+                class="cl">AssertionError</span>(shape);
+            }
+            }
+            }
+        </div>
+
+        <div class="tr-text">
+            <p>Etiketli sınıflar, <b>karmaşık, hata eğilimli ve verimsizdir</b> — enum, etiket alanı, switch ifadesi,
+                karışık alanlar, gereksiz bellek kullanımı, derleme zamanı güvenliği yok. Bunlar aslında <b>sınıf
+                    hiyerarşisinin yetersiz bir taklididir:</b></p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Tagged classes are verbose, error-prone, and inefficient. They're a poor imitation of class hierarchies:
             </p>
         </div>
 
-        <div class="en-text" style="display:none">
-            <p>Occasionally you may see <code>compareTo</code> or <code>compare</code> methods that rely on the
-                difference between two values:</p>
-        </div>
-
         <div class="code-block">
-            <span class="cm">// BOZUK — fark tabanlı karşılaştırıcı — geçişliliği ihlal eder!</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder = <span class="kw">new</span> <span class="cl">Comparator</span>&lt;&gt;() {
-            <span class="kw">public int</span> compare(<span class="cl">Object</span> o1, <span class="cl">Object</span>
-            o2) {
-            <span class="kw">return</span> o1.hashCode() - o2.hashCode(); <span class="cm">// TEHLİKE!</span>
+            <span class="cm">// Sınıf hiyerarşisi — etiketli sınıfın yerine</span>
+            <span class="kw">abstract class</span> <span class="cl">Figure</span> {
+            <span class="kw">abstract double</span> area();
             }
-            };
+            <span class="kw">class</span> <span class="cl">Circle</span> <span class="kw">extends</span> <span
+                class="cl">Figure</span> {
+            <span class="kw">final double</span> radius;
+            Circle(<span class="kw">double</span> radius) { <span class="kw">this</span>.radius = radius; }
+            <span class="an">@Override</span> <span class="kw">double</span> area() { <span class="kw">return</span>
+            <span class="cl">Math</span>.PI * radius * radius; }
+            }
+            <span class="kw">class</span> <span class="cl">Rectangle</span> <span class="kw">extends</span> <span
+                class="cl">Figure</span> {
+            <span class="kw">final double</span> length, width;
+            Rectangle(<span class="kw">double</span> l, <span class="kw">double</span> w) { length = l; width = w; }
+            <span class="an">@Override</span> <span class="kw">double</span> area() { <span class="kw">return</span>
+            length * width; }
+            }
         </div>
 
         <div class="tr-text">
-            <p><b>Bu tekniği kullanmayın.</b> Tamsayı taşması (integer overflow) ve IEEE 754 kayan nokta aritmetik
-                artefaktları nedeniyle tehlikelerle doludur. Bunun yerine şu iki yaklaşımdan birini kullanın:</p>
+            <p>Sınıf hiyerarşisi versiyonu alanı gereksiz bellek israfını ortadan kaldırır, derleme zamanı tür güvenliği
+                sağlar ve yeni şekiller eklemek basittir — sadece yeni bir alt sınıf ekleyin.</p>
         </div>
 
         <div class="en-text" style="display:none">
-            <p><b>Do not use this technique.</b> It is fraught with danger from integer overflow and IEEE 754 floating
-                point artifacts. Use one of these instead:</p>
+            <p>Class hierarchy eliminates waste, provides type safety, and makes adding new shapes simple — just add a
+                subclass.</p>
         </div>
 
-        <div class="code-block">
-            <span class="cm">// Statik compare metodu kullanan karşılaştırıcı</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder = <span class="kw">new</span> <span class="cl">Comparator</span>&lt;&gt;() {
-            <span class="kw">public int</span> compare(<span class="cl">Object</span> o1, <span class="cl">Object</span>
-            o2) {
-            <span class="kw">return</span> <span class="cl">Integer</span>.compare(o1.hashCode(), o2.hashCode());
-            }
-            };
-
-            <span class="cm">// Comparator construction method kullanan karşılaştırıcı</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder =
-            <span class="cl">Comparator</span>.comparingInt(o -> o.hashCode());
-        </div>
-
-        <div class="tr-text">
-            <div class="summary-box">
-                <strong>Madde 14 — Özet:</strong> Anlamlı bir sıralamaya sahip bir değer sınıfı uyguladığınızda, sınıfın
-                <code>Comparable</code> arayüzünü uygulamasını sağlayın. Böylece örnekleri kolayca sıralanabilir,
-                aranabilir ve karşılaştırma tabanlı koleksiyonlarda kullanılabilir. <code>compareTo</code>
-                metotlarındaki alan değerlerini karşılaştırırken <code>&lt;</code> ve <code>&gt;</code> operatörlerini
-                kullanmaktan kaçının. Bunun yerine, sarmalayıcı ilkel sınıflardaki statik <code>compare</code>
-                metotlarını veya <code>Comparator</code> arayüzündeki karşılaştırıcı oluşturma metotlarını kullanın.
-            </div>
-
-            <div class="chapter-end-box">
-                <strong>🎉 Bölüm 3 Tamamlandı!</strong><br>
-                <em>Chapter 3: Methods Common to All Objects</em><br>
-                <span style="font-size:.88rem;color:#555;">Madde 10 (equals) • Madde 11 (hashCode) • Madde 12 (toString)
-                    • Madde 13 (clone) • Madde 14 (Comparable)</span>
-            </div>
-        </div>
-
-        <div class="en-text" style="display:none">
-            <div class="summary-box">
-                <strong>Item 14 — Summary:</strong> Implement <code>Comparable</code> for value classes with sensible
-                ordering. Use static <code>compare</code> methods or comparator construction methods instead of
-                <code>&lt;</code> and <code>&gt;</code> operators.
-            </div>
-
-            <div class="chapter-end-box">
-                <strong>🎉 Chapter 3 Complete!</strong><br>
-                <em>Chapter 3: Methods Common to All Objects</em><br>
-                <span style="font-size:.88rem;color:#555;">Item 10 (equals) • Item 11 (hashCode) • Item 12 (toString) •
-                    Item 13 (clone) • Item 14 (Comparable)</span>
-            </div>
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 24-25 (iç sınıflar, tek üst düzey sınıf) sonraki sayfada.
         </div>
 
         <div class="concepts-row">
             <strong class="tr-text">🔍 Kavramlar:</strong>
             <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
-            <button class="concept-btn" onclick="openModal('diff-trap')">Fark Tabanlı Karşılaştırma Tuzağı</button>
+            <button class="concept-btn" onclick="openModal('tagged-class')">Etiketli Sınıf Anti-Pattern</button>
         </div>
 
         <div class="page-footer">
-            <button class="nav-btn" onclick="window.location.href='page-57.html'"><span class="nav-direction">← Önceki
-                    Sayfa</span><span class="nav-info">Sayfa 57 — PhoneNumber compareTo</span></button>
-            <button class="nav-btn" onclick="window.location.href='page-59.html'">
-                <span class="nav-direction">Sonraki Sayfa →</span>
-                <span class="nav-info">Sayfa 59 — Chapter 4: Sınıflar ve Arayüzler</span>
-            </button>
+            <button class="nav-btn" onclick="window.location.href='page-66.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 66 — Arayüzler, varsayılan metotlar</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-68.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 68 — İç sınıflar, tek sınıf kuralı</span></button>
         </div>
     </div>
 
-    <div class="modal-overlay" id="modal-diff-trap">
+    <div class="modal-overlay" id="modal-tagged-class">
         <div class="modal">
             <div class="modal-header">
-                <h3>Fark Tabanlı Karşılaştırma Tuzağı</h3><button class="modal-close"
-                    onclick="closeModal('diff-trap')">✕</button>
+                <h3>Etiketli Sınıf Anti-Pattern</h3><button class="modal-close"
+                    onclick="closeModal('tagged-class')">✕</button>
             </div>
             <div class="modal-body">
                 <div class="tr-text">
-                    <p><code>return a - b;</code> yaklaşımı ilk bakışta doğru gibi görünür, ancak iki sorun barındırır:
-                    </p>
-                    <p><b>1. Tamsayı taşması:</b> <code>a = Integer.MAX_VALUE</code> ve <code>b = -1</code> olduğunda,
-                        <code>a - b</code> taşar ve negatif bir değer döndürür — yanlış sonuç!
-                    </p>
-                    <p><b>2. Kayan nokta artefaktları:</b> <code>float</code> ve <code>double</code> için IEEE 754
-                        kuralları nedeniyle beklenmeyen sonuçlar oluşabilir.</p>
-                    <p><b>Çözüm:</b> Her zaman <code>Integer.compare(a, b)</code>, <code>Double.compare(a, b)</code>
-                        veya <code>Comparator.comparingInt()</code> kullanın.</p>
+                    <p>Etiketli sınıflar şu sorunları taşır:</p>
+                    <p>• <b>Karmaşıklık:</b> enum, switch, birden çok çeşide ait alanlar karışır<br>• <b>Bellek
+                            israfı:</b> Her çeşidin kullanmadığı alanlar yer kaplar<br>• <b>Tür güvenliği yok:</b>
+                        Yanlış alan erişimi derleme zamanında yakalanmaz<br>• <b>Genişletilemez:</b> Yeni çeşit eklemek
+                        tüm switch'leri güncellemeyi gerektirir</p>
+                    <p><b>Çözüm:</b> Soyut sınıf + alt sınıflar hiyerarşisi — temiz, güvenli, genişletilebilir.</p>
                 </div>
                 <div class="en-text" style="display:none">
-                    <p><code>return a - b</code> can overflow for integers and has IEEE 754 artifacts for floats. Always
-                        use <code>Integer.compare(a, b)</code> or comparator construction methods.</p>
+                    <p>Tagged classes are verbose, waste memory, lack type safety, and are hard to extend. Replace with
+                        abstract class + subclass hierarchy.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>const CURRENT_PAGE = 58;</script>
+    <script>const CURRENT_PAGE = 67;</script>
     <script src="../js/common.js"></script>
 </body>
 

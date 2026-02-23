@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Effective Java — Sayfa 58</title>
+    <title>Effective Java — Sayfa 60</title>
     <style>
         *,
         *::before,
@@ -184,19 +184,36 @@
             color: #1a5c1a
         }
 
-        .chapter-end-box {
-            background: #e3f2fd;
-            border: 2px solid #1976d2;
-            padding: 1.2rem;
-            border-radius: 8px;
-            margin: 2rem 0;
-            text-align: center;
-            color: #0d2137
+        .cuts-box {
+            background: #fff8e1;
+            border-left: 4px solid #f5a623;
+            padding: .7rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+            color: #7a5c00
         }
 
         p {
             margin-bottom: 1rem;
             font-size: 1rem
+        }
+
+        h2.item-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0d2137;
+            margin: 2rem 0 .3rem;
+            border-bottom: 2px solid #f5a623;
+            padding-bottom: .3rem;
+            display: inline-block
+        }
+
+        p.item-title-en {
+            font-size: .85rem;
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 1rem
         }
 
         .code-block {
@@ -380,15 +397,15 @@
     <div class="topbar">
         <div class="topbar-left">
             <span class="topbar-title">Effective Java — Joshua Bloch</span>
-            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 14: Comparable — Tuzaklar &amp; Özet / Bölüm 3
-                Sonu</span>
+            <span class="topbar-sub">Chapter 4 &nbsp;›&nbsp; Item 15: Erişilebilirlik — Sabitler, Diziler &amp;
+                Modüller</span>
         </div>
         <div class="topbar-right">
             <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
             <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
             <div class="page-nav-input-wrap">
                 <label for="pageNumInput">Sayfa</label>
-                <input type="text" id="pageNumInput" value="58" inputmode="numeric"
+                <input type="text" id="pageNumInput" value="60" inputmode="numeric"
                     onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
                 <div id="pageNavTooltip"></div>
             </div>
@@ -396,136 +413,162 @@
     </div>
 
     <div class="container">
-        <div class="page-label">Sayfa 58 / Page 58</div>
-        <div class="chapter-badge">Chapter 3 — Item 14 sonu / Bölüm 3 Sonu</div>
+        <div class="page-label">Sayfa 60 / Page 60</div>
+        <div class="chapter-badge">Chapter 4 — Item 15: Erişilebilirlik — Sabitler &amp; Diziler</div>
 
-        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 14: Fark tabanlı karşılaştırma tuzağı ve son
-                sözler</em></div>
+        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 15: public static final, dizi güvenlik açığı ve
+                modüller</em></div>
 
         <div class="tr-text">
-            <p>Zaman zaman birinci değer ikinciden küçükse negatif, eşitse sıfır, büyükse pozitif olan <b>fark
-                    (difference)</b> kullanan <code>compareTo</code> veya <code>compare</code> metotları görebilirsiniz:
-            </p>
+            <p>Genel (public) sınıfların <b>örnek alanları (instance fields) nadiren genel olmalıdır</b> (Madde 16). Bir
+                alan <code>final</code> değilse veya değişebilir (mutable) bir nesneye referans ise — genel yaparak
+                alanda saklanabilecek değerleri sınırlama yeteneğinden vazgeçersiniz. Ayrıca, alan değiştirildiğinde
+                herhangi bir eylem alma yeteneğini de kaybedersiniz; böylece <b>genel değişebilir alanlara sahip
+                    sınıflar genellikle iş parçacığı güvenli (thread-safe) değildir</b>.</p>
+
+            <p><code>public static final</code> alanları aracılığıyla <b>sabitleri</b> açığa çıkarabilirsiniz — bunların
+                sınıfın sağladığı soyutlamanın ayrılmaz bir parçası olduğu varsayılır. Ancak, <b>sıfır olmayan
+                    uzunluktaki bir dizi her zaman değişebilirdir</b>; bu nedenle bir sınıfın genel statik final dizi
+                alanına sahip olması yanlıştır:</p>
         </div>
 
         <div class="en-text" style="display:none">
-            <p>Occasionally you may see <code>compareTo</code> or <code>compare</code> methods that rely on the
-                difference between two values:</p>
+            <p>Instance fields of public classes should rarely be public. You can expose constants via
+                <code>public static final</code> fields. But a nonzero-length array is always mutable — never have a
+                public static final array:</p>
         </div>
 
         <div class="code-block">
-            <span class="cm">// BOZUK — fark tabanlı karşılaştırıcı — geçişliliği ihlal eder!</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder = <span class="kw">new</span> <span class="cl">Comparator</span>&lt;&gt;() {
-            <span class="kw">public int</span> compare(<span class="cl">Object</span> o1, <span class="cl">Object</span>
-            o2) {
-            <span class="kw">return</span> o1.hashCode() - o2.hashCode(); <span class="cm">// TEHLİKE!</span>
-            }
-            };
+            <span class="cm">// Potansiyel güvenlik açığı!</span>
+            <span class="kw">public static final</span> <span class="cl">Thing</span>[] VALUES = { ... };
         </div>
 
         <div class="tr-text">
-            <p><b>Bu tekniği kullanmayın.</b> Tamsayı taşması (integer overflow) ve IEEE 754 kayan nokta aritmetik
-                artefaktları nedeniyle tehlikelerle doludur. Bunun yerine şu iki yaklaşımdan birini kullanın:</p>
+            <p>İki düzeltme yolu vardır. Diziyi özel yapıp değiştirilemez bir liste ekleyebilirsiniz:</p>
         </div>
-
         <div class="en-text" style="display:none">
-            <p><b>Do not use this technique.</b> It is fraught with danger from integer overflow and IEEE 754 floating
-                point artifacts. Use one of these instead:</p>
+            <p>Two fixes: make the array private and add an immutable list, or add a method that returns a copy:</p>
         </div>
 
         <div class="code-block">
-            <span class="cm">// Statik compare metodu kullanan karşılaştırıcı</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder = <span class="kw">new</span> <span class="cl">Comparator</span>&lt;&gt;() {
-            <span class="kw">public int</span> compare(<span class="cl">Object</span> o1, <span class="cl">Object</span>
-            o2) {
-            <span class="kw">return</span> <span class="cl">Integer</span>.compare(o1.hashCode(), o2.hashCode());
-            }
-            };
+            <span class="kw">private static final</span> <span class="cl">Thing</span>[] PRIVATE_VALUES = { ... };
+            <span class="kw">public static final</span> <span class="cl">List</span>&lt;<span
+                class="cl">Thing</span>&gt; VALUES =
+            <span class="cl">Collections</span>.unmodifiableList(<span class="cl">Arrays</span>.asList(PRIVATE_VALUES));
 
-            <span class="cm">// Comparator construction method kullanan karşılaştırıcı</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder =
-            <span class="cl">Comparator</span>.comparingInt(o -> o.hashCode());
+            <span class="cm">// Alternatif: kopya döndüren metot</span>
+            <span class="kw">public static final</span> <span class="cl">Thing</span>[] values() {
+            <span class="kw">return</span> PRIVATE_VALUES.clone();
+            }
         </div>
 
         <div class="tr-text">
-            <div class="summary-box">
-                <strong>Madde 14 — Özet:</strong> Anlamlı bir sıralamaya sahip bir değer sınıfı uyguladığınızda, sınıfın
-                <code>Comparable</code> arayüzünü uygulamasını sağlayın. Böylece örnekleri kolayca sıralanabilir,
-                aranabilir ve karşılaştırma tabanlı koleksiyonlarda kullanılabilir. <code>compareTo</code>
-                metotlarındaki alan değerlerini karşılaştırırken <code>&lt;</code> ve <code>&gt;</code> operatörlerini
-                kullanmaktan kaçının. Bunun yerine, sarmalayıcı ilkel sınıflardaki statik <code>compare</code>
-                metotlarını veya <code>Comparator</code> arayüzündeki karşılaştırıcı oluşturma metotlarını kullanın.
-            </div>
+            <p>Java 9'dan itibaren, <b>modül sistemi</b> (module system) iki ek örtük erişim düzeyi tanıtmıştır. Bir
+                modül, <code>module-info.java</code> dosyasındaki <code>exports</code> bildirimleri aracılığıyla bazı
+                paketlerini açıkça dışa aktarabilir (export). Dışa aktarılmamış paketlerdeki genel ve korumalı üyeler
+                modül dışından erişilemez. Ancak bu koruma büyük ölçüde <b>tavsiye niteliğindedir</b> — modülün JAR
+                dosyası modül yolu (module path) yerine sınıf yoluna (class path) konursa, tüm genel/korumalı üyeler
+                normal erişilebilirliklerine geri döner.</p>
 
-            <div class="chapter-end-box">
-                <strong>🎉 Bölüm 3 Tamamlandı!</strong><br>
-                <em>Chapter 3: Methods Common to All Objects</em><br>
-                <span style="font-size:.88rem;color:#555;">Madde 10 (equals) • Madde 11 (hashCode) • Madde 12 (toString)
-                    • Madde 13 (clone) • Madde 14 (Comparable)</span>
+            <div class="summary-box">
+                <strong>Madde 15 — Özet:</strong> Erişilebilirliği mümkün olduğunca azaltın. Minimal bir genel API'yi
+                dikkatle tasarlayın, sonra başıboş sınıfların, arayüzlerin veya üyelerin API'nin parçası olmasını
+                önleyin. Sabit olarak hizmet eden <code>public static final</code> alanları dışında, genel sınıfların
+                genel alanları olmamalıdır. <code>public static final</code> alanlarından referans verilen nesnelerin
+                değişmez olduğundan emin olun.
             </div>
         </div>
 
         <div class="en-text" style="display:none">
+            <p>Java 9's module system adds two implicit access levels via <code>exports</code> declarations. But
+                module-based access is largely advisory.</p>
             <div class="summary-box">
-                <strong>Item 14 — Summary:</strong> Implement <code>Comparable</code> for value classes with sensible
-                ordering. Use static <code>compare</code> methods or comparator construction methods instead of
-                <code>&lt;</code> and <code>&gt;</code> operators.
-            </div>
-
-            <div class="chapter-end-box">
-                <strong>🎉 Chapter 3 Complete!</strong><br>
-                <em>Chapter 3: Methods Common to All Objects</em><br>
-                <span style="font-size:.88rem;color:#555;">Item 10 (equals) • Item 11 (hashCode) • Item 12 (toString) •
-                    Item 13 (clone) • Item 14 (Comparable)</span>
+                <strong>Item 15 — Summary:</strong> Reduce accessibility as much as possible. No public fields except
+                constants. Ensure objects referenced by public static final fields are immutable.
             </div>
         </div>
+
+        <!-- Item 16 başlangıcı -->
+        <h2 class="item-title">Madde 16: Genel Sınıflarda Erişimci Metotlar Kullanın, Genel Alanlar Değil</h2>
+        <p class="item-title-en">Item 16: In public classes, use accessor methods, not public fields</p>
+
+        <div class="tr-text">
+            <p>Zaman zaman örnek alanlarını gruplamaktan başka bir amaca hizmet etmeyen <b>dejenere sınıflar</b>
+                (degenerate classes) yazmak cazip olabilir:</p>
+        </div>
+        <div class="en-text" style="display:none">
+            <p>You may be tempted to write degenerate classes that only group fields:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// Böyle dejenere sınıflar genel olmamalı!</span>
+            <span class="kw">class</span> <span class="cl">Point</span> {
+            <span class="kw">public double</span> x;
+            <span class="kw">public double</span> y;
+            }
+        </div>
+
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 16 devamı: Erişimci metotlar, paket-özel istisna ve Madde
+            17 başlangıcı sonraki sayfada.</div>
 
         <div class="concepts-row">
             <strong class="tr-text">🔍 Kavramlar:</strong>
             <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
-            <button class="concept-btn" onclick="openModal('diff-trap')">Fark Tabanlı Karşılaştırma Tuzağı</button>
+            <button class="concept-btn" onclick="openModal('array-security')">Dizi Güvenlik Açığı</button>
+            <button class="concept-btn" onclick="openModal('module-system')">Java 9 Modül Sistemi</button>
         </div>
 
         <div class="page-footer">
-            <button class="nav-btn" onclick="window.location.href='page-57.html'"><span class="nav-direction">← Önceki
-                    Sayfa</span><span class="nav-info">Sayfa 57 — PhoneNumber compareTo</span></button>
-            <button class="nav-btn" onclick="window.location.href='page-59.html'">
-                <span class="nav-direction">Sonraki Sayfa →</span>
-                <span class="nav-info">Sayfa 59 — Chapter 4: Sınıflar ve Arayüzler</span>
-            </button>
+            <button class="nav-btn" onclick="window.location.href='page-59.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 59 — Chapter 4 giriş, erişim düzeyleri</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-61.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 61 — Erişimciler, Madde 17 giriş</span></button>
         </div>
     </div>
 
-    <div class="modal-overlay" id="modal-diff-trap">
+    <div class="modal-overlay" id="modal-array-security">
         <div class="modal">
             <div class="modal-header">
-                <h3>Fark Tabanlı Karşılaştırma Tuzağı</h3><button class="modal-close"
-                    onclick="closeModal('diff-trap')">✕</button>
+                <h3>Dizi Güvenlik Açığı</h3><button class="modal-close"
+                    onclick="closeModal('array-security')">✕</button>
             </div>
             <div class="modal-body">
                 <div class="tr-text">
-                    <p><code>return a - b;</code> yaklaşımı ilk bakışta doğru gibi görünür, ancak iki sorun barındırır:
-                    </p>
-                    <p><b>1. Tamsayı taşması:</b> <code>a = Integer.MAX_VALUE</code> ve <code>b = -1</code> olduğunda,
-                        <code>a - b</code> taşar ve negatif bir değer döndürür — yanlış sonuç!
-                    </p>
-                    <p><b>2. Kayan nokta artefaktları:</b> <code>float</code> ve <code>double</code> için IEEE 754
-                        kuralları nedeniyle beklenmeyen sonuçlar oluşabilir.</p>
-                    <p><b>Çözüm:</b> Her zaman <code>Integer.compare(a, b)</code>, <code>Double.compare(a, b)</code>
-                        veya <code>Comparator.comparingInt()</code> kullanın.</p>
+                    <p><code>public static final Thing[] VALUES</code> — dizi <code>final</code> olsa bile, <b>dizi
+                            elemanları değişebilir</b>! İstemci <code>VALUES[0] = null</code> yapabilir.</p>
+                    <p><b>Çözüm 1:</b> <code>Collections.unmodifiableList()</code> ile değiştirilemez liste dönün.</p>
+                    <p><b>Çözüm 2:</b> <code>clone()</code> ile dizinin kopyasını döndüren bir metot sağlayın.</p>
                 </div>
                 <div class="en-text" style="display:none">
-                    <p><code>return a - b</code> can overflow for integers and has IEEE 754 artifacts for floats. Always
-                        use <code>Integer.compare(a, b)</code> or comparator construction methods.</p>
+                    <p>Array elements are mutable even if the array reference is <code>final</code>. Return an
+                        unmodifiable list or a clone instead.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>const CURRENT_PAGE = 58;</script>
+    <div class="modal-overlay" id="modal-module-system">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Java 9 Modül Sistemi</h3><button class="modal-close"
+                    onclick="closeModal('module-system')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p>Java 9'da modüller, paketlerin üstünde bir katman ekler. <code>module-info.java</code>'da hangi
+                        paketlerin dışa aktarılacağını belirlersiniz. Ancak:</p>
+                    <p>• JAR dosyası sınıf yoluna konursa modül koruması <b>göz ardı edilir</b><br>• JDK dışında henüz
+                        yaygın kullanım alanı bulamadı<br>• Mevcut projelere entegrasyonu karmaşık</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>Java 9 modules add a layer above packages via <code>module-info.java</code> exports. But
+                        protection is advisory — placing JAR on classpath bypasses it.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 60;</script>
     <script src="../js/common.js"></script>
 </body>
 

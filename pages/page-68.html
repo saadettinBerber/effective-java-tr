@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Effective Java — Sayfa 58</title>
+    <title>Effective Java — Sayfa 68</title>
     <style>
         *,
         *::before,
@@ -164,16 +164,6 @@
             margin-bottom: 1.2rem
         }
 
-        .continued-box {
-            background: #fff8e1;
-            border-left: 4px solid #f5a623;
-            padding: .7rem 1rem;
-            border-radius: 0 6px 6px 0;
-            margin-bottom: 1.5rem;
-            font-size: .9rem;
-            color: #7a5c00
-        }
-
         .summary-box {
             background: #e8f4e8;
             border-left: 4px solid #27ae60;
@@ -197,6 +187,23 @@
         p {
             margin-bottom: 1rem;
             font-size: 1rem
+        }
+
+        h2.item-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0d2137;
+            margin: 2rem 0 .3rem;
+            border-bottom: 2px solid #f5a623;
+            padding-bottom: .3rem;
+            display: inline-block
+        }
+
+        p.item-title-en {
+            font-size: .85rem;
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 1rem
         }
 
         .code-block {
@@ -317,15 +324,6 @@
             margin-bottom: .8rem
         }
 
-        .tip-box {
-            background: #f0faf0;
-            border-left: 3px solid #27ae60;
-            padding: .6rem 1rem;
-            border-radius: 0 4px 4px 0;
-            font-size: .88rem;
-            margin-top: 1rem
-        }
-
         .page-footer {
             display: flex;
             justify-content: space-between;
@@ -380,7 +378,7 @@
     <div class="topbar">
         <div class="topbar-left">
             <span class="topbar-title">Effective Java — Joshua Bloch</span>
-            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 14: Comparable — Tuzaklar &amp; Özet / Bölüm 3
+            <span class="topbar-sub">Chapter 4 &nbsp;›&nbsp; Item 24-25: İç Sınıflar &amp; Tek Üst Düzey Sınıf / Bölüm 4
                 Sonu</span>
         </div>
         <div class="topbar-right">
@@ -388,7 +386,7 @@
             <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
             <div class="page-nav-input-wrap">
                 <label for="pageNumInput">Sayfa</label>
-                <input type="text" id="pageNumInput" value="58" inputmode="numeric"
+                <input type="text" id="pageNumInput" value="68" inputmode="numeric"
                     onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
                 <div id="pageNavTooltip"></div>
             </div>
@@ -396,136 +394,148 @@
     </div>
 
     <div class="container">
-        <div class="page-label">Sayfa 58 / Page 58</div>
-        <div class="chapter-badge">Chapter 3 — Item 14 sonu / Bölüm 3 Sonu</div>
+        <div class="page-label">Sayfa 68 / Page 68</div>
+        <div class="chapter-badge">Chapter 4 — Item 24-25 / Bölüm 4 Sonu</div>
 
-        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 14: Fark tabanlı karşılaştırma tuzağı ve son
-                sözler</em></div>
+        <h2 class="item-title">Madde 24: Statik Üye Sınıflarını Statik Olmayanlara Tercih Edin</h2>
+        <p class="item-title-en">Item 24: Favor static member classes over nonstatic</p>
 
         <div class="tr-text">
-            <p>Zaman zaman birinci değer ikinciden küçükse negatif, eşitse sıfır, büyükse pozitif olan <b>fark
-                    (difference)</b> kullanan <code>compareTo</code> veya <code>compare</code> metotları görebilirsiniz:
-            </p>
+            <p>İç sınıfların (nested classes) <b>dört çeşidi</b> vardır:</p>
+
+            <p><b>1. Statik üye sınıfları (static member classes):</b> En yaygın tür. Dış sınıfın bir yardımcısı olarak
+                düşünün. Dış sınıfa başvuru tutmazlar. <code>Map</code> uygulamalarındaki <code>Entry</code> nesneleri
+                güzel bir örnektir — her giriş bir harita ile ilişkilidir ama <code>Entry</code> metotlarının haritanın
+                kendisine erişmesi gerekmez.</p>
+
+            <p><b>2. Statik olmayan üye sınıfları (nonstatic member classes):</b> Her örnek, çevreleyen sınıfın bir
+                örneğiyle örtük olarak ilişkilidir. İç örnek, dış örneğin metotlarını çağırabilir ve
+                <code>OuterClass.this</code> ile ona referans alabilir. <b>Dikkat:</b> Çevreleyen örneğe referans
+                fazladan bellek tüketir ve çöp toplayıcının (GC) dış örneği toplamasını engelleyebilir — gizli bellek
+                sızıntısı!</p>
+
+            <p><b>3. Anonim sınıflar (anonymous classes):</b> Adı olmayan, bildirildikleri yerde anlık olarak
+                oluşturulan sınıflar. Lambda'lardan önce küçük işlev nesneleri (function objects) için kullanılırdı.
+                Artık lambda ifadeleri her zaman tercih edilmelidir (Madde 42).</p>
+
+            <p><b>4. Yerel sınıflar (local classes):</b> Bir blok içinde bildirilen, en az kullanılan çeşit.</p>
+
+            <p><b>Kural:</b> İç sınıfın dış örneğe erişmesi <b>gerekmiyorsa</b>, <code>static</code> yapın. Aksi halde
+                her iç sınıf örneği dış örneğe gizli bir referans taşır — bellek ve performans maliyeti!</p>
         </div>
 
         <div class="en-text" style="display:none">
-            <p>Occasionally you may see <code>compareTo</code> or <code>compare</code> methods that rely on the
-                difference between two values:</p>
+            <p>Four kinds: 1) Static member classes (no enclosing instance ref). 2) Nonstatic member classes (hidden ref
+                to enclosing instance — memory leak risk!). 3) Anonymous classes (prefer lambdas). 4) Local classes
+                (rare). Rule: if no access to enclosing instance needed, make it <code>static</code>.</p>
+        </div>
+
+        <!-- Item 25 -->
+        <h2 class="item-title">Madde 25: Kaynak Dosyalarını Tek Bir Üst Düzey Sınıfla Sınırlayın</h2>
+        <p class="item-title-en">Item 25: Limit source files to a single top-level class</p>
+
+        <div class="tr-text">
+            <p>Java derleyicisi tek bir kaynak dosyada birden çok üst düzey sınıf tanımlamanıza izin verse de, bunu
+                yapmanın <b>hiçbir faydası yoktur ve ciddi riskleri vardır</b>. Risk, bir sınıfa birden çok tanım
+                sağlama olasılığından kaynaklanır — hangi tanımın kullanılacağı dosyaların derleyiciye verilme
+                <b>sırasına</b> bağlıdır.</p>
+        </div>
+        <div class="en-text" style="display:none">
+            <p>Java allows multiple top-level classes in one file, but it's risky — which definition is used depends on
+                compilation order.</p>
         </div>
 
         <div class="code-block">
-            <span class="cm">// BOZUK — fark tabanlı karşılaştırıcı — geçişliliği ihlal eder!</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder = <span class="kw">new</span> <span class="cl">Comparator</span>&lt;&gt;() {
-            <span class="kw">public int</span> compare(<span class="cl">Object</span> o1, <span class="cl">Object</span>
-            o2) {
-            <span class="kw">return</span> o1.hashCode() - o2.hashCode(); <span class="cm">// TEHLİKE!</span>
+            <span class="cm">// Main.java</span>
+            <span class="kw">public class</span> <span class="cl">Main</span> {
+            <span class="kw">public static void</span> main(<span class="cl">String</span>[] args) {
+            <span class="cl">System</span>.out.println(<span class="cl">Utensil</span>.NAME + <span
+                class="cl">Dessert</span>.NAME);
             }
-            };
+            }
+            <span class="cm">// Utensil.java — her sınıf kendi dosyasında olmalı!</span>
+            <span class="kw">class</span> <span class="cl">Utensil</span> { <span class="kw">static final</span> <span
+                class="cl">String</span> NAME = <span class="st">"pot"</span>; }
+            <span class="kw">class</span> <span class="cl">Dessert</span> { <span class="kw">static final</span> <span
+                class="cl">String</span> NAME = <span class="st">"pie"</span>; }
         </div>
 
         <div class="tr-text">
-            <p><b>Bu tekniği kullanmayın.</b> Tamsayı taşması (integer overflow) ve IEEE 754 kayan nokta aritmetik
-                artefaktları nedeniyle tehlikelerle doludur. Bunun yerine şu iki yaklaşımdan birini kullanın:</p>
-        </div>
+            <p><b>Çözüm basittir:</b> Asla tek bir kaynak dosyaya birden fazla üst düzey sınıf koymayın. Alternatif
+                olarak, statik üye sınıflarını kullanabilirsiniz. Bu, programınızın derleme sırasından bağımsız olarak
+                aynı davranacağını garanti eder.</p>
 
-        <div class="en-text" style="display:none">
-            <p><b>Do not use this technique.</b> It is fraught with danger from integer overflow and IEEE 754 floating
-                point artifacts. Use one of these instead:</p>
-        </div>
-
-        <div class="code-block">
-            <span class="cm">// Statik compare metodu kullanan karşılaştırıcı</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder = <span class="kw">new</span> <span class="cl">Comparator</span>&lt;&gt;() {
-            <span class="kw">public int</span> compare(<span class="cl">Object</span> o1, <span class="cl">Object</span>
-            o2) {
-            <span class="kw">return</span> <span class="cl">Integer</span>.compare(o1.hashCode(), o2.hashCode());
-            }
-            };
-
-            <span class="cm">// Comparator construction method kullanan karşılaştırıcı</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder =
-            <span class="cl">Comparator</span>.comparingInt(o -> o.hashCode());
-        </div>
-
-        <div class="tr-text">
             <div class="summary-box">
-                <strong>Madde 14 — Özet:</strong> Anlamlı bir sıralamaya sahip bir değer sınıfı uyguladığınızda, sınıfın
-                <code>Comparable</code> arayüzünü uygulamasını sağlayın. Böylece örnekleri kolayca sıralanabilir,
-                aranabilir ve karşılaştırma tabanlı koleksiyonlarda kullanılabilir. <code>compareTo</code>
-                metotlarındaki alan değerlerini karşılaştırırken <code>&lt;</code> ve <code>&gt;</code> operatörlerini
-                kullanmaktan kaçının. Bunun yerine, sarmalayıcı ilkel sınıflardaki statik <code>compare</code>
-                metotlarını veya <code>Comparator</code> arayüzündeki karşılaştırıcı oluşturma metotlarını kullanın.
+                <strong>Bölüm 4 — Genel Özet:</strong><br>
+                • <b>Madde 15:</b> Erişilebilirliği en aza indirin<br>
+                • <b>Madde 16:</b> Genel sınıflarda erişimci metotlar kullanın<br>
+                • <b>Madde 17:</b> Değişmezliği en aza indirin<br>
+                • <b>Madde 18:</b> Kalıtım yerine bileşimi tercih edin<br>
+                • <b>Madde 19:</b> Kalıtım için tasarlayın veya yasaklayın<br>
+                • <b>Madde 20:</b> Soyut sınıflar yerine arayüzleri tercih edin<br>
+                • <b>Madde 21:</b> Arayüzleri sonrası için dikkatle tasarlayın<br>
+                • <b>Madde 22:</b> Arayüzleri yalnızca tür tanımlamak için kullanın<br>
+                • <b>Madde 23:</b> Etiketli sınıflar yerine sınıf hiyerarşileri<br>
+                • <b>Madde 24:</b> Statik üye sınıflarını tercih edin<br>
+                • <b>Madde 25:</b> Kaynak dosyasına tek üst düzey sınıf
             </div>
 
             <div class="chapter-end-box">
-                <strong>🎉 Bölüm 3 Tamamlandı!</strong><br>
-                <em>Chapter 3: Methods Common to All Objects</em><br>
-                <span style="font-size:.88rem;color:#555;">Madde 10 (equals) • Madde 11 (hashCode) • Madde 12 (toString)
-                    • Madde 13 (clone) • Madde 14 (Comparable)</span>
+                <strong>🎉 Bölüm 4 Tamamlandı!</strong><br>
+                <em>Chapter 4: Classes and Interfaces</em><br>
+                <span style="font-size:.88rem;color:#555;">Madde 15-25 • 11 Madde</span>
             </div>
         </div>
 
         <div class="en-text" style="display:none">
-            <div class="summary-box">
-                <strong>Item 14 — Summary:</strong> Implement <code>Comparable</code> for value classes with sensible
-                ordering. Use static <code>compare</code> methods or comparator construction methods instead of
-                <code>&lt;</code> and <code>&gt;</code> operators.
-            </div>
-
             <div class="chapter-end-box">
-                <strong>🎉 Chapter 3 Complete!</strong><br>
-                <em>Chapter 3: Methods Common to All Objects</em><br>
-                <span style="font-size:.88rem;color:#555;">Item 10 (equals) • Item 11 (hashCode) • Item 12 (toString) •
-                    Item 13 (clone) • Item 14 (Comparable)</span>
+                <strong>🎉 Chapter 4 Complete!</strong><br>
+                <em>Chapter 4: Classes and Interfaces</em><br>
+                <span style="font-size:.88rem;color:#555;">Items 15-25 • 11 Items</span>
             </div>
         </div>
 
         <div class="concepts-row">
             <strong class="tr-text">🔍 Kavramlar:</strong>
             <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
-            <button class="concept-btn" onclick="openModal('diff-trap')">Fark Tabanlı Karşılaştırma Tuzağı</button>
+            <button class="concept-btn" onclick="openModal('nested-classes')">4 İç Sınıf Çeşidi</button>
         </div>
 
         <div class="page-footer">
-            <button class="nav-btn" onclick="window.location.href='page-57.html'"><span class="nav-direction">← Önceki
-                    Sayfa</span><span class="nav-info">Sayfa 57 — PhoneNumber compareTo</span></button>
-            <button class="nav-btn" onclick="window.location.href='page-59.html'">
+            <button class="nav-btn" onclick="window.location.href='page-67.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 67 — Sabit arayüzü, etiketli sınıf</span></button>
+            <button class="nav-btn" style="opacity:0.5;cursor:default;">
                 <span class="nav-direction">Sonraki Sayfa →</span>
-                <span class="nav-info">Sayfa 59 — Chapter 4: Sınıflar ve Arayüzler</span>
+                <span class="nav-info">Henüz çevrilmedi</span>
             </button>
         </div>
     </div>
 
-    <div class="modal-overlay" id="modal-diff-trap">
+    <div class="modal-overlay" id="modal-nested-classes">
         <div class="modal">
             <div class="modal-header">
-                <h3>Fark Tabanlı Karşılaştırma Tuzağı</h3><button class="modal-close"
-                    onclick="closeModal('diff-trap')">✕</button>
+                <h3>4 İç Sınıf Çeşidi</h3><button class="modal-close" onclick="closeModal('nested-classes')">✕</button>
             </div>
             <div class="modal-body">
                 <div class="tr-text">
-                    <p><code>return a - b;</code> yaklaşımı ilk bakışta doğru gibi görünür, ancak iki sorun barındırır:
+                    <p><b>1. Statik üye sınıfı:</b> <code>static class Inner</code> — dış örneğe referansı yok. En
+                        güvenli ve en yaygın.<br>
+                        <b>2. Statik olmayan üye sınıfı:</b> <code>class Inner</code> — dış örneğe gizli referans taşır.
+                        Bellek sızıntısı riski!<br>
+                        <b>3. Anonim sınıf:</b> Artık lambda kullanın.<br>
+                        <b>4. Yerel sınıf:</b> Blok içinde tanımlı, nadiren kullanılır.
                     </p>
-                    <p><b>1. Tamsayı taşması:</b> <code>a = Integer.MAX_VALUE</code> ve <code>b = -1</code> olduğunda,
-                        <code>a - b</code> taşar ve negatif bir değer döndürür — yanlış sonuç!
-                    </p>
-                    <p><b>2. Kayan nokta artefaktları:</b> <code>float</code> ve <code>double</code> için IEEE 754
-                        kuralları nedeniyle beklenmeyen sonuçlar oluşabilir.</p>
-                    <p><b>Çözüm:</b> Her zaman <code>Integer.compare(a, b)</code>, <code>Double.compare(a, b)</code>
-                        veya <code>Comparator.comparingInt()</code> kullanın.</p>
+                    <p><b>Altın kural:</b> Dış örneğe erişim gerekmiyorsa → <code>static</code> yapın!</p>
                 </div>
                 <div class="en-text" style="display:none">
-                    <p><code>return a - b</code> can overflow for integers and has IEEE 754 artifacts for floats. Always
-                        use <code>Integer.compare(a, b)</code> or comparator construction methods.</p>
+                    <p>1) Static member class — no enclosing ref. 2) Nonstatic — hidden ref, memory risk. 3) Anonymous —
+                        use lambdas. 4) Local — rare. Rule: if no enclosing access needed, use <code>static</code>.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>const CURRENT_PAGE = 58;</script>
+    <script>const CURRENT_PAGE = 68;</script>
     <script src="../js/common.js"></script>
 </body>
 

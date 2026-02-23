@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Effective Java — Sayfa 58</title>
+    <title>Effective Java — Sayfa 59</title>
     <style>
         *,
         *::before,
@@ -164,39 +164,45 @@
             margin-bottom: 1.2rem
         }
 
-        .continued-box {
+        .cuts-box {
             background: #fff8e1;
             border-left: 4px solid #f5a623;
             padding: .7rem 1rem;
             border-radius: 0 6px 6px 0;
-            margin-bottom: 1.5rem;
+            margin-top: 1.5rem;
             font-size: .9rem;
             color: #7a5c00
-        }
-
-        .summary-box {
-            background: #e8f4e8;
-            border-left: 4px solid #27ae60;
-            padding: 1rem 1.2rem;
-            border-radius: 0 8px 8px 0;
-            margin: 1.5rem 0;
-            font-size: .93rem;
-            color: #1a5c1a
-        }
-
-        .chapter-end-box {
-            background: #e3f2fd;
-            border: 2px solid #1976d2;
-            padding: 1.2rem;
-            border-radius: 8px;
-            margin: 2rem 0;
-            text-align: center;
-            color: #0d2137
         }
 
         p {
             margin-bottom: 1rem;
             font-size: 1rem
+        }
+
+        h2.item-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0d2137;
+            margin: 2rem 0 .3rem;
+            border-bottom: 2px solid #f5a623;
+            padding-bottom: .3rem;
+            display: inline-block
+        }
+
+        p.item-title-en {
+            font-size: .85rem;
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 1rem
+        }
+
+        h2.chapter-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0d2137;
+            margin: 1rem 0 .5rem;
+            border-bottom: 3px solid #f5a623;
+            padding-bottom: .4rem
         }
 
         .code-block {
@@ -380,15 +386,14 @@
     <div class="topbar">
         <div class="topbar-left">
             <span class="topbar-title">Effective Java — Joshua Bloch</span>
-            <span class="topbar-sub">Chapter 3 &nbsp;›&nbsp; Item 14: Comparable — Tuzaklar &amp; Özet / Bölüm 3
-                Sonu</span>
+            <span class="topbar-sub">Chapter 4 &nbsp;›&nbsp; Sınıflar ve Arayüzler — Giriş &amp; Item 15</span>
         </div>
         <div class="topbar-right">
             <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
             <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
             <div class="page-nav-input-wrap">
                 <label for="pageNumInput">Sayfa</label>
-                <input type="text" id="pageNumInput" value="58" inputmode="numeric"
+                <input type="text" id="pageNumInput" value="59" inputmode="numeric"
                     onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
                 <div id="pageNavTooltip"></div>
             </div>
@@ -396,136 +401,136 @@
     </div>
 
     <div class="container">
-        <div class="page-label">Sayfa 58 / Page 58</div>
-        <div class="chapter-badge">Chapter 3 — Item 14 sonu / Bölüm 3 Sonu</div>
+        <div class="page-label">Sayfa 59 / Page 59</div>
+        <div class="chapter-badge">Chapter 4 — Sınıflar ve Arayüzler / Classes and Interfaces</div>
 
-        <div class="continued-box">↩ Önceki sayfadan devam — <em>Madde 14: Fark tabanlı karşılaştırma tuzağı ve son
-                sözler</em></div>
+        <h2 class="chapter-title">Bölüm 4: Sınıflar ve Arayüzler</h2>
 
         <div class="tr-text">
-            <p>Zaman zaman birinci değer ikinciden küçükse negatif, eşitse sıfır, büyükse pozitif olan <b>fark
-                    (difference)</b> kullanan <code>compareTo</code> veya <code>compare</code> metotları görebilirsiniz:
-            </p>
+            <p><b>Sınıflar</b> (classes) ve <b>arayüzler</b> (interfaces), Java programlama dilinin kalbinde yer alır.
+                Onlar soyutlamanın (abstraction) temel birimleridir. Dil, sınıfları ve arayüzleri tasarlamak için
+                kullanabileceğiniz birçok güçlü unsur sağlar. Bu bölüm, sınıflarınızın ve arayüzlerinizin
+                <b>kullanılabilir, sağlam ve esnek</b> olmasını sağlamak için bu unsurlardan en iyi şekilde
+                yararlanmanıza yardımcı olacak kılavuzlar içerir.</p>
         </div>
 
         <div class="en-text" style="display:none">
-            <p>Occasionally you may see <code>compareTo</code> or <code>compare</code> methods that rely on the
-                difference between two values:</p>
+            <p><b>Classes</b> and <b>interfaces</b> lie at the heart of the Java programming language. They are its
+                basic units of abstraction. This chapter contains guidelines to help you make the best use of these
+                elements so that your classes and interfaces are usable, robust, and flexible.</p>
         </div>
 
-        <div class="code-block">
-            <span class="cm">// BOZUK — fark tabanlı karşılaştırıcı — geçişliliği ihlal eder!</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder = <span class="kw">new</span> <span class="cl">Comparator</span>&lt;&gt;() {
-            <span class="kw">public int</span> compare(<span class="cl">Object</span> o1, <span class="cl">Object</span>
-            o2) {
-            <span class="kw">return</span> o1.hashCode() - o2.hashCode(); <span class="cm">// TEHLİKE!</span>
-            }
-            };
-        </div>
+        <h2 class="item-title">Madde 15: Sınıfların ve Üyelerin Erişilebilirliğini En Aza İndirin</h2>
+        <p class="item-title-en">Item 15: Minimize the accessibility of classes and members</p>
 
         <div class="tr-text">
-            <p><b>Bu tekniği kullanmayın.</b> Tamsayı taşması (integer overflow) ve IEEE 754 kayan nokta aritmetik
-                artefaktları nedeniyle tehlikelerle doludur. Bunun yerine şu iki yaklaşımdan birini kullanın:</p>
+            <p>İyi tasarlanmış bir bileşeni kötü tasarlanmış birinden ayıran <b>en önemli tek faktör</b>, bileşenin iç
+                verilerini ve diğer uygulama detaylarını diğer bileşenlerden <b>ne ölçüde gizlediğidir</b>. İyi
+                tasarlanmış bir bileşen tüm uygulama detaylarını gizler, API'sini uygulamasından temiz bir şekilde
+                ayırır. Bileşenler daha sonra yalnızca API'leri aracılığıyla iletişim kurar ve birbirlerinin iç
+                işleyişinden habersizdir. Bu kavram, <b>bilgi gizleme</b> (information hiding) veya <b>kapsülleme</b>
+                (encapsulation) olarak bilinir ve yazılım tasarımının temel bir ilkesidir [Parnas72].</p>
+
+            <p>Bilgi gizleme birçok nedenden dolayı önemlidir; bunların çoğu, bir sistemi oluşturan bileşenleri
+                <b>birbirinden ayırarak</b> (decoupling) bağımsız olarak geliştirilebilmelerine, test edilebilmelerine,
+                optimize edilebilmelerine, kullanılabilmelerine, anlaşılabilmelerine ve değiştirilebilmelerine olanak
+                tanımasından kaynaklanır.</p>
+
+            <p>Java'da erişim kontrol mekanizması [JLS, 6.6], sınıfların, arayüzlerin ve üyelerin
+                <b>erişilebilirliğini</b> (accessibility) belirler. Bir varlığın erişilebilirliği, bildiriminin konumu
+                ve hangisinin (eğer varsa) <code>private</code>, <code>protected</code> ve <code>public</code> erişim
+                değiştiricilerinin (access modifiers) bildirimde bulunduğu tarafından belirlenir.</p>
+
+            <p>Temel kural basittir: <b>her sınıfı veya üyeyi mümkün olduğunca erişilemez yapın.</b> Başka bir deyişle,
+                yazılımın düzgün çalışmasını sağlayan en düşük erişim düzeyini kullanın.</p>
+
+            <p>Üst düzey (iç içe olmayan) sınıflar ve arayüzler için yalnızca iki olası erişim düzeyi vardır:
+                <b>paket-özel</b> (package-private) ve <b>genel</b> (public). Bir üst düzey sınıfı veya arayüzü
+                <code>public</code> olarak bildirirseniz, o geneldir — aksi halde paket-özeldir. Bir sınıf veya arayüz
+                yalnızca bir sınıf tarafından kullanılıyorsa, onu kullanan sınıfın özel iç sınıfı (private nested class)
+                yapmayı düşünün (Madde 24).</p>
+
+            <p>Üyeler (alanlar, metotlar, iç sınıflar ve iç arayüzler) için dört olası erişim düzeyi vardır (en azdan en
+                çoğa doğru):</p>
+
+            <p>• <b>private</b> — Üyenin bildirildiği üst düzey sınıftan erişilebilir.<br>
+                • <b>package-private</b> (varsayılan) — Üyenin bildirildiği paketteki herhangi bir sınıftan
+                erişilebilir.<br>
+                • <b>protected</b> — Üyenin bildirildiği sınıfın alt sınıflarından ve paketindeki herhangi bir sınıftan
+                erişilebilir.<br>
+                • <b>public</b> — Her yerden erişilebilir.</p>
         </div>
 
         <div class="en-text" style="display:none">
-            <p><b>Do not use this technique.</b> It is fraught with danger from integer overflow and IEEE 754 floating
-                point artifacts. Use one of these instead:</p>
+            <p>The single most important factor distinguishing a well-designed component is the degree to which it hides
+                its internal data — <b>information hiding / encapsulation</b>. Java's access control mechanism specifies
+                accessibility via <code>private</code>, <code>protected</code>, <code>public</code>.</p>
+            <p>Rule of thumb: make each class or member as inaccessible as possible. Four levels: private,
+                package-private, protected, public.</p>
         </div>
 
-        <div class="code-block">
-            <span class="cm">// Statik compare metodu kullanan karşılaştırıcı</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder = <span class="kw">new</span> <span class="cl">Comparator</span>&lt;&gt;() {
-            <span class="kw">public int</span> compare(<span class="cl">Object</span> o1, <span class="cl">Object</span>
-            o2) {
-            <span class="kw">return</span> <span class="cl">Integer</span>.compare(o1.hashCode(), o2.hashCode());
-            }
-            };
-
-            <span class="cm">// Comparator construction method kullanan karşılaştırıcı</span>
-            <span class="kw">static</span> <span class="cl">Comparator</span>&lt;<span class="cl">Object</span>&gt;
-            hashCodeOrder =
-            <span class="cl">Comparator</span>.comparingInt(o -> o.hashCode());
-        </div>
-
-        <div class="tr-text">
-            <div class="summary-box">
-                <strong>Madde 14 — Özet:</strong> Anlamlı bir sıralamaya sahip bir değer sınıfı uyguladığınızda, sınıfın
-                <code>Comparable</code> arayüzünü uygulamasını sağlayın. Böylece örnekleri kolayca sıralanabilir,
-                aranabilir ve karşılaştırma tabanlı koleksiyonlarda kullanılabilir. <code>compareTo</code>
-                metotlarındaki alan değerlerini karşılaştırırken <code>&lt;</code> ve <code>&gt;</code> operatörlerini
-                kullanmaktan kaçının. Bunun yerine, sarmalayıcı ilkel sınıflardaki statik <code>compare</code>
-                metotlarını veya <code>Comparator</code> arayüzündeki karşılaştırıcı oluşturma metotlarını kullanın.
-            </div>
-
-            <div class="chapter-end-box">
-                <strong>🎉 Bölüm 3 Tamamlandı!</strong><br>
-                <em>Chapter 3: Methods Common to All Objects</em><br>
-                <span style="font-size:.88rem;color:#555;">Madde 10 (equals) • Madde 11 (hashCode) • Madde 12 (toString)
-                    • Madde 13 (clone) • Madde 14 (Comparable)</span>
-            </div>
-        </div>
-
-        <div class="en-text" style="display:none">
-            <div class="summary-box">
-                <strong>Item 14 — Summary:</strong> Implement <code>Comparable</code> for value classes with sensible
-                ordering. Use static <code>compare</code> methods or comparator construction methods instead of
-                <code>&lt;</code> and <code>&gt;</code> operators.
-            </div>
-
-            <div class="chapter-end-box">
-                <strong>🎉 Chapter 3 Complete!</strong><br>
-                <em>Chapter 3: Methods Common to All Objects</em><br>
-                <span style="font-size:.88rem;color:#555;">Item 10 (equals) • Item 11 (hashCode) • Item 12 (toString) •
-                    Item 13 (clone) • Item 14 (Comparable)</span>
-            </div>
-        </div>
+        <div class="cuts-box">⚠ Sayfa burada kesiliyor — Madde 15 devamı: public static final alanlar, dizi güvenlik
+            açığı, modüller sonraki sayfada.</div>
 
         <div class="concepts-row">
             <strong class="tr-text">🔍 Kavramlar:</strong>
             <strong class="en-text" style="display:none">🔍 Concepts:</strong><br>
-            <button class="concept-btn" onclick="openModal('diff-trap')">Fark Tabanlı Karşılaştırma Tuzağı</button>
+            <button class="concept-btn" onclick="openModal('encapsulation')">Bilgi Gizleme / Kapsülleme</button>
+            <button class="concept-btn" onclick="openModal('access-levels')">4 Erişim Düzeyi</button>
         </div>
 
         <div class="page-footer">
-            <button class="nav-btn" onclick="window.location.href='page-57.html'"><span class="nav-direction">← Önceki
-                    Sayfa</span><span class="nav-info">Sayfa 57 — PhoneNumber compareTo</span></button>
-            <button class="nav-btn" onclick="window.location.href='page-59.html'">
-                <span class="nav-direction">Sonraki Sayfa →</span>
-                <span class="nav-info">Sayfa 59 — Chapter 4: Sınıflar ve Arayüzler</span>
-            </button>
+            <button class="nav-btn" onclick="window.location.href='page-58.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 58 — Chapter 3 sonu</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-60.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 60 — static final, dizi, modüller</span></button>
         </div>
     </div>
 
-    <div class="modal-overlay" id="modal-diff-trap">
+    <div class="modal-overlay" id="modal-encapsulation">
         <div class="modal">
             <div class="modal-header">
-                <h3>Fark Tabanlı Karşılaştırma Tuzağı</h3><button class="modal-close"
-                    onclick="closeModal('diff-trap')">✕</button>
+                <h3>Bilgi Gizleme / Kapsülleme</h3><button class="modal-close"
+                    onclick="closeModal('encapsulation')">✕</button>
             </div>
             <div class="modal-body">
                 <div class="tr-text">
-                    <p><code>return a - b;</code> yaklaşımı ilk bakışta doğru gibi görünür, ancak iki sorun barındırır:
-                    </p>
-                    <p><b>1. Tamsayı taşması:</b> <code>a = Integer.MAX_VALUE</code> ve <code>b = -1</code> olduğunda,
-                        <code>a - b</code> taşar ve negatif bir değer döndürür — yanlış sonuç!
-                    </p>
-                    <p><b>2. Kayan nokta artefaktları:</b> <code>float</code> ve <code>double</code> için IEEE 754
-                        kuralları nedeniyle beklenmeyen sonuçlar oluşabilir.</p>
-                    <p><b>Çözüm:</b> Her zaman <code>Integer.compare(a, b)</code>, <code>Double.compare(a, b)</code>
-                        veya <code>Comparator.comparingInt()</code> kullanın.</p>
+                    <p>Bilgi gizleme (information hiding), bir bileşenin iç uygulama detaylarını dış dünyadan
+                        saklamasıdır. Faydaları:</p>
+                    <p>• <b>Bağımsız geliştirme:</b> Bileşenler paralel olarak geliştirilebilir<br>• <b>Bakım
+                            kolaylığı:</b> Değişiklikler yerel kalır<br>• <b>Performans ayarı:</b> Darboğazlar diğer
+                        bileşenleri etkilemeden optimize edilebilir<br>• <b>Yeniden kullanılabilirlik:</b> Gevşek bağlı
+                        bileşenler başka bağlamlarda kullanılabilir</p>
                 </div>
                 <div class="en-text" style="display:none">
-                    <p><code>return a - b</code> can overflow for integers and has IEEE 754 artifacts for floats. Always
-                        use <code>Integer.compare(a, b)</code> or comparator construction methods.</p>
+                    <p>Information hiding means concealing implementation details. Benefits: independent development,
+                        easier maintenance, performance tuning, reusability.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>const CURRENT_PAGE = 58;</script>
+    <div class="modal-overlay" id="modal-access-levels">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Java'nın 4 Erişim Düzeyi</h3><button class="modal-close"
+                    onclick="closeModal('access-levels')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tr-text">
+                    <p><b>private:</b> Yalnızca aynı sınıf içinden<br><b>package-private:</b> Aynı paket içinden
+                        (varsayılan)<br><b>protected:</b> Aynı paket + alt sınıflar<br><b>public:</b> Her yerden</p>
+                    <p><b>Kural:</b> Her zaman en kısıtlayıcı düzeyi seçin. <code>private</code> ile başlayın, yalnızca
+                        gerektiğinde genişletin.</p>
+                </div>
+                <div class="en-text" style="display:none">
+                    <p>private → package-private → protected → public. Always start with the most restrictive level.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 59;</script>
     <script src="../js/common.js"></script>
 </body>
 
