@@ -17,7 +17,8 @@ const PAGES_MAP = {
     56: 'page-56.html', 57: 'page-57.html', 58: 'page-58.html', 59: 'page-59.html', 60: 'page-60.html',
     61: 'page-61.html', 62: 'page-62.html', 63: 'page-63.html', 64: 'page-64.html', 65: 'page-65.html',
     66: 'page-66.html', 67: 'page-67.html', 68: 'page-68.html', 69: 'page-69.html', 70: 'page-70.html',
-    71: 'page-71.html', 72: 'page-72.html', 73: 'page-73.html'
+    71: 'page-71.html', 72: 'page-72.html', 73: 'page-73.html', 74: 'page-74.html', 75: 'page-75.html',
+    76: 'page-76.html'
 };
 
 function setLang(lang) {

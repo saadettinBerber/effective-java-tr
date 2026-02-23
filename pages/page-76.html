@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effective Java — Sayfa 76</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.7
+        }
+
+        .topbar {
+            background: #0d2137;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            flex-direction: column
+        }
+
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f5a623
+        }
+
+        .topbar-sub {
+            font-size: .78rem;
+            color: #a0b4c8;
+            margin-top: .1rem
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #a0b4c8;
+            color: #a0b4c8;
+            padding: .25rem .6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s
+        }
+
+        .lang-btn.active {
+            background: #f5a623;
+            border-color: #f5a623;
+            color: #0d2137;
+            font-weight: 700
+        }
+
+        .page-nav-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            position: relative
+        }
+
+        .page-nav-input-wrap label {
+            font-size: .78rem;
+            color: #a0b4c8
+        }
+
+        #pageNumInput {
+            width: 3.2rem;
+            padding: .22rem .4rem;
+            border-radius: 4px;
+            border: 1px solid #a0b4c8;
+            background: #162d45;
+            color: #fff;
+            font-size: .9rem;
+            text-align: center
+        }
+
+        #pageNumInput.error {
+            border-color: #e74c3c;
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-4px)
+            }
+
+            75% {
+                transform: translateX(4px)
+            }
+        }
+
+        #pageNavTooltip {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .75rem;
+            padding: .3rem .6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        #pageNavTooltip.visible {
+            opacity: 1
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem
+        }
+
+        .page-label {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: .3rem
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #0d2137;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 20px;
+            border: 1px solid #b8d0f0;
+            margin-bottom: 1.2rem
+        }
+
+        .summary-box {
+            background: #e8f4e8;
+            border-left: 4px solid #27ae60;
+            padding: 1rem 1.2rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+            font-size: .93rem;
+            color: #1a5c1a
+        }
+
+        .chapter-end-box {
+            background: #e3f2fd;
+            border: 2px solid #1976d2;
+            padding: 1.2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            text-align: center;
+            color: #0d2137
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem
+        }
+
+        h2.item-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0d2137;
+            margin: 2rem 0 .3rem;
+            border-bottom: 2px solid #f5a623;
+            padding-bottom: .3rem;
+            display: inline-block
+        }
+
+        p.item-title-en {
+            font-size: .85rem;
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 1rem
+        }
+
+        .code-block {
+            background: #1e2d3d;
+            color: #cdd9e5;
+            font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            font-size: .88rem;
+            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            line-height: 1.6;
+            border: 1px solid #2d4a66
+        }
+
+        .kw {
+            color: #79b8ff
+        }
+
+        .cm {
+            color: #6a737d;
+            font-style: italic
+        }
+
+        .cl {
+            color: #b392f0
+        }
+
+        .st {
+            color: #9ecbff
+        }
+
+        .an {
+            color: #85e89d
+        }
+
+        .num {
+            color: #f8c555
+        }
+
+        .concept-btn {
+            display: inline-block;
+            background: #f5a623;
+            color: #0d2137;
+            border: none;
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: .3rem .3rem .3rem 0;
+            transition: background .2s, transform .1s
+        }
+
+        .concept-btn:hover {
+            background: #e09510;
+            transform: translateY(-1px)
+        }
+
+        .concepts-row {
+            margin: 1.5rem 0
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .modal-overlay.active {
+            display: flex
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 10px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        .modal-header {
+            background: #0d2137;
+            color: #fff;
+            padding: 1rem 1.4rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .modal-header h3 {
+            font-size: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1
+        }
+
+        .modal-body {
+            padding: 1.4rem
+        }
+
+        .modal-body p {
+            font-size: .93rem;
+            margin-bottom: .8rem
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .nav-btn {
+            background: #0d2137;
+            color: #fff;
+            border: none;
+            padding: .7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: background .2s;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .nav-btn:hover {
+            background: #163a5f
+        }
+
+        .nav-btn .nav-direction {
+            font-size: .7rem;
+            color: #a0b4c8;
+            display: block;
+            margin-bottom: .2rem
+        }
+
+        .nav-btn .nav-info {
+            font-weight: 600
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 1rem 1rem 3rem
+            }
+
+            .topbar {
+                padding: .6rem 1rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="topbar-left">
+            <span class="topbar-title">Effective Java — Joshua Bloch</span>
+            <span class="topbar-sub">Chapter 6 &nbsp;›&nbsp; Item 39-41 / Bölüm 6 Sonu</span>
+        </div>
+        <div class="topbar-right">
+            <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <div class="page-nav-input-wrap">
+                <label for="pageNumInput">Sayfa</label>
+                <input type="text" id="pageNumInput" value="76" inputmode="numeric"
+                    onkeydown="if(event.key==='Enter')goToPageNum()" onblur="resetPageInput()" />
+                <div id="pageNavTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-label">Sayfa 76 / Page 76</div>
+        <div class="chapter-badge">Chapter 6 — Item 39-41 / Bölüm 6 Sonu</div>
+
+        <h2 class="item-title">Madde 39: Adlandırma Kalıpları Yerine Anotasyonları Tercih Edin</h2>
+        <p class="item-title-en">Item 39: Prefer annotations to naming patterns</p>
+
+        <div class="tr-text">
+            <p>Eskiden bazı çerçeveler (frameworks) <b>adlandırma kalıpları</b> (naming patterns) kullanırdı — örneğin
+                JUnit 3'te test metotlarının <code>testXxx</code> ile başlaması gerekiyordu. Bu yaklaşımın sorunları:
+                yazım hataları sessizce görmezden gelinir, belirli program öğeleriyle sınırlama yapılamaz ve parametre
+                ilişkilendirmenin iyi bir yolu yoktur.</p>
+
+            <p><b>Anotasyonlar</b> tüm bu sorunları çözer. Kendi anotasyonunuzu tanımlayabilirsiniz:</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p>Naming patterns (e.g., <code>testXxx</code> in JUnit 3) have problems: typos silently ignored, no
+                compile-time enforcement. <b>Annotations</b> solve everything:</p>
+        </div>
+
+        <div class="code-block">
+            <span class="cm">// İşaretleyici anotasyon (marker annotation)</span>
+            <span class="an">@Retention</span>(<span class="cl">RetentionPolicy</span>.RUNTIME)
+            <span class="an">@Target</span>(<span class="cl">ElementType</span>.METHOD)
+            <span class="kw">public</span> <span class="an">@interface</span> <span class="cl">Test</span> { }
+
+            <span class="cm">// Parametreli anotasyon — beklenen istisna</span>
+            <span class="an">@Retention</span>(<span class="cl">RetentionPolicy</span>.RUNTIME)
+            <span class="an">@Target</span>(<span class="cl">ElementType</span>.METHOD)
+            <span class="kw">public</span> <span class="an">@interface</span> <span class="cl">ExceptionTest</span> {
+            <span class="cl">Class</span>&lt;? <span class="kw">extends</span> <span class="cl">Throwable</span>&gt;
+            value();
+            }
+        </div>
+
+        <h2 class="item-title">Madde 40: @Override Anotasyonunu Tutarlı Kullanın</h2>
+        <p class="item-title-en">Item 40: Consistently use the Override annotation</p>
+
+        <div class="tr-text">
+            <p><code>@Override</code> yalnızca metot bildirimlerinde kullanılabilir ve üst türdeki bir metot bildirimini
+                ezdiğinizi (override) belirtir. Bu anotasyonu <b>tutarlı kullanmak</b>, sizi ciddi hatalardan korur.</p>
+
+            <p><b>Klasik hata:</b> <code>equals(Bigram other)</code> yazmak — bu <code>Object.equals(Object)</code>'i
+                ezmez, <b>aşırı yükler</b> (overloads)! <code>@Override</code> eklenirse derleyici hatayı yakalar.</p>
+
+            <p><b>Kural:</b> Ezdiğini düşündüğünüz <b>her metoda</b> <code>@Override</code> ekleyin. Tek istisna: soyut
+                metotları uyguladığınızda — derleyici zaten uygulamadığınızda hata verir (ama yine de ekleyin).</p>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <p><code>@Override</code> prevents accidental overloading instead of overriding. Classic bug:
+                <code>equals(Bigram other)</code> overloads instead of overriding. Add <code>@Override</code> to every
+                method you believe overrides a superclass method.</p>
+        </div>
+
+        <h2 class="item-title">Madde 41: Tür Tanımlamak İçin İşaretleyici Arayüzleri Kullanın</h2>
+        <p class="item-title-en">Item 41: Use marker interfaces to define types</p>
+
+        <div class="tr-text">
+            <p><b>İşaretleyici arayüz</b> (marker interface), hiçbir metot bildirimi içermeyen, yalnızca bir sınıfın
+                belirli bir özelliğe sahip olduğunu belirten bir arayüzdür — <code>Serializable</code> gibi.
+                <b>İşaretleyici anotasyon</b> (marker annotation) ise <code>@Override</code> gibi bir anotasyondur.</p>
+
+            <p><b>İşaretleyici arayüzün avantajı:</b> Bir <b>tür</b> tanımlar — derleme zamanında hata yakalanabilir.
+                <code>ObjectOutputStream.writeObject</code> aslında <code>Serializable</code> gerektirmeli ama
+                <code>Object</code> kabul eder — çalışma zamanında hata verir!</p>
+
+            <p><b>Kurallar:</b> İşaretli nesnelerin metot parametresi olarak geçmeyi planlıyorsanız → <b>arayüz</b>
+                kullanın (derleme zamanı tür denetimi). Sınıf dışı program öğelerini işaretliyorsanız ya da çerçeve
+                anotasyonları kullanıyorsanız → <b>anotasyon</b> kullanın.</p>
+
+            <div class="summary-box">
+                <strong>Bölüm 6 — Genel Özet:</strong><br>
+                • <b>Madde 34:</b> int sabitleri yerine enum<br>
+                • <b>Madde 35:</b> ordinal() yerine örnek alanı<br>
+                • <b>Madde 36:</b> Bit alanları yerine EnumSet<br>
+                • <b>Madde 37:</b> Sıra indeksleme yerine EnumMap<br>
+                • <b>Madde 38:</b> Arayüzlerle genişletilebilir enum<br>
+                • <b>Madde 39:</b> Anotasyonları tercih edin<br>
+                • <b>Madde 40:</b> @Override tutarlı kullanın<br>
+                • <b>Madde 41:</b> İşaretleyici arayüz vs anotasyon
+            </div>
+
+            <div class="chapter-end-box">
+                <strong>🎉 Bölüm 6 Tamamlandı!</strong><br>
+                <em>Chapter 6: Enums and Annotations</em><br>
+                <span style="font-size:.88rem;color:#555;">Madde 34-41 • 8 Madde</span>
+            </div>
+        </div>
+
+        <div class="en-text" style="display:none">
+            <div class="chapter-end-box">
+                <strong>🎉 Chapter 6 Complete!</strong><br>
+                <em>Chapter 6: Enums and Annotations — Items 34-41</em>
+            </div>
+        </div>
+
+        <div class="page-footer">
+            <button class="nav-btn" onclick="window.location.href='page-75.html'"><span class="nav-direction">← Önceki
+                    Sayfa</span><span class="nav-info">Sayfa 75 — EnumSet, EnumMap</span></button>
+            <button class="nav-btn" onclick="window.location.href='page-77.html'"><span class="nav-direction">Sonraki
+                    Sayfa →</span><span class="nav-info">Sayfa 77 — Chapter 7: Lambdalar &amp; Streamler</span></button>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 76;</script>
+    <script src="../js/common.js"></script>
+</body>
+
+</html>
